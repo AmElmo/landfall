@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2025-12-16T13:35:17.774Z",
+  "totalPrompts": 4,
+  "prompts": [
+    {
+      "step": 1,
+      "name": "Setup Style System",
+      "description": "Implement global styles, colors, typography",
+      "prompt": "# Task: Setup Style System for Landing Page\n\nRead the style configuration at `landfall/style.json` and implement the following:\n\n## 1. Tailwind Configuration\n\nUpdate `tailwind.config.js` (or `tailwind.config.ts`) with:\n\n### Custom Color Palette\n```\n  - primary: #9124eb\n  - primaryLight: #3d5a8a\n  - primaryDark: #4f65a1\n  - secondary: #7c3aed\n  - accent: #d6a44c\n  - background: #ffffff\n  - backgroundAlt: #f8fafc\n  - text: #1e293b\n  - textMuted: #64748b\n  - border: #e2e8f0\n  - success: #22c55e\n  - error: #ef4444\n```\n\n### Typography\n- Heading font: \"Inter\"\n- Body font: \"Inter\"\n- Scale: \"default\"\n\n### Design Tokens\n- Border radius: \"slightly-rounded\" (4px)\n- Shadows: \"subtle\" (light, barely visible shadows)\n\n## 2. Global Styles\n\nCreate/update `app/globals.css` with:\n- CSS custom properties for all colors\n- Base typography styles using the specified fonts\n- Utility classes for the border radius and shadow scales\n\n## 3. Font Setup\n\nConfigure the fonts using `next/font`:\n- Import \"Inter\" for headings\n- Import \"Inter\" for body text\n- Apply them via CSS variables\n\n\n## Style Guidelines\nThe overall aesthetic should feel: Modern, Bold\n\n\n\n**Important:** Do not create any pages or components yet - just the style foundation."
+    },
+    {
+      "step": 2,
+      "name": "Create Sitemap & Layout",
+      "description": "Setup pages and shared layout components",
+      "prompt": "# Task: Create Sitemap and Layout Structure\n\nRead the configuration files:\n- `landfall/sitemap.json` - Page definitions\n- `landfall/navigation.json` - Navbar and footer structure\n\n## 1. App Router Pages\n\nCreate the following pages in `app/`:\n  - Home (/) - No title set\n  - Pricing (/pricing) - Pricing\n  - About (/about) - About\n  - Testing (/testing) - Testing\n\nFor each page:\n- Create the folder structure (e.g., `app/pricing/page.tsx`)\n- Set up metadata using the `metadata` export\n- Leave the page content as a placeholder for now\n\n## 2. Root Layout (`app/layout.tsx`)\n\n- Import and apply the fonts configured in the previous step\n- Include the Navbar and Footer components\n- Wrap children in a main container\n\n## 3. Navbar Component (`components/Navbar.tsx`)\n\nBuild a responsive navbar with:\n\n**Logo:** Image from null\n\n**Navigation Links:**\n  - \"lalal\" → /fdfd (anchor)\n  - \"tatata\" → /tata (internal)\n  - \"tatata\" → /tata (internal)\n\n**CTA Buttons:**\n  - \"Logout\" → /signup (primary)\n\nRequirements:\n- Sticky positioning\n- Mobile hamburger menu\n- Smooth transitions\n\n## 4. Footer Component (`components/Footer.tsx`)\n\nBuild a footer with:\n\n**Columns:**\n  (none defined)\n\n**Social Links:** None\n\n**Copyright:** \"© 2024 Company Name\"\n\n\n\n\n## Tone Guidelines\nThe copy should feel: Professional, Direct, Warm\n\nUse the style system created in the previous step for all styling."
+    },
+    {
+      "step": 3,
+      "name": "Home - Features",
+      "description": "Build features section for Home page",
+      "prompt": "# Task: Build Features Section for Home\n\nRead the section configuration at `landfall/pages/home.json`, section ID: `section_1765892055800`\n\n## Section Details\n- **Type:** features\n- **Layout Variant:** features-two-column-cards\n- **Order:** 1 (position on page)\n\n## Copy Instructions\nNo specific copy instructions provided. Use placeholder content that matches the section type.\n\n## Visual Instructions\nNo specific visual instructions provided. Follow the layout variant and use appropriate placeholder images.\n\n\n\n## Tone Guidelines\nThe copy should feel: Professional, Direct, Warm\n\n\nDo: lala\n\n\n## Implementation Steps\n\n1. **Create Component**\n   Create `components/sections/FeaturesSection.tsx`\n\n2. **Follow Layout Pattern**\n   Implement the \"features-two-column-cards\" variant layout\n\n3. **Apply Styles**\n   Use the color palette from the style system:\n   - Primary: #9124eb\n   - Background: #ffffff\n   - Text: #1e293b\n\n4. **Add to Page**\n   Import and add the section to `app/page.tsx` in position 1\n\n5. **Make Responsive**\n   Ensure the section works on mobile, tablet, and desktop\n\n## Component Structure\n```tsx\nexport function FeaturesSection() {\n  return (\n    <section className=\"...\">\n      {/* Implement features-two-column-cards layout */}\n    </section>\n  );\n}\n```"
+    },
+    {
+      "step": 4,
+      "name": "Home - How It Works",
+      "description": "Build how-it-works section for Home page",
+      "prompt": "# Task: Build How It Works Section for Home\n\nRead the section configuration at `landfall/pages/home.json`, section ID: `section_1765892089909`\n\n## Section Details\n- **Type:** how-it-works\n- **Layout Variant:** how-it-works-with-screenshots\n- **Order:** 2 (position on page)\n\n## Copy Instructions\nNo specific copy instructions provided. Use placeholder content that matches the section type.\n\n## Visual Instructions\nNo specific visual instructions provided. Follow the layout variant and use appropriate placeholder images.\n\n\n\n## Tone Guidelines\nThe copy should feel: Professional, Direct, Warm\n\n\nDo: lala\n\n\n## Implementation Steps\n\n1. **Create Component**\n   Create `components/sections/HowItWorksSection.tsx`\n\n2. **Follow Layout Pattern**\n   Implement the \"how-it-works-with-screenshots\" variant layout\n\n3. **Apply Styles**\n   Use the color palette from the style system:\n   - Primary: #9124eb\n   - Background: #ffffff\n   - Text: #1e293b\n\n4. **Add to Page**\n   Import and add the section to `app/page.tsx` in position 2\n\n5. **Make Responsive**\n   Ensure the section works on mobile, tablet, and desktop\n\n## Component Structure\n```tsx\nexport function HowItWorksSection() {\n  return (\n    <section className=\"...\">\n      {/* Implement how-it-works-with-screenshots layout */}\n    </section>\n  );\n}\n```"
+    }
+  ]
+}

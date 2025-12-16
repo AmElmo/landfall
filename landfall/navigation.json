@@ -1,0 +1,44 @@
+{
+  "navbar": {
+    "logo": {
+      "type": "image",
+      "value": "LALALA",
+      "imagePath": null
+    },
+    "links": [
+      {
+        "label": "lalal",
+        "target": "/fdfd",
+        "type": "anchor"
+      },
+      {
+        "label": "tatata",
+        "target": "/tata",
+        "type": "internal"
+      },
+      {
+        "label": "tatata",
+        "target": "/tata",
+        "type": "internal"
+      }
+    ],
+    "cta": [
+      {
+        "label": "Logout",
+        "target": "/signup",
+        "style": "primary"
+      }
+    ]
+  },
+  "footer": {
+    "columns": [],
+    "social": [],
+    "copyright": "",
+    "newsletter": {
+      "enabled": false,
+      "heading": "",
+      "placeholder": "",
+      "buttonText": ""
+    }
+  }
+}

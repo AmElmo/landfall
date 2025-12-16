@@ -1,0 +1,36 @@
+{
+  "pages": [
+    {
+      "id": "page_home",
+      "name": "Home",
+      "slug": "/",
+      "isHomepage": true,
+      "metaTitle": "",
+      "metaDescription": ""
+    },
+    {
+      "id": "page_1765891955495",
+      "name": "Pricing",
+      "slug": "/pricing",
+      "isHomepage": false,
+      "metaTitle": "Pricing",
+      "metaDescription": ""
+    },
+    {
+      "id": "page_1765891960103",
+      "name": "About",
+      "slug": "/about",
+      "isHomepage": false,
+      "metaTitle": "About",
+      "metaDescription": ""
+    },
+    {
+      "id": "page_1765891967853",
+      "name": "Testing",
+      "slug": "/testing",
+      "isHomepage": false,
+      "metaTitle": "Testing",
+      "metaDescription": ""
+    }
+  ]
+}

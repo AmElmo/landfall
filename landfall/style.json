@@ -1,0 +1,28 @@
+{
+  "colors": {
+    "primary": "#9124eb",
+    "primaryLight": "#7186a8",
+    "primaryDark": "#8293bf",
+    "secondary": "#7c3aed",
+    "accent": "#d6a44c",
+    "background": "#ffffff",
+    "backgroundAlt": "#f8fafc",
+    "text": "#1e293b",
+    "textMuted": "#64748b",
+    "border": "#e2e8f0",
+    "success": "#22c55e",
+    "error": "#ef4444"
+  },
+  "typography": {
+    "headingFont": "Inter",
+    "bodyFont": "Inter",
+    "scale": "default"
+  },
+  "styleKeywords": [
+    "Modern",
+    "Bold"
+  ],
+  "borderRadius": "slightly-rounded",
+  "shadows": "subtle",
+  "inspirations": []
+}
