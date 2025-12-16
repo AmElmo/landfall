@@ -28,17 +28,18 @@ const stepComponents: Record<string, React.ComponentType> = {
 function StepContent() {
   const params = useParams();
   const router = useRouter();
-  const { isLoading, setCurrentStep } = useLandfall();
+  const { isLoading, currentStep, setCurrentStep } = useLandfall();
   const slug = params.slug as string;
 
   // Find the step by slug
   const step = STEPS.find((s) => s.slug === slug);
 
+  // Sync URL step with context only when they differ
   useEffect(() => {
-    if (step) {
+    if (step && currentStep !== step.id) {
       setCurrentStep(step.id);
     }
-  }, [step, setCurrentStep]);
+  }, [step?.id]); // Only depend on step.id to avoid re-running
 
   if (isLoading) {
     return (

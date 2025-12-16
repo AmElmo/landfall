@@ -112,14 +112,21 @@ export function LandfallProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setCurrentStep = async (step: number) => {
-    setCurrentStepState(step);
-    if (config) {
-      const updatedConfig = { ...config, currentStep: step, updatedAt: new Date().toISOString() };
+  const setCurrentStep = useCallback(async (step: number) => {
+    setCurrentStepState((prevStep) => {
+      if (prevStep === step) return prevStep;
+      return step;
+    });
+  }, []);
+
+  // Persist step changes to config
+  useEffect(() => {
+    if (config && config.currentStep !== currentStep) {
+      const updatedConfig = { ...config, currentStep, updatedAt: new Date().toISOString() };
       setConfig(updatedConfig);
-      await updateData("config", updatedConfig);
+      updateData("config", updatedConfig);
     }
-  };
+  }, [currentStep, config]);
 
   const updateConfig = async (data: Partial<Config>) => {
     if (config) {

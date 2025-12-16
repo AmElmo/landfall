@@ -7,22 +7,41 @@
     "accent": "#d6a44c",
     "background": "#ffffff",
     "backgroundAlt": "#f8fafc",
-    "text": "#1e293b",
-    "textMuted": "#64748b",
+    "text": "#cbbdbd",
+    "textMuted": "#3c74c3",
     "border": "#e2e8f0",
     "success": "#22c55e",
     "error": "#ef4444"
   },
   "typography": {
-    "headingFont": "Inter",
-    "bodyFont": "Inter",
+    "headingFont": "Plus Jakarta Sans",
+    "bodyFont": "Plus Jakarta Sans",
     "scale": "default"
   },
   "styleKeywords": [
     "Modern",
-    "Bold"
+    "Playful"
   ],
   "borderRadius": "slightly-rounded",
   "shadows": "subtle",
-  "inspirations": []
+  "inspirations": [
+    {
+      "id": "insp_1765894837917",
+      "type": "image",
+      "path": "assets/style-inspirations/CleanShot-2025-12-16-at-15-48-59-2x-45284d1a.png",
+      "notes": ""
+    },
+    {
+      "id": "insp_1765895017642",
+      "type": "image",
+      "path": "assets/style-inspirations/Screenshot-2025-12-16-at-15-10-45-84b73133.png",
+      "notes": ""
+    },
+    {
+      "id": "insp_1765895020180",
+      "type": "image",
+      "path": "assets/style-inspirations/Screenshot-2025-12-16-at-16-24-14-e2e79147.png",
+      "notes": ""
+    }
+  ]
 }
