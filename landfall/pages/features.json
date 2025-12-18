@@ -1,4 +1,15 @@
 {
   "pageId": "page_features",
-  "sections": []
+  "sections": [
+    {
+      "id": "section_1766035190597",
+      "type": "features",
+      "layoutVariant": "features-bento",
+      "layoutTemplateId": "features-bento",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
 }

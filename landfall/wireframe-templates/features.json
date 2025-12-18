@@ -1,0 +1,124 @@
+{
+  "sectionType": "features",
+  "templates": [
+    {
+      "id": "features-3-col-cards",
+      "name": "3-Column Cards",
+      "sectionType": "features",
+      "description": "Three feature cards in a row, each with icon, heading, and description",
+      "structure": "3-column-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "icon", "size": "large", "role": "feature-icon" },
+            { "type": "heading", "size": "small", "role": "feature-title" },
+            { "type": "paragraph", "size": "small", "role": "feature-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features-2-col-cards",
+      "name": "2-Column Cards",
+      "sectionType": "features",
+      "description": "Two larger feature cards with more space for detailed content",
+      "structure": "2-column-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 2,
+          "children": [
+            { "type": "icon", "size": "large", "role": "feature-icon" },
+            { "type": "heading", "size": "medium", "role": "feature-title" },
+            { "type": "paragraph", "size": "medium", "role": "feature-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features-icon-list",
+      "name": "Icon List",
+      "sectionType": "features",
+      "description": "Vertical list of features with icons on the left",
+      "structure": "vertical-list",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "left", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "left", "role": "section-subtitle" },
+        {
+          "type": "list",
+          "repeat": 4,
+          "children": [
+            { "type": "icon", "size": "medium", "role": "feature-icon" },
+            { "type": "heading", "size": "small", "role": "feature-title" },
+            { "type": "paragraph", "size": "small", "role": "feature-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features-alternating",
+      "name": "Alternating Rows",
+      "sectionType": "features",
+      "description": "Features with alternating image left/right layout",
+      "structure": "alternating-rows",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "image", "size": "large", "role": "feature-image" },
+            { "type": "heading", "size": "medium", "role": "feature-title" },
+            { "type": "paragraph", "size": "medium", "role": "feature-description" },
+            { "type": "button-secondary", "size": "small", "role": "feature-cta" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "features-bento",
+      "name": "Bento Grid",
+      "sectionType": "features",
+      "description": "Asymmetric grid layout with varied card sizes",
+      "structure": "bento-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "icon", "size": "large", "role": "feature-icon" },
+            { "type": "heading", "size": "medium", "role": "feature-title" },
+            { "type": "paragraph", "size": "medium", "role": "feature-description" }
+          ]
+        },
+        {
+          "type": "card",
+          "repeat": 2,
+          "size": "small",
+          "children": [
+            { "type": "icon", "size": "medium", "role": "feature-icon" },
+            { "type": "heading", "size": "small", "role": "feature-title" }
+          ]
+        },
+        {
+          "type": "card",
+          "repeat": 2,
+          "size": "medium",
+          "children": [
+            { "type": "icon", "size": "medium", "role": "feature-icon" },
+            { "type": "heading", "size": "small", "role": "feature-title" },
+            { "type": "paragraph", "size": "small", "role": "feature-description" }
+          ]
+        }
+      ]
+    }
+  ]
+}

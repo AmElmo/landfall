@@ -1,10 +1,10 @@
 {
   "navbar": {
-    "layout": "minimal",
+    "layout": "logo-left-links-right",
     "logo": {
       "type": "image",
-      "value": "/api/assets/serve/logo/android-chrome-512x512-cd31d815.png",
-      "imagePath": "/api/assets/serve/logo/android-chrome-512x512-cd31d815.png"
+      "value": "/api/assets/serve/logo/android-chrome-512x512-b0dffc6b.png",
+      "imagePath": "/api/assets/serve/logo/android-chrome-512x512-b0dffc6b.png"
     },
     "links": [
       {

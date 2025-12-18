@@ -28,7 +28,12 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, SectionType } from "@/lib/types";
+import { Section, SECTION_TYPES, SectionType, LayoutTemplate } from "@/lib/types";
+import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
+import { WireframePreview } from "@/components/wireframe/WireframePreview";
+
+// Section types that have wireframe templates available
+const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = ['features'];
 
 export default function SectionsStep() {
   const { sitemap, pages, updatePage, refreshData } = useLandfall();
@@ -43,12 +48,13 @@ export default function SectionsStep() {
 
   const generateId = () => `section_${Date.now()}`;
 
-  const addSection = (type: SectionType, variant: string) => {
+  const addSection = (type: SectionType, variant: string, templateId?: string) => {
     if (currentPage) {
       const newSection: Section = {
         id: generateId(),
         type,
         layoutVariant: variant,
+        layoutTemplateId: templateId,
         order: (currentPage.sections?.length || 0) + 1,
         copyInstructions: "",
         visualInstructions: "",
@@ -244,39 +250,17 @@ export default function SectionsStep() {
               </DialogHeader>
 
               {selectedSectionType ? (
-                <div className="space-y-4 pt-4">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setSelectedSectionType(null)}
-                    className="mb-2"
-                  >
-                    ← Back to section types
-                  </Button>
-                  <ScrollArea className="h-[400px]">
-                    <div className="grid grid-cols-2 gap-4 pr-4">
-                      {SECTION_TYPES[selectedSectionType]?.variants.map((variant) => (
-                        <button
-                          key={variant.id}
-                          onClick={() => addSection(selectedSectionType, variant.id)}
-                          className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
-                        >
-                          {/* Wireframe Preview */}
-                          <div className="mb-3 p-3 bg-muted/50 rounded-lg border h-24 overflow-hidden">
-                            <VariantWireframe type={selectedSectionType} variantId={variant.id} />
-                          </div>
-                          <div className="font-medium text-sm">{variant.name}</div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {variant.description}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
+                <LayoutTemplatePicker
+                  sectionType={selectedSectionType}
+                  onBack={() => setSelectedSectionType(null)}
+                  onSelect={(templateId, variantId) => {
+                    addSection(selectedSectionType, variantId, templateId);
+                  }}
+                />
               ) : (
                 <ScrollArea className="h-[500px] pt-4">
                   <div className="grid grid-cols-3 gap-4 pr-4">
-                    {(Object.keys(SECTION_TYPES) as SectionType[]).map((type) => {
+                    {SECTION_TYPES_WITH_TEMPLATES.map((type) => {
                       const sectionType = SECTION_TYPES[type];
                       return (
                         <button
@@ -291,9 +275,6 @@ export default function SectionsStep() {
                           <div className="font-medium text-sm">{sectionType.name}</div>
                           <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {sectionType.description}
-                          </div>
-                          <div className="text-xs text-primary mt-2 font-medium">
-                            {sectionType.variants.length} layouts →
                           </div>
                         </button>
                       );
@@ -327,7 +308,14 @@ function SectionEditor({
   onDelete: () => void;
 }) {
   const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
-  const variant = sectionType?.variants.find((v) => v.id === section.layoutVariant);
+  const { templates, isLoading: templatesLoading } = useWireframeTemplates(section.type);
+
+  // Find the current template
+  const currentTemplate = templates.find(t => t.id === section.layoutTemplateId);
+  const displayName = currentTemplate?.name || section.layoutVariant;
+
+  // Check if this section type has wireframe templates available
+  const hasWireframeTemplates = templates.length > 0;
 
   return (
     <div className="space-y-6">
@@ -344,38 +332,60 @@ function SectionEditor({
       <div className="p-4 bg-muted/50 rounded-xl">
         <div className="font-medium">{sectionType?.name || section.type}</div>
         <div className="text-sm text-muted-foreground">
-          {variant?.name || section.layoutVariant}
+          {displayName}
         </div>
       </div>
 
-      {/* Layout Variant Selector */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Layout Variant</Label>
-        <div className="grid grid-cols-2 gap-2">
-          {sectionType?.variants.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => onUpdate({ layoutVariant: v.id })}
-              className={cn(
-                "p-3 border rounded-lg text-left transition-all text-sm",
-                section.layoutVariant === v.id
-                  ? "border-primary bg-primary/5"
-                  : "hover:border-primary/50"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                {section.layoutVariant === v.id && (
-                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                )}
-                <div>
-                  <div className="font-medium">{v.name}</div>
-                  <div className="text-xs text-muted-foreground">{v.description}</div>
-                </div>
-              </div>
-            </button>
-          ))}
+      {/* Layout Template Selector - New wireframe-based picker */}
+      {hasWireframeTemplates && (
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Layout Template</Label>
+
+          {templatesLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => onUpdate({
+                    layoutTemplateId: template.id,
+                    layoutVariant: template.id
+                  })}
+                  className={cn(
+                    "p-3 border-2 rounded-xl text-left transition-all",
+                    section.layoutTemplateId === template.id
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-primary/50 hover:bg-muted/30"
+                  )}
+                >
+                  {/* Wireframe Preview */}
+                  <div className="mb-3 h-24 overflow-hidden">
+                    <WireframePreview template={template} compact className="h-full" />
+                  </div>
+
+                  {/* Template info */}
+                  <div className="flex items-start gap-2">
+                    {section.layoutTemplateId === template.id && (
+                      <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{template.name}</div>
+                      <div className="text-xs text-muted-foreground line-clamp-2">
+                        {template.description}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Copy Instructions */}
       <div className="space-y-3">
@@ -404,6 +414,72 @@ function SectionEditor({
           className="min-h-[120px]"
         />
       </div>
+    </div>
+  );
+}
+
+// Layout Template Picker for the Add Section dialog
+function LayoutTemplatePicker({
+  sectionType,
+  onBack,
+  onSelect,
+}: {
+  sectionType: SectionType;
+  onBack: () => void;
+  onSelect: (templateId: string, variantId: string) => void;
+}) {
+  const { templates, isLoading } = useWireframeTemplates(sectionType);
+  const sectionTypeInfo = SECTION_TYPES[sectionType];
+  const hasWireframeTemplates = templates.length > 0;
+
+  return (
+    <div className="space-y-4 pt-4">
+      <Button
+        variant="ghost"
+        onClick={onBack}
+        className="mb-2"
+      >
+        ← Back to section types
+      </Button>
+
+      {isLoading ? (
+        <div className="grid grid-cols-2 gap-4 pr-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-40 bg-muted/50 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : hasWireframeTemplates ? (
+        <ScrollArea className="h-[400px]">
+          <div className="grid grid-cols-2 gap-4 pr-4">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => onSelect(template.id, template.id)}
+                className="p-4 border-2 rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
+              >
+                {/* Wireframe Preview */}
+                <div className="mb-3 h-28 overflow-hidden">
+                  <WireframePreview template={template} className="h-full" />
+                </div>
+                <div className="font-medium text-sm">{template.name}</div>
+                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {template.description}
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+      ) : (
+        /* No templates available yet for this section type */
+        <div className="text-center py-12">
+          <div className="text-muted-foreground mb-2">
+            Layout templates for {sectionTypeInfo?.name} coming soon
+          </div>
+          <p className="text-xs text-muted-foreground">
+            This section type doesn&apos;t have wireframe templates yet.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

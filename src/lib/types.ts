@@ -168,7 +168,8 @@ export interface SectionInspiration {
 export interface Section {
   id: string;
   type: SectionType;
-  layoutVariant: string;
+  layoutVariant: string; // Legacy - keeping for backwards compatibility
+  layoutTemplateId?: string; // New wireframe-based layout template
   order: number;
   copyInstructions: string;
   visualInstructions: string;
@@ -343,3 +344,44 @@ export const SECTION_TYPES = {
     ]
   },
 } as const;
+
+// Wireframe Element Types
+export type WireframeElementType =
+  | 'heading'
+  | 'subheading'
+  | 'paragraph'
+  | 'label'
+  | 'button-primary'
+  | 'button-secondary'
+  | 'image'
+  | 'video'
+  | 'input'
+  | 'icon'
+  | 'list'
+  | 'card';
+
+export type WireframeElementSize = 'small' | 'medium' | 'large';
+export type WireframeElementAlign = 'left' | 'center' | 'right';
+
+export interface WireframeElement {
+  type: WireframeElementType;
+  size?: WireframeElementSize;
+  align?: WireframeElementAlign;
+  role?: string; // Semantic role for prompt generation (e.g., "title", "subtitle", "feature-description")
+  repeat?: number; // For repeating elements (e.g., 3 feature cards)
+  children?: WireframeElement[]; // For container elements like cards
+}
+
+export interface LayoutTemplate {
+  id: string;
+  name: string;
+  sectionType: SectionType;
+  description: string;
+  structure: string; // e.g., "3-column-grid", "alternating-rows", "centered-stack"
+  elements: WireframeElement[];
+}
+
+export interface LayoutTemplateCategory {
+  sectionType: SectionType;
+  templates: LayoutTemplate[];
+}
