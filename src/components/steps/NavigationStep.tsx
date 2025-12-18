@@ -838,29 +838,110 @@ function NavigationPreview({
         </div>
 
         <div className="min-h-[500px] flex flex-col">
-          {/* Navbar Preview */}
-          <div className="border-b p-4 flex items-center justify-between">
-            <div className="font-semibold">{navigation.navbar.logo.value || "Logo"}</div>
-            <div className="flex items-center gap-6">
-              {navigation.navbar.links.map((link, i) => (
-                <span key={i} className="text-sm text-muted-foreground">
-                  {link.label}
-                </span>
-              ))}
-              {navigation.navbar.cta.map((cta, i) => (
-                <button
-                  key={i}
-                  className={cn(
-                    "px-4 py-2 text-sm rounded-lg",
-                    cta.style === "primary"
-                      ? "bg-primary text-primary-foreground"
-                      : "border"
-                  )}
-                >
-                  {cta.label}
-                </button>
-              ))}
-            </div>
+          {/* Navbar Preview - adapts to selected layout */}
+          <div className="border-b p-4">
+            {navigation.navbar.layout === "logo-left-links-right" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogo navigation={navigation} />
+                <div className="flex items-center gap-6">
+                  {navigation.navbar.links.map((link, i) => (
+                    <span key={i} className="text-sm text-muted-foreground">
+                      {link.label}
+                    </span>
+                  ))}
+                  {navigation.navbar.cta.map((cta, i) => (
+                    <button
+                      key={i}
+                      className={cn(
+                        "px-4 py-2 text-sm rounded-lg",
+                        cta.style === "primary"
+                          ? "bg-primary text-primary-foreground"
+                          : "border"
+                      )}
+                    >
+                      {cta.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {navigation.navbar.layout === "logo-center-links-sides" && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  {navigation.navbar.links.slice(0, Math.ceil(navigation.navbar.links.length / 2)).map((link, i) => (
+                    <span key={i} className="text-sm text-muted-foreground">
+                      {link.label}
+                    </span>
+                  ))}
+                </div>
+                <NavbarLogo navigation={navigation} />
+                <div className="flex items-center gap-4">
+                  {navigation.navbar.links.slice(Math.ceil(navigation.navbar.links.length / 2)).map((link, i) => (
+                    <span key={i} className="text-sm text-muted-foreground">
+                      {link.label}
+                    </span>
+                  ))}
+                  {navigation.navbar.cta.map((cta, i) => (
+                    <button
+                      key={i}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-lg",
+                        cta.style === "primary"
+                          ? "bg-primary text-primary-foreground"
+                          : "border"
+                      )}
+                    >
+                      {cta.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {navigation.navbar.layout === "logo-left-links-center" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogo navigation={navigation} />
+                <div className="flex items-center gap-6">
+                  {navigation.navbar.links.map((link, i) => (
+                    <span key={i} className="text-sm text-muted-foreground">
+                      {link.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3">
+                  {navigation.navbar.cta.map((cta, i) => (
+                    <button
+                      key={i}
+                      className={cn(
+                        "px-4 py-2 text-sm rounded-lg",
+                        cta.style === "primary"
+                          ? "bg-primary text-primary-foreground"
+                          : "border"
+                      )}
+                    >
+                      {cta.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {navigation.navbar.layout === "minimal" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogo navigation={navigation} />
+                <div className="flex items-center gap-3">
+                  {navigation.navbar.cta.slice(0, 1).map((cta, i) => (
+                    <button
+                      key={i}
+                      className="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground"
+                    >
+                      {cta.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Content Placeholder */}
@@ -918,5 +999,24 @@ function NavigationPreview({
         </div>
       </div>
     </div>
+  );
+}
+
+function NavbarLogo({
+  navigation,
+}: {
+  navigation: NonNullable<ReturnType<typeof useLandfall>["navigation"]>;
+}) {
+  if (navigation.navbar.logo.imagePath) {
+    return (
+      <img
+        src={`/api/assets/serve/${navigation.navbar.logo.imagePath.replace(/^\/?(landfall\/)?assets\//, '')}`}
+        alt="Logo"
+        className="h-8 max-w-[120px] object-contain"
+      />
+    );
+  }
+  return (
+    <div className="font-semibold">{navigation.navbar.logo.value || "Logo"}</div>
   );
 }

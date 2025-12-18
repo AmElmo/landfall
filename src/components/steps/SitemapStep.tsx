@@ -1,39 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLandfall } from "@/lib/context";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { STEPS } from "@/lib/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Plus, Trash2, Home, FileText, Star, MoreHorizontal, ArrowLeft, Pencil, Loader2 } from "lucide-react";
+import { Plus, Trash2, Home, FileText, ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Page } from "@/lib/types";
 
 export default function SitemapStep() {
   const router = useRouter();
   const { sitemap, updateSitemap, refreshData, isSaving, setCurrentStep } = useLandfall();
-  const [editingPage, setEditingPage] = useState<Page | null>(null);
-  const [isAddingPage, setIsAddingPage] = useState(false);
-  const [newPage, setNewPage] = useState({
-    name: "",
-    slug: "",
-    metaTitle: "",
-    metaDescription: "",
-  });
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
 
   const stepIndex = 3;
   const totalSteps = STEPS.length;
@@ -41,6 +21,7 @@ export default function SitemapStep() {
   const generateId = () => `page_${Date.now()}`;
 
   const generateSlug = (name: string) => {
+    if (!name.trim()) return "/";
     return "/" + name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
   };
 
@@ -65,18 +46,15 @@ export default function SitemapStep() {
   };
 
   const addPage = async () => {
-    if (sitemap && newPage.name) {
+    if (sitemap) {
       const id = generateId();
-      const slug = newPage.slug || generateSlug(newPage.name);
-      const pageSlug = slug === "/" ? "home" : slug.replace(/^\//, "");
-
       const page: Page = {
         id,
-        name: newPage.name,
-        slug,
+        name: "",
+        slug: "/new-page",
         isHomepage: false,
-        metaTitle: newPage.metaTitle || newPage.name,
-        metaDescription: newPage.metaDescription,
+        metaTitle: "",
+        metaDescription: "",
       };
 
       await updateSitemap({
@@ -84,25 +62,50 @@ export default function SitemapStep() {
       });
 
       // Create the page file
-      await fetch(`/api/config/pages/${pageSlug}`, {
+      await fetch(`/api/config/pages/new-page`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pageId: id, sections: [] }),
       });
 
-      setNewPage({ name: "", slug: "", metaTitle: "", metaDescription: "" });
-      setIsAddingPage(false);
       refreshData();
+
+      // Start editing the new page
+      setEditingPageId(id);
+      setEditingValue("");
     }
   };
 
-  const updatePageDetails = async (page: Page) => {
+  const updatePageName = async (pageId: string, newName: string) => {
     if (sitemap) {
-      await updateSitemap({
-        pages: sitemap.pages.map((p) => (p.id === page.id ? page : p)),
-      });
-      setEditingPage(null);
+      const page = sitemap.pages.find((p) => p.id === pageId);
+      if (page) {
+        const oldSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
+        const newSlug = page.isHomepage ? "/" : generateSlug(newName);
+        const newSlugClean = newSlug === "/" ? "home" : newSlug.replace(/^\//, "");
+
+        await updateSitemap({
+          pages: sitemap.pages.map((p) =>
+            p.id === pageId
+              ? { ...p, name: newName, slug: newSlug, metaTitle: newName }
+              : p
+          ),
+        });
+
+        // Rename the page file if slug changed
+        if (oldSlug !== newSlugClean && !page.isHomepage) {
+          await fetch(`/api/config/pages/${oldSlug}`, { method: "DELETE" });
+          await fetch(`/api/config/pages/${newSlugClean}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pageId, sections: [] }),
+          });
+        }
+
+        refreshData();
+      }
     }
+    setEditingPageId(null);
   };
 
   const deletePage = async (pageId: string) => {
@@ -122,15 +125,17 @@ export default function SitemapStep() {
     }
   };
 
-  const setAsHomepage = async (pageId: string) => {
-    if (sitemap) {
-      await updateSitemap({
-        pages: sitemap.pages.map((p) => ({
-          ...p,
-          isHomepage: p.id === pageId,
-          slug: p.id === pageId ? "/" : p.slug === "/" ? generateSlug(p.name) : p.slug,
-        })),
-      });
+  const startEditing = (page: Page) => {
+    setEditingPageId(page.id);
+    setEditingValue(page.name);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, pageId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      updatePageName(pageId, editingValue);
+    } else if (e.key === "Escape") {
+      setEditingPageId(null);
     }
   };
 
@@ -164,7 +169,7 @@ export default function SitemapStep() {
           <div className="text-center">
             <h1 className="text-xl font-semibold tracking-tight">Plan your pages</h1>
             <p className="text-sm text-muted-foreground">
-              Click on a page to edit, or add new pages to your site
+              Click on a page name to edit it directly
             </p>
           </div>
 
@@ -211,7 +216,7 @@ export default function SitemapStep() {
               <p className="text-muted-foreground mb-6">
                 Add your first page to get started
               </p>
-              <Button onClick={() => setIsAddingPage(true)}>
+              <Button onClick={addPage}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Page
               </Button>
@@ -221,12 +226,16 @@ export default function SitemapStep() {
               {/* Homepage at top */}
               {homepage && (
                 <div className="flex flex-col items-center">
-                  <PageCard
+                  <InlinePageCard
                     page={homepage}
                     isHomepage
-                    onEdit={() => setEditingPage(homepage)}
-                    onDelete={() => deletePage(homepage.id)}
-                    onSetHomepage={() => {}}
+                    isEditing={editingPageId === homepage.id}
+                    editingValue={editingValue}
+                    onStartEdit={() => startEditing(homepage)}
+                    onEditChange={setEditingValue}
+                    onEditSubmit={() => updatePageName(homepage.id, editingValue)}
+                    onKeyDown={(e) => handleKeyDown(e, homepage.id)}
+                    onDelete={() => {}}
                   />
 
                   {/* Connector line from homepage */}
@@ -242,7 +251,7 @@ export default function SitemapStep() {
                   <div
                     className="h-0.5 bg-border"
                     style={{
-                      width: `${Math.min(otherPages.length * 200 + 100, 800)}px`,
+                      width: `${Math.min((otherPages.length + 1) * 200 + 100, 800)}px`,
                     }}
                   />
 
@@ -252,12 +261,16 @@ export default function SitemapStep() {
                       <div key={page.id} className="flex flex-col items-center">
                         {/* Vertical connector to each page */}
                         <div className="w-0.5 h-6 bg-border" />
-                        <PageCard
+                        <InlinePageCard
                           page={page}
                           isHomepage={false}
-                          onEdit={() => setEditingPage(page)}
+                          isEditing={editingPageId === page.id}
+                          editingValue={editingValue}
+                          onStartEdit={() => startEditing(page)}
+                          onEditChange={setEditingValue}
+                          onEditSubmit={() => updatePageName(page.id, editingValue)}
+                          onKeyDown={(e) => handleKeyDown(e, page.id)}
                           onDelete={() => deletePage(page.id)}
-                          onSetHomepage={() => setAsHomepage(page.id)}
                         />
                       </div>
                     ))}
@@ -266,7 +279,7 @@ export default function SitemapStep() {
                     <div className="flex flex-col items-center">
                       <div className="w-0.5 h-6 bg-border" />
                       <button
-                        onClick={() => setIsAddingPage(true)}
+                        onClick={addPage}
                         className={cn(
                           "px-6 py-4 rounded-xl border-2 border-dashed",
                           "bg-white/50 hover:bg-white hover:border-primary/50",
@@ -286,7 +299,7 @@ export default function SitemapStep() {
               {otherPages.length === 0 && homepage && (
                 <div className="flex flex-col items-center mt-8">
                   <button
-                    onClick={() => setIsAddingPage(true)}
+                    onClick={addPage}
                     className={cn(
                       "px-6 py-4 rounded-xl border-2 border-dashed",
                       "bg-white/50 hover:bg-white hover:border-primary/50",
@@ -319,152 +332,55 @@ export default function SitemapStep() {
           )}
         </div>
       </div>
-
-      {/* Edit Page Dialog */}
-      <Dialog
-        open={editingPage !== null}
-        onOpenChange={(open) => !open && setEditingPage(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Page</DialogTitle>
-          </DialogHeader>
-          {editingPage && (
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label>Page Name</Label>
-                <Input
-                  value={editingPage.name}
-                  onChange={(e) =>
-                    setEditingPage({ ...editingPage, name: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>URL Slug</Label>
-                <Input
-                  value={editingPage.slug}
-                  onChange={(e) =>
-                    setEditingPage({ ...editingPage, slug: e.target.value })
-                  }
-                  disabled={editingPage.isHomepage}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Meta Title</Label>
-                <Input
-                  value={editingPage.metaTitle}
-                  onChange={(e) =>
-                    setEditingPage({ ...editingPage, metaTitle: e.target.value })
-                  }
-                  placeholder="Page title for SEO"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Meta Description</Label>
-                <Input
-                  value={editingPage.metaDescription}
-                  onChange={(e) =>
-                    setEditingPage({
-                      ...editingPage,
-                      metaDescription: e.target.value,
-                    })
-                  }
-                  placeholder="Page description for SEO"
-                />
-              </div>
-              <Button
-                className="w-full"
-                onClick={() => updatePageDetails(editingPage)}
-              >
-                Save Changes
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Page Dialog */}
-      <Dialog open={isAddingPage} onOpenChange={setIsAddingPage}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Page</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label>Page Name</Label>
-              <Input
-                value={newPage.name}
-                onChange={(e) => {
-                  setNewPage({
-                    ...newPage,
-                    name: e.target.value,
-                    slug: generateSlug(e.target.value),
-                  });
-                }}
-                placeholder="e.g., Pricing"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>URL Slug</Label>
-              <Input
-                value={newPage.slug}
-                onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
-                placeholder="/pricing"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Meta Title (optional)</Label>
-              <Input
-                value={newPage.metaTitle}
-                onChange={(e) => setNewPage({ ...newPage, metaTitle: e.target.value })}
-                placeholder="Page title for SEO"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Meta Description (optional)</Label>
-              <Input
-                value={newPage.metaDescription}
-                onChange={(e) =>
-                  setNewPage({ ...newPage, metaDescription: e.target.value })
-                }
-                placeholder="Page description for SEO"
-              />
-            </div>
-            <Button className="w-full" onClick={addPage} disabled={!newPage.name}>
-              Add Page
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-// Page Card Component with inline actions
-function PageCard({
+// Inline editable Page Card Component
+function InlinePageCard({
   page,
   isHomepage,
-  onEdit,
+  isEditing,
+  editingValue,
+  onStartEdit,
+  onEditChange,
+  onEditSubmit,
+  onKeyDown,
   onDelete,
-  onSetHomepage,
 }: {
   page: Page;
   isHomepage: boolean;
-  onEdit: () => void;
+  isEditing: boolean;
+  editingValue: string;
+  onStartEdit: () => void;
+  onEditChange: (value: string) => void;
+  onEditSubmit: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
   onDelete: () => void;
-  onSetHomepage: () => void;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const generateSlug = (name: string) => {
+    if (!name.trim()) return "/";
+    return "/" + name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  };
+
   return (
     <div
       className={cn(
-        "group relative px-6 py-4 rounded-xl border-2 shadow-lg cursor-pointer",
-        "min-w-[160px] text-center transition-all hover:scale-105",
+        "group relative px-6 py-4 rounded-xl border-2 shadow-lg",
+        "min-w-[160px] text-center transition-all",
         isHomepage
           ? "bg-primary text-primary-foreground border-primary"
           : "bg-white border-border hover:border-primary/50"
       )}
-      onClick={onEdit}
     >
       <div className="flex items-center justify-center gap-2 mb-1">
         {isHomepage ? (
@@ -472,53 +388,50 @@ function PageCard({
         ) : (
           <FileText className="h-3.5 w-3.5 text-muted-foreground" />
         )}
-        <span className={cn("font-semibold", !isHomepage && "text-sm font-medium")}>
-          {page.name}
-        </span>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editingValue}
+            onChange={(e) => onEditChange(e.target.value)}
+            onBlur={onEditSubmit}
+            onKeyDown={onKeyDown}
+            className={cn(
+              "bg-transparent border-b outline-none text-center font-medium w-24",
+              isHomepage
+                ? "border-primary-foreground/50 text-primary-foreground"
+                : "border-border text-foreground"
+            )}
+            placeholder="Page name"
+          />
+        ) : (
+          <span
+            onClick={onStartEdit}
+            className={cn(
+              "font-medium cursor-text hover:underline",
+              !isHomepage && "text-sm"
+            )}
+          >
+            {page.name || "Untitled"}
+          </span>
+        )}
       </div>
       <div className={cn("text-xs", isHomepage ? "opacity-80" : "text-muted-foreground")}>
-        {page.slug}
+        {isEditing ? generateSlug(editingValue) : page.slug}
       </div>
 
-      {/* Actions dropdown */}
-      <div
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "p-1 rounded hover:bg-black/10",
-                isHomepage ? "text-primary-foreground" : "text-muted-foreground"
-              )}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            {!isHomepage && (
-              <>
-                <DropdownMenuItem onClick={onSetHomepage}>
-                  <Star className="h-4 w-4 mr-2" />
-                  Set as Homepage
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* Delete button - only visible on hover for non-homepage */}
+      {!isHomepage && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }

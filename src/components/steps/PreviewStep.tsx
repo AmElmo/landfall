@@ -11,8 +11,6 @@ import {
   Monitor,
   Tablet,
   Smartphone,
-  Eye,
-  EyeOff,
   Layers,
   FileText,
   Image,
@@ -26,7 +24,7 @@ export default function PreviewStep() {
   const { sitemap, pages, style, navigation } = useLandfall();
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>("home");
   const [viewMode, setViewMode] = useState<ViewMode>("desktop");
-  const [showAnnotations, setShowAnnotations] = useState(true);
+  const showAnnotations = true;
 
   const currentPage = pages[selectedPageSlug];
   const currentPageInfo = sitemap?.pages.find(
@@ -99,23 +97,6 @@ export default function PreviewStep() {
               </button>
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAnnotations(!showAnnotations)}
-            >
-              {showAnnotations ? (
-                <>
-                  <EyeOff className="h-4 w-4 mr-2" />
-                  Hide Notes
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Show Notes
-                </>
-              )}
-            </Button>
           </div>
         </div>
 

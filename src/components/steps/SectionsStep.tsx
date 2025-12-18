@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,8 @@ export default function SectionsStep() {
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [selectedSectionType, setSelectedSectionType] = useState<SectionType | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const currentPage = pages[selectedPageSlug];
 
@@ -85,6 +87,48 @@ export default function SectionsStep() {
         setEditingSection(null);
       }
     }
+  };
+
+  const reorderSections = (fromIndex: number, toIndex: number) => {
+    if (currentPage && fromIndex !== toIndex) {
+      const sections = [...currentPage.sections];
+      const [removed] = sections.splice(fromIndex, 1);
+      sections.splice(toIndex, 0, removed);
+      const reorderedSections = sections.map((s, i) => ({ ...s, order: i + 1 }));
+      updatePage(selectedPageSlug, { sections: reorderedSections });
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      reorderSections(draggedIndex, index);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   if (!sitemap) return null;
@@ -145,11 +189,24 @@ export default function SectionsStep() {
             const variant = sectionType?.variants.find(
               (v) => v.id === section.layoutVariant
             );
+            const isDragging = draggedIndex === index;
+            const isDragOver = dragOverIndex === index;
             return (
-              <button
+              <div
                 key={section.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
                 onClick={() => setEditingSection(section)}
-                className="w-full flex items-center gap-3 p-4 border rounded-xl hover:border-primary/50 transition-all text-left"
+                className={cn(
+                  "w-full flex items-center gap-3 p-4 border rounded-xl transition-all text-left cursor-pointer",
+                  isDragging && "opacity-50 scale-95",
+                  isDragOver && "border-primary border-2 bg-primary/5",
+                  !isDragging && !isDragOver && "hover:border-primary/50"
+                )}
               >
                 <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab flex-shrink-0" />
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -165,7 +222,7 @@ export default function SectionsStep() {
                   {index + 1}
                 </Badge>
                 <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              </button>
+              </div>
             );
           })}
 
@@ -177,7 +234,7 @@ export default function SectionsStep() {
                 Add Section
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-3xl max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle>
                   {selectedSectionType
@@ -195,38 +252,48 @@ export default function SectionsStep() {
                   >
                     ← Back to section types
                   </Button>
-                  <div className="grid grid-cols-2 gap-3">
-                    {SECTION_TYPES[selectedSectionType]?.variants.map((variant) => (
-                      <button
-                        key={variant.id}
-                        onClick={() => addSection(selectedSectionType, variant.id)}
-                        className="p-4 border rounded-xl hover:border-primary/50 text-left transition-all"
-                      >
-                        <div className="font-medium">{variant.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {variant.description}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  <ScrollArea className="h-[400px]">
+                    <div className="grid grid-cols-2 gap-4 pr-4">
+                      {SECTION_TYPES[selectedSectionType]?.variants.map((variant) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => addSection(selectedSectionType, variant.id)}
+                          className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
+                        >
+                          {/* Wireframe Preview */}
+                          <div className="mb-3 p-3 bg-muted/50 rounded-lg border h-24 overflow-hidden">
+                            <VariantWireframe type={selectedSectionType} variantId={variant.id} />
+                          </div>
+                          <div className="font-medium text-sm">{variant.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {variant.description}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
               ) : (
-                <ScrollArea className="h-[400px] pt-4">
-                  <div className="grid grid-cols-2 gap-3 pr-4">
+                <ScrollArea className="h-[500px] pt-4">
+                  <div className="grid grid-cols-3 gap-4 pr-4">
                     {(Object.keys(SECTION_TYPES) as SectionType[]).map((type) => {
                       const sectionType = SECTION_TYPES[type];
                       return (
                         <button
                           key={type}
                           onClick={() => setSelectedSectionType(type)}
-                          className="p-4 border rounded-xl hover:border-primary/50 text-left transition-all"
+                          className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
                         >
-                          <div className="font-medium">{sectionType.name}</div>
-                          <div className="text-sm text-muted-foreground">
+                          {/* Wireframe Preview */}
+                          <div className="mb-3 p-2 bg-muted/50 rounded-lg border h-16 overflow-hidden">
+                            <SectionTypeWireframe type={type} />
+                          </div>
+                          <div className="font-medium text-sm">{sectionType.name}</div>
+                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {sectionType.description}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-2">
-                            {sectionType.variants.length} layouts
+                          <div className="text-xs text-primary mt-2 font-medium">
+                            {sectionType.variants.length} layouts →
                           </div>
                         </button>
                       );
@@ -462,4 +529,363 @@ function SectionsPreview({
       </div>
     </div>
   );
+}
+
+// Wireframe preview for section types (shown in the category picker)
+function SectionTypeWireframe({ type }: { type: SectionType }) {
+  const wireframes: Record<SectionType, React.ReactNode> = {
+    hero: (
+      <div className="flex gap-2 items-center h-full">
+        <div className="flex-1 space-y-1">
+          <div className="h-2 bg-muted-foreground/40 rounded w-3/4" />
+          <div className="h-1.5 bg-muted-foreground/20 rounded w-1/2" />
+          <div className="h-3 w-8 bg-primary/40 rounded mt-1" />
+        </div>
+        <div className="w-10 h-8 bg-muted-foreground/20 rounded flex items-center justify-center">
+          <Image className="h-3 w-3 text-muted-foreground/40" />
+        </div>
+      </div>
+    ),
+    logos: (
+      <div className="flex items-center justify-center gap-2 h-full">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="w-6 h-4 bg-muted-foreground/20 rounded" />
+        ))}
+      </div>
+    ),
+    features: (
+      <div className="grid grid-cols-3 gap-1 h-full items-center">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-0.5">
+            <div className="w-3 h-3 bg-primary/30 rounded" />
+            <div className="h-1 bg-muted-foreground/30 rounded w-full" />
+            <div className="h-0.5 bg-muted-foreground/20 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    ),
+    'how-it-works': (
+      <div className="flex items-center justify-center gap-1 h-full">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-0.5">
+            <div className="w-4 h-4 rounded-full bg-primary/30 flex items-center justify-center text-[6px] font-bold text-primary/60">
+              {i}
+            </div>
+            {i < 3 && <div className="w-3 h-0.5 bg-muted-foreground/30" />}
+          </div>
+        ))}
+      </div>
+    ),
+    testimonials: (
+      <div className="grid grid-cols-3 gap-1 h-full items-center">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-1 bg-background rounded border space-y-0.5">
+            <div className="h-0.5 bg-muted-foreground/30 rounded w-full" />
+            <div className="h-0.5 bg-muted-foreground/20 rounded w-3/4" />
+            <div className="flex items-center gap-0.5 mt-0.5">
+              <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+              <div className="h-0.5 bg-muted-foreground/20 rounded w-3" />
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    pricing: (
+      <div className="grid grid-cols-3 gap-1 h-full items-center">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={cn("p-1 rounded border space-y-0.5", i === 2 && "border-primary/50 bg-primary/5")}>
+            <div className="h-1 bg-muted-foreground/30 rounded w-1/2" />
+            <div className="h-1.5 bg-muted-foreground/40 rounded w-2/3" />
+            <div className="h-2 bg-primary/30 rounded w-full mt-0.5" />
+          </div>
+        ))}
+      </div>
+    ),
+    faq: (
+      <div className="space-y-1 h-full flex flex-col justify-center">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded bg-muted-foreground/30 flex items-center justify-center text-[4px]">+</div>
+            <div className="h-1 bg-muted-foreground/30 rounded flex-1" />
+          </div>
+        ))}
+      </div>
+    ),
+    cta: (
+      <div className="flex flex-col items-center justify-center h-full gap-1">
+        <div className="h-1.5 bg-muted-foreground/40 rounded w-1/2" />
+        <div className="h-1 bg-muted-foreground/20 rounded w-1/3" />
+        <div className="h-3 w-10 bg-primary/40 rounded mt-0.5" />
+      </div>
+    ),
+    team: (
+      <div className="grid grid-cols-4 gap-1 h-full items-center">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex flex-col items-center gap-0.5">
+            <div className="w-4 h-4 rounded-full bg-muted-foreground/30" />
+            <div className="h-0.5 bg-muted-foreground/20 rounded w-full" />
+          </div>
+        ))}
+      </div>
+    ),
+    stats: (
+      <div className="grid grid-cols-4 gap-1 h-full items-center">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="text-center">
+            <div className="h-2 bg-primary/40 rounded w-3/4 mx-auto" />
+            <div className="h-0.5 bg-muted-foreground/20 rounded w-full mt-0.5" />
+          </div>
+        ))}
+      </div>
+    ),
+    contact: (
+      <div className="flex gap-2 h-full items-center">
+        <div className="flex-1 space-y-0.5">
+          <div className="h-1 bg-muted-foreground/30 rounded w-3/4" />
+          <div className="h-2 bg-muted-foreground/20 rounded w-full" />
+          <div className="h-2 bg-muted-foreground/20 rounded w-full" />
+          <div className="h-2.5 bg-primary/40 rounded w-1/3 mt-0.5" />
+        </div>
+      </div>
+    ),
+    content: (
+      <div className="grid grid-cols-3 gap-1 h-full items-center">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="border rounded overflow-hidden">
+            <div className="h-4 bg-muted-foreground/20" />
+            <div className="p-0.5 space-y-0.5">
+              <div className="h-0.5 bg-muted-foreground/30 rounded w-3/4" />
+              <div className="h-0.5 bg-muted-foreground/20 rounded w-1/2" />
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+  };
+
+  return wireframes[type] || null;
+}
+
+// Wireframe preview for specific layout variants
+function VariantWireframe({ type, variantId }: { type: SectionType; variantId: string }) {
+  // Hero variants
+  if (type === 'hero') {
+    if (variantId === 'hero-centered') {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-1">
+          <div className="h-2.5 bg-muted-foreground/40 rounded w-1/2" />
+          <div className="h-1.5 bg-muted-foreground/20 rounded w-1/3" />
+          <div className="flex gap-1 mt-1">
+            <div className="h-3 w-10 bg-primary/40 rounded" />
+            <div className="h-3 w-10 bg-muted-foreground/20 rounded" />
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'hero-centered-image-right' || variantId === 'hero-split-50-50') {
+      return (
+        <div className="flex gap-2 items-center h-full">
+          <div className="flex-1 space-y-1">
+            <div className="h-2 bg-muted-foreground/40 rounded w-3/4" />
+            <div className="h-1.5 bg-muted-foreground/20 rounded w-full" />
+            <div className="h-3 w-12 bg-primary/40 rounded mt-1" />
+          </div>
+          <div className="w-1/2 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
+            <Image className="h-4 w-4 text-muted-foreground/40" />
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'hero-fullwidth-bg' || variantId === 'hero-video-bg') {
+      return (
+        <div className="relative h-full bg-muted-foreground/20 rounded flex flex-col items-center justify-center">
+          <Image className="absolute right-1 top-1 h-2 w-2 text-muted-foreground/30" />
+          <div className="h-2 bg-white/80 rounded w-1/2 mb-1" />
+          <div className="h-1.5 bg-white/60 rounded w-1/3" />
+          <div className="h-3 w-10 bg-primary/60 rounded mt-1" />
+        </div>
+      );
+    }
+  }
+
+  // Features variants
+  if (type === 'features') {
+    if (variantId === 'features-three-column-cards') {
+      return (
+        <div className="grid grid-cols-3 gap-2 h-full items-center">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-1 border rounded space-y-1">
+              <div className="w-4 h-4 bg-primary/30 rounded" />
+              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
+              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (variantId === 'features-two-column-cards') {
+      return (
+        <div className="grid grid-cols-2 gap-2 h-full items-center">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-1.5 border rounded space-y-1">
+              <div className="w-5 h-5 bg-primary/30 rounded" />
+              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
+              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (variantId === 'features-alternating') {
+      return (
+        <div className="space-y-1 h-full flex flex-col justify-center">
+          <div className="flex gap-2">
+            <div className="flex-1 space-y-0.5">
+              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
+              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
+            </div>
+            <div className="w-8 h-6 bg-muted-foreground/20 rounded" />
+          </div>
+          <div className="flex gap-2">
+            <div className="w-8 h-6 bg-muted-foreground/20 rounded" />
+            <div className="flex-1 space-y-0.5">
+              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
+              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'features-bento-grid') {
+      return (
+        <div className="grid grid-cols-3 grid-rows-2 gap-1 h-full">
+          <div className="col-span-2 bg-muted-foreground/15 rounded p-1">
+            <div className="h-1 bg-muted-foreground/30 rounded w-1/2" />
+          </div>
+          <div className="row-span-2 bg-muted-foreground/15 rounded" />
+          <div className="bg-muted-foreground/15 rounded" />
+          <div className="bg-muted-foreground/15 rounded" />
+        </div>
+      );
+    }
+  }
+
+  // Pricing variants
+  if (type === 'pricing') {
+    if (variantId === 'pricing-three-tiers') {
+      return (
+        <div className="grid grid-cols-3 gap-2 h-full items-center">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={cn("p-1.5 rounded border space-y-1", i === 2 && "border-primary/50 bg-primary/5 scale-105")}>
+              <div className="h-1.5 bg-muted-foreground/30 rounded w-1/2 mx-auto" />
+              <div className="h-2 bg-muted-foreground/40 rounded w-2/3 mx-auto" />
+              <div className="space-y-0.5">
+                {[1, 2].map((j) => (
+                  <div key={j} className="h-0.5 bg-muted-foreground/20 rounded w-full" />
+                ))}
+              </div>
+              <div className="h-2.5 bg-primary/40 rounded w-full" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (variantId === 'pricing-two-tiers') {
+      return (
+        <div className="grid grid-cols-2 gap-3 h-full items-center px-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-2 rounded border space-y-1">
+              <div className="h-1.5 bg-muted-foreground/30 rounded w-1/2" />
+              <div className="h-2.5 bg-muted-foreground/40 rounded w-2/3" />
+              <div className="h-3 bg-primary/40 rounded w-full mt-1" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+  }
+
+  // Testimonials variants
+  if (type === 'testimonials') {
+    if (variantId === 'testimonials-single-featured') {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-2">
+          <div className="h-1.5 bg-muted-foreground/30 rounded w-3/4 mb-1" />
+          <div className="h-1 bg-muted-foreground/20 rounded w-1/2 mb-2" />
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-muted-foreground/30" />
+            <div className="h-1 bg-muted-foreground/20 rounded w-8" />
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'testimonials-carousel') {
+      return (
+        <div className="flex items-center justify-center gap-2 h-full">
+          <div className="w-2 h-2 bg-muted-foreground/20 rounded">←</div>
+          <div className="flex-1 p-2 bg-background rounded border">
+            <div className="h-1 bg-muted-foreground/30 rounded w-full mb-0.5" />
+            <div className="h-1 bg-muted-foreground/20 rounded w-3/4 mb-1" />
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+              <div className="h-1 bg-muted-foreground/20 rounded w-6" />
+            </div>
+          </div>
+          <div className="w-2 h-2 bg-muted-foreground/20 rounded">→</div>
+        </div>
+      );
+    }
+  }
+
+  // CTA variants
+  if (type === 'cta') {
+    if (variantId === 'cta-centered-simple') {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-1">
+          <div className="h-2.5 bg-muted-foreground/40 rounded w-1/2" />
+          <div className="h-1.5 bg-muted-foreground/20 rounded w-1/3" />
+          <div className="h-4 w-14 bg-primary/40 rounded mt-1" />
+        </div>
+      );
+    }
+    if (variantId === 'cta-with-form') {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-1">
+          <div className="h-2 bg-muted-foreground/40 rounded w-1/2" />
+          <div className="flex gap-1 w-2/3">
+            <div className="flex-1 h-3 bg-muted-foreground/20 rounded" />
+            <div className="h-3 w-8 bg-primary/40 rounded" />
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'cta-split-with-image') {
+      return (
+        <div className="flex gap-2 items-center h-full">
+          <div className="flex-1 space-y-1">
+            <div className="h-2 bg-muted-foreground/40 rounded w-3/4" />
+            <div className="h-1.5 bg-muted-foreground/20 rounded w-full" />
+            <div className="h-3 w-10 bg-primary/40 rounded mt-1" />
+          </div>
+          <div className="w-1/3 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
+            <Image className="h-3 w-3 text-muted-foreground/40" />
+          </div>
+        </div>
+      );
+    }
+    if (variantId === 'cta-banner') {
+      return (
+        <div className="h-full bg-primary/20 rounded flex items-center justify-between px-3">
+          <div className="space-y-0.5">
+            <div className="h-2 bg-primary/60 rounded w-16" />
+            <div className="h-1 bg-primary/40 rounded w-12" />
+          </div>
+          <div className="h-4 w-10 bg-white/80 rounded" />
+        </div>
+      );
+    }
+  }
+
+  // Default fallback - use the section type wireframe
+  return <SectionTypeWireframe type={type} />;
 }
