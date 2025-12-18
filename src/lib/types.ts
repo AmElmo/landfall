@@ -161,7 +161,9 @@ export type SectionType =
 
 export interface SectionInspiration {
   id: string;
-  path: string;
+  type: 'image' | 'url';
+  path?: string;
+  url?: string;
   notes: string;
 }
 

@@ -1,10 +1,10 @@
 {
   "navbar": {
-    "layout": "logo-left-links-right",
+    "layout": "logo-center-links-sides",
     "logo": {
       "type": "image",
-      "value": "/api/assets/serve/logo/android-chrome-512x512-b0dffc6b.png",
-      "imagePath": "/api/assets/serve/logo/android-chrome-512x512-b0dffc6b.png"
+      "value": "/api/assets/serve/logo/android-chrome-512x512-a5361df3.png",
+      "imagePath": "/api/assets/serve/logo/android-chrome-512x512-a5361df3.png"
     },
     "links": [
       {
@@ -33,8 +33,48 @@
   },
   "footer": {
     "layout": "columns-simple",
-    "columns": [],
-    "social": [],
+    "columns": [
+      {
+        "heading": "fdsfds",
+        "links": [
+          {
+            "label": "New Linkfdsfds",
+            "target": "/"
+          }
+        ]
+      },
+      {
+        "heading": "Column",
+        "links": [
+          {
+            "label": "New fdsfds",
+            "target": "/"
+          }
+        ]
+      },
+      {
+        "heading": "Column",
+        "links": []
+      },
+      {
+        "heading": "Column",
+        "links": []
+      }
+    ],
+    "social": [
+      {
+        "platform": "twitter",
+        "url": ""
+      },
+      {
+        "platform": "github",
+        "url": ""
+      },
+      {
+        "platform": "linkedin",
+        "url": ""
+      }
+    ],
     "copyright": "",
     "newsletter": {
       "enabled": false,

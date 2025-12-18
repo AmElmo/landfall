@@ -23,14 +23,14 @@ import {
   GripVertical,
   Layers,
   FileText,
-  Image,
   ChevronRight,
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, SectionType, LayoutTemplate } from "@/lib/types";
+import { Section, SECTION_TYPES, SectionType, LayoutTemplate, SectionInspiration } from "@/lib/types";
 import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
 import { WireframePreview } from "@/components/wireframe/WireframePreview";
+import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 
 // Section types that have wireframe templates available
 const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = ['features'];
@@ -387,6 +387,15 @@ function SectionEditor({
         </div>
       )}
 
+      {/* Inspirations - moved above Copy Instructions */}
+      <InspirationUploader
+        inspirations={section.inspirations as Inspiration[]}
+        onUpdate={(inspirations) => onUpdate({ inspirations: inspirations as SectionInspiration[] })}
+        title="Inspirations"
+        description="Add screenshots or URLs of section designs you like. Include notes about what appeals to you."
+        uploadCategory="section-inspirations"
+      />
+
       {/* Copy Instructions */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -397,20 +406,6 @@ function SectionEditor({
           value={section.copyInstructions}
           onChange={(e) => onUpdate({ copyInstructions: e.target.value })}
           placeholder="Describe what the text content should communicate. Be specific about headlines, body copy, CTAs, etc."
-          className="min-h-[120px]"
-        />
-      </div>
-
-      {/* Visual Instructions */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Image className="h-4 w-4 text-muted-foreground" />
-          <Label className="text-base font-medium">Visual Instructions</Label>
-        </div>
-        <Textarea
-          value={section.visualInstructions}
-          onChange={(e) => onUpdate({ visualInstructions: e.target.value })}
-          placeholder="Describe what images, graphics, or visual elements should be included. Be specific about style, colors, and composition."
           className="min-h-[120px]"
         />
       </div>
@@ -581,13 +576,13 @@ function SectionsPreview({
                     )}
                   </div>
 
-                  {(section.copyInstructions || section.visualInstructions) && (
+                  {(section.copyInstructions || section.inspirations?.length > 0) && (
                     <div className="mt-2 text-xs text-muted-foreground">
                       {section.copyInstructions && (
                         <div className="truncate">📝 {section.copyInstructions}</div>
                       )}
-                      {section.visualInstructions && (
-                        <div className="truncate">🖼️ {section.visualInstructions}</div>
+                      {section.inspirations?.length > 0 && (
+                        <div className="truncate">🖼️ {section.inspirations.length} inspiration{section.inspirations.length !== 1 ? 's' : ''}</div>
                       )}
                     </div>
                   )}

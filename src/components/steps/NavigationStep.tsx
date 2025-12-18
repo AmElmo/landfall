@@ -336,7 +336,10 @@ export default function NavigationStep() {
                           <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
                         </div>
                         <div className="w-8 h-3 bg-primary/60 rounded" />
-                        <div className="w-6 h-3 bg-primary rounded" />
+                        <div className="flex items-center gap-1">
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                          <div className="w-6 h-3 bg-primary rounded" />
+                        </div>
                       </>
                     )}
                     {layout.id === "logo-left-links-center" && (
@@ -949,52 +952,166 @@ function NavigationPreview({
             Page Content
           </div>
 
-          {/* Footer Preview */}
+          {/* Footer Preview - adapts to selected layout */}
           <div className="border-t bg-muted/30 p-6">
-            <div className="grid grid-cols-4 gap-6 mb-6">
-              {navigation.footer.columns.map((column, i) => (
-                <div key={i}>
-                  <div className="font-medium mb-2 text-sm">{column.heading}</div>
-                  <div className="space-y-1">
-                    {column.links.map((link, j) => (
-                      <div key={j} className="text-sm text-muted-foreground">
-                        {link.label}
+            {navigation.footer.layout === "columns-simple" && (
+              <>
+                <div className="grid grid-cols-4 gap-6 mb-6">
+                  {navigation.footer.columns.map((column, i) => (
+                    <div key={i}>
+                      <div className="font-medium mb-2 text-sm">{column.heading}</div>
+                      <div className="space-y-1">
+                        {column.links.map((link, j) => (
+                          <div key={j} className="text-sm text-muted-foreground">
+                            {link.label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {navigation.footer.newsletter.enabled && (
+                    <div>
+                      <div className="font-medium mb-2 text-sm">
+                        {navigation.footer.newsletter.heading || "Newsletter"}
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="h-8 flex-1 bg-background border rounded text-xs flex items-center px-2 text-muted-foreground">
+                          {navigation.footer.newsletter.placeholder || "Email"}
+                        </div>
+                        <button className="h-8 px-3 bg-primary text-primary-foreground rounded text-xs">
+                          {navigation.footer.newsletter.buttonText || "Subscribe"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="text-xs text-muted-foreground">
+                    {navigation.footer.copyright || "© 2024 Your Company"}
+                  </div>
+                  <div className="flex gap-3">
+                    {navigation.footer.social.map((social) => {
+                      const platform = SOCIAL_PLATFORMS.find(
+                        (p) => p.id === social.platform
+                      );
+                      if (!platform) return null;
+                      const Icon = platform.icon;
+                      return <Icon key={social.platform} className="h-4 w-4 text-muted-foreground" />;
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {navigation.footer.layout === "columns-with-logo" && (
+              <>
+                <div className="flex gap-8 mb-6">
+                  <div className="flex-shrink-0 space-y-2 max-w-[200px]">
+                    <NavbarLogo navigation={navigation} />
+                    <p className="text-xs text-muted-foreground">
+                      Building great products together.
+                    </p>
+                    <div className="flex gap-2 pt-2">
+                      {navigation.footer.social.map((social) => {
+                        const platform = SOCIAL_PLATFORMS.find(
+                          (p) => p.id === social.platform
+                        );
+                        if (!platform) return null;
+                        const Icon = platform.icon;
+                        return <Icon key={social.platform} className="h-4 w-4 text-muted-foreground" />;
+                      })}
+                    </div>
+                  </div>
+                  <div className="flex-1 grid grid-cols-3 gap-6">
+                    {navigation.footer.columns.map((column, i) => (
+                      <div key={i}>
+                        <div className="font-medium mb-2 text-sm">{column.heading}</div>
+                        <div className="space-y-1">
+                          {column.links.map((link, j) => (
+                            <div key={j} className="text-sm text-muted-foreground">
+                              {link.label}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              ))}
-              {navigation.footer.newsletter.enabled && (
-                <div>
-                  <div className="font-medium mb-2 text-sm">
-                    {navigation.footer.newsletter.heading || "Newsletter"}
-                  </div>
-                  <div className="flex gap-1">
-                    <div className="h-8 flex-1 bg-background border rounded text-xs flex items-center px-2 text-muted-foreground">
-                      {navigation.footer.newsletter.placeholder || "Email"}
-                    </div>
-                    <button className="h-8 px-3 bg-primary text-primary-foreground rounded text-xs">
-                      {navigation.footer.newsletter.buttonText || "Subscribe"}
-                    </button>
+                <div className="text-center pt-4 border-t">
+                  <div className="text-xs text-muted-foreground">
+                    {navigation.footer.copyright || "© 2024 Your Company"}
                   </div>
                 </div>
-              )}
-            </div>
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="text-xs text-muted-foreground">
-                {navigation.footer.copyright || "© 2024 Your Company"}
+              </>
+            )}
+
+            {navigation.footer.layout === "centered-minimal" && (
+              <div className="flex flex-col items-center gap-4">
+                <NavbarLogo navigation={navigation} />
+                <div className="flex flex-wrap justify-center gap-4">
+                  {navigation.footer.columns.flatMap((column) =>
+                    column.links.map((link, j) => (
+                      <span key={`${column.heading}-${j}`} className="text-sm text-muted-foreground">
+                        {link.label}
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  {navigation.footer.social.map((social) => {
+                    const platform = SOCIAL_PLATFORMS.find(
+                      (p) => p.id === social.platform
+                    );
+                    if (!platform) return null;
+                    const Icon = platform.icon;
+                    return <Icon key={social.platform} className="h-4 w-4 text-muted-foreground" />;
+                  })}
+                </div>
+                <div className="text-xs text-muted-foreground pt-2">
+                  {navigation.footer.copyright || "© 2024 Your Company"}
+                </div>
               </div>
-              <div className="flex gap-3">
-                {navigation.footer.social.map((social) => {
-                  const platform = SOCIAL_PLATFORMS.find(
-                    (p) => p.id === social.platform
-                  );
-                  if (!platform) return null;
-                  const Icon = platform.icon;
-                  return <Icon key={social.platform} className="h-4 w-4 text-muted-foreground" />;
-                })}
+            )}
+
+            {navigation.footer.layout === "stacked" && (
+              <div className="flex flex-col items-center gap-4">
+                <NavbarLogo navigation={navigation} />
+                <div className="flex flex-col items-center gap-1">
+                  {navigation.footer.columns.flatMap((column) =>
+                    column.links.map((link, j) => (
+                      <span key={`${column.heading}-${j}`} className="text-sm text-muted-foreground">
+                        {link.label}
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div className="flex gap-3 pt-2">
+                  {navigation.footer.social.map((social) => {
+                    const platform = SOCIAL_PLATFORMS.find(
+                      (p) => p.id === social.platform
+                    );
+                    if (!platform) return null;
+                    const Icon = platform.icon;
+                    return <Icon key={social.platform} className="h-4 w-4 text-muted-foreground" />;
+                  })}
+                </div>
+                {navigation.footer.newsletter.enabled && (
+                  <div className="w-full max-w-xs">
+                    <div className="flex gap-1">
+                      <div className="h-8 flex-1 bg-background border rounded text-xs flex items-center px-2 text-muted-foreground">
+                        {navigation.footer.newsletter.placeholder || "Email"}
+                      </div>
+                      <button className="h-8 px-3 bg-primary text-primary-foreground rounded text-xs">
+                        {navigation.footer.newsletter.buttonText || "Subscribe"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground pt-2">
+                  {navigation.footer.copyright || "© 2024 Your Company"}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -1008,9 +1125,14 @@ function NavbarLogo({
   navigation: NonNullable<ReturnType<typeof useLandfall>["navigation"]>;
 }) {
   if (navigation.navbar.logo.imagePath) {
+    // imagePath already contains the full serve path (e.g., /api/assets/serve/logo/file.png)
+    // or may be a legacy path like /landfall/assets/... - handle both cases
+    const logoSrc = navigation.navbar.logo.imagePath.startsWith('/api/assets/serve/')
+      ? navigation.navbar.logo.imagePath
+      : `/api/assets/serve/${navigation.navbar.logo.imagePath.replace(/^\/?(landfall\/)?assets\//, '')}`;
     return (
       <img
-        src={`/api/assets/serve/${navigation.navbar.logo.imagePath.replace(/^\/?(landfall\/)?assets\//, '')}`}
+        src={logoSrc}
         alt="Logo"
         className="h-8 max-w-[120px] object-contain"
       />
