@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -15,9 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, Upload, Paintbrush, Type, Square, Sun, Image, Plus, Rocket } from "lucide-react";
+import { Paintbrush, Type, Square, Sun, Plus, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StyleInspiration } from "@/lib/types";
+import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
+import { preloadGoogleFonts, useGoogleFont } from "@/hooks/useGoogleFonts";
 
 const STYLE_KEYWORDS = [
   "Modern",
@@ -58,6 +58,70 @@ const COLOR_FIELDS = [
   { key: "textMuted", label: "Muted Text", description: "Secondary text" },
 ] as const;
 
+// Predefined color palettes
+const COLOR_PALETTES = [
+  {
+    id: "midnight",
+    name: "Midnight",
+    colors: { primary: "#6366f1", background: "#0f172a", text: "#f8fafc", textMuted: "#94a3b8" },
+  },
+  {
+    id: "ocean",
+    name: "Ocean",
+    colors: { primary: "#0ea5e9", background: "#ffffff", text: "#0f172a", textMuted: "#64748b" },
+  },
+  {
+    id: "forest",
+    name: "Forest",
+    colors: { primary: "#22c55e", background: "#fafaf9", text: "#1c1917", textMuted: "#78716c" },
+  },
+  {
+    id: "sunset",
+    name: "Sunset",
+    colors: { primary: "#f97316", background: "#fffbeb", text: "#292524", textMuted: "#78716c" },
+  },
+  {
+    id: "berry",
+    name: "Berry",
+    colors: { primary: "#ec4899", background: "#fdf2f8", text: "#1f2937", textMuted: "#6b7280" },
+  },
+  {
+    id: "slate",
+    name: "Slate",
+    colors: { primary: "#475569", background: "#f8fafc", text: "#0f172a", textMuted: "#64748b" },
+  },
+  {
+    id: "lavender",
+    name: "Lavender",
+    colors: { primary: "#8b5cf6", background: "#faf5ff", text: "#1e1b4b", textMuted: "#6b7280" },
+  },
+  {
+    id: "coral",
+    name: "Coral",
+    colors: { primary: "#f43f5e", background: "#ffffff", text: "#18181b", textMuted: "#71717a" },
+  },
+  {
+    id: "teal",
+    name: "Teal",
+    colors: { primary: "#14b8a6", background: "#f0fdfa", text: "#134e4a", textMuted: "#5eead4" },
+  },
+  {
+    id: "amber",
+    name: "Amber",
+    colors: { primary: "#f59e0b", background: "#1c1917", text: "#fef3c7", textMuted: "#a8a29e" },
+  },
+  {
+    id: "rose",
+    name: "Rose",
+    colors: { primary: "#e11d48", background: "#0c0a09", text: "#fafaf9", textMuted: "#a8a29e" },
+  },
+  {
+    id: "emerald",
+    name: "Emerald",
+    colors: { primary: "#10b981", background: "#18181b", text: "#f4f4f5", textMuted: "#a1a1aa" },
+  },
+] as const;
+
 // Popular fonts for landing pages
 const POPULAR_FONTS = [
   { value: "Inter", label: "Inter", type: "sans-serif" },
@@ -75,17 +139,42 @@ const POPULAR_FONTS = [
   { value: "custom", label: "Custom font...", type: "custom" },
 ] as const;
 
+// Extract font values for preloading
+const FONT_VALUES = POPULAR_FONTS.filter((f) => f.value !== "custom").map((f) => f.value);
+
 export default function StyleStep() {
   const { style, updateStyle } = useLandfall();
   const [showCustomFont, setShowCustomFont] = useState(false);
   const [customFontInput, setCustomFontInput] = useState("");
-  const [inspirationNote, setInspirationNote] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Preload all Google Fonts on mount
+  useEffect(() => {
+    preloadGoogleFonts(FONT_VALUES);
+  }, []);
+
+  // Load the currently selected font for the preview
+  const selectedFont = style?.typography.headingFont || "Inter";
+  useGoogleFont(selectedFont);
 
   const handleColorChange = (key: string, value: string) => {
     if (style) {
       updateStyle({
         colors: { ...style.colors, [key]: value },
+      });
+    }
+  };
+
+  const handlePaletteSelect = (paletteId: string) => {
+    const palette = COLOR_PALETTES.find((p) => p.id === paletteId);
+    if (palette && style) {
+      updateStyle({
+        colors: {
+          ...style.colors,
+          primary: palette.colors.primary,
+          background: palette.colors.background,
+          text: palette.colors.text,
+          textMuted: palette.colors.textMuted,
+        },
       });
     }
   };
@@ -139,50 +228,9 @@ export default function StyleStep() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0 || !style) return;
-
-    const file = files[0];
-
-    // Create FormData and upload
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/assets/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const newInspiration: StyleInspiration = {
-          id: `insp_${Date.now()}`,
-          type: "image",
-          path: data.path,
-          notes: inspirationNote,
-        };
-        updateStyle({
-          inspirations: [...(style.inspirations || []), newInspiration],
-        });
-        setInspirationNote("");
-      }
-    } catch (error) {
-      console.error("Upload failed:", error);
-    }
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const removeInspiration = (id: string) => {
+  const handleInspirationsUpdate = (inspirations: Inspiration[]) => {
     if (style) {
-      updateStyle({
-        inspirations: style.inspirations.filter((i) => i.id !== id),
-      });
+      updateStyle({ inspirations });
     }
   };
 
@@ -205,9 +253,46 @@ export default function StyleStep() {
           <Label className="text-base font-medium">Color Palette</Label>
         </div>
         <p className="text-sm text-muted-foreground">
-          Choose your core colors - these will be applied throughout your landing page
+          Pick a preset palette or customize individual colors below
         </p>
-        <div className="grid grid-cols-2 gap-4">
+
+        {/* Preset Palettes */}
+        <div className="grid grid-cols-4 gap-2">
+          {COLOR_PALETTES.map((palette) => (
+            <button
+              key={palette.id}
+              onClick={() => handlePaletteSelect(palette.id)}
+              className={cn(
+                "p-2 rounded-lg border-2 transition-all hover:scale-105",
+                "flex flex-col items-center gap-1.5"
+              )}
+              title={palette.name}
+            >
+              <div className="flex gap-0.5 w-full">
+                <div
+                  className="h-6 flex-1 rounded-l-sm"
+                  style={{ backgroundColor: palette.colors.background }}
+                />
+                <div
+                  className="h-6 flex-1"
+                  style={{ backgroundColor: palette.colors.primary }}
+                />
+                <div
+                  className="h-6 flex-1"
+                  style={{ backgroundColor: palette.colors.text }}
+                />
+                <div
+                  className="h-6 flex-1 rounded-r-sm"
+                  style={{ backgroundColor: palette.colors.textMuted }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">{palette.name}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Individual Color Fields */}
+        <div className="grid grid-cols-2 gap-4 pt-2">
           {COLOR_FIELDS.map(({ key, label, description }) => (
             <div key={key} className="space-y-2">
               <div className="flex items-center gap-3">
@@ -278,74 +363,13 @@ export default function StyleStep() {
       </div>
 
       {/* Inspiration Images Upload */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Image className="h-4 w-4 text-muted-foreground" />
-          <Label className="text-base font-medium">Inspiration Screenshots</Label>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Upload screenshots of designs you like. Add a note about what you like about each one.
-        </p>
-
-        {/* Existing inspirations */}
-        {style.inspirations && style.inspirations.length > 0 && (
-          <div className="grid grid-cols-2 gap-3">
-            {style.inspirations.map((insp) => (
-              <div key={insp.id} className="relative group">
-                <div className="aspect-video rounded-lg border overflow-hidden bg-muted">
-                  {insp.type === "image" && insp.path && (
-                    <img
-                      src={insp.path}
-                      alt="Inspiration"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                {insp.notes && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {insp.notes}
-                  </p>
-                )}
-                <button
-                  onClick={() => removeInspiration(insp.id)}
-                  className="absolute top-1 right-1 p-1 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Upload area */}
-        <div className="space-y-3">
-          <Textarea
-            placeholder="What do you like about this design? (optional)"
-            value={inspirationNote}
-            onChange={(e) => setInspirationNote(e.target.value)}
-            className="min-h-[60px] text-sm"
-          />
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors"
-          >
-            <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Click to upload an inspiration screenshot
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              PNG, JPG up to 5MB
-            </p>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-        </div>
-      </div>
+      <InspirationUploader
+        inspirations={style.inspirations || []}
+        onUpdate={handleInspirationsUpdate}
+        title="Inspiration"
+        description="Upload screenshots or add URLs of designs you like. Include notes about what appeals to you."
+        uploadCategory="style-inspirations"
+      />
 
       {/* Typography - Single font with dropdown */}
       <div className="space-y-4">
@@ -361,15 +385,27 @@ export default function StyleStep() {
             value={isCustomFont ? "custom" : style.typography.headingFont}
             onValueChange={handleFontChange}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger
+              className="w-full"
+              style={{
+                fontFamily: style.typography.headingFont
+                  ? `"${style.typography.headingFont}", sans-serif`
+                  : undefined,
+              }}
+            >
               <SelectValue placeholder="Select a font">
-                {isCustomFont ? style.typography.headingFont : undefined}
+                {isCustomFont ? style.typography.headingFont : currentFont?.label}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {POPULAR_FONTS.map((font) => (
                 <SelectItem key={font.value} value={font.value}>
-                  <span style={{ fontFamily: font.value !== "custom" ? font.value : undefined }}>
+                  <span
+                    style={{
+                      fontFamily:
+                        font.value !== "custom" ? `"${font.value}", sans-serif` : undefined,
+                    }}
+                  >
                     {font.label}
                   </span>
                 </SelectItem>
@@ -478,7 +514,10 @@ function StylePreview({ style }: { style: NonNullable<ReturnType<typeof useLandf
         {/* Preview Content - SpaceX inspired */}
         <div
           className="p-8 min-h-[550px]"
-          style={{ backgroundColor: style.colors.background }}
+          style={{
+            backgroundColor: style.colors.background,
+            fontFamily: `"${style.typography.headingFont}", sans-serif`,
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-16">

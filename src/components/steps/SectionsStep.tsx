@@ -91,7 +91,7 @@ export default function SectionsStep() {
 
   return (
     <OnboardingShell
-      stepIndex={5}
+      stepIndex={4}
       title="Build your sections"
       description="Add and configure sections for each page. Define what each section should contain."
       preview={

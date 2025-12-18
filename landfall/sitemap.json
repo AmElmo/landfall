@@ -9,7 +9,15 @@
       "metaDescription": ""
     },
     {
-      "id": "page_1765891955495",
+      "id": "page_features",
+      "name": "Features",
+      "slug": "/features",
+      "isHomepage": false,
+      "metaTitle": "Features",
+      "metaDescription": ""
+    },
+    {
+      "id": "page_pricing",
       "name": "Pricing",
       "slug": "/pricing",
       "isHomepage": false,
@@ -17,7 +25,7 @@
       "metaDescription": ""
     },
     {
-      "id": "page_1765891960103",
+      "id": "page_about",
       "name": "About",
       "slug": "/about",
       "isHomepage": false,
@@ -25,11 +33,11 @@
       "metaDescription": ""
     },
     {
-      "id": "page_1765891967853",
-      "name": "Testing",
-      "slug": "/testing",
+      "id": "page_1765897115594",
+      "name": "fdsfds",
+      "slug": "/fdsfds",
       "isHomepage": false,
-      "metaTitle": "Testing",
+      "metaTitle": "fdsfds",
       "metaDescription": ""
     }
   ]

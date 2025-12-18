@@ -1,9 +1,10 @@
 {
   "navbar": {
+    "layout": "minimal",
     "logo": {
       "type": "image",
-      "value": "LALALA",
-      "imagePath": null
+      "value": "/api/assets/serve/logo/android-chrome-512x512-cd31d815.png",
+      "imagePath": "/api/assets/serve/logo/android-chrome-512x512-cd31d815.png"
     },
     "links": [
       {
@@ -15,22 +16,23 @@
         "label": "tatata",
         "target": "/tata",
         "type": "internal"
-      },
-      {
-        "label": "tatata",
-        "target": "/tata",
-        "type": "internal"
       }
     ],
     "cta": [
       {
-        "label": "Logout",
+        "label": "Signup",
         "target": "/signup",
         "style": "primary"
+      },
+      {
+        "label": "Button",
+        "target": "/signup",
+        "style": "secondary"
       }
     ]
   },
   "footer": {
+    "layout": "columns-simple",
     "columns": [],
     "social": [],
     "copyright": "",

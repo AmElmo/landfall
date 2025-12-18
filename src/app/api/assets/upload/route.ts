@@ -37,12 +37,13 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     await fs.writeFile(filePath, buffer);
 
-    // Return relative path from landfall directory
-    const relativePath = `assets/${category}/${uniqueName}`;
+    // Return path that can be served via the serve route
+    const relativePath = `${category}/${uniqueName}`;
+    const servePath = `/api/assets/serve/${relativePath}`;
 
     return NextResponse.json({
       success: true,
-      path: relativePath,
+      path: servePath,
       filename: uniqueName,
     });
   } catch (error) {

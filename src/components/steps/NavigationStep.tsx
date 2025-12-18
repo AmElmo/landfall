@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Menu, Twitter, Github, Linkedin } from "lucide-react";
+import { Plus, Trash2, GripVertical, Upload, X, Twitter, Github, Linkedin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NavLink, NavCta, FooterColumn, SocialLink } from "@/lib/types";
+import { NavLink, NavCta, FooterColumn, NavbarLayout, FooterLayout } from "@/lib/types";
 
 const SOCIAL_PLATFORMS = [
   { id: "twitter", name: "Twitter", icon: Twitter },
@@ -25,10 +25,105 @@ const SOCIAL_PLATFORMS = [
   { id: "linkedin", name: "LinkedIn", icon: Linkedin },
 ];
 
+// Navbar layout options with visual descriptions
+const NAVBAR_LAYOUTS: { id: NavbarLayout; name: string; description: string }[] = [
+  {
+    id: "logo-left-links-right",
+    name: "Classic",
+    description: "Logo left, navigation links and CTAs on the right",
+  },
+  {
+    id: "logo-center-links-sides",
+    name: "Centered Logo",
+    description: "Logo in center, links split on both sides",
+  },
+  {
+    id: "logo-left-links-center",
+    name: "Centered Links",
+    description: "Logo left, navigation centered, CTAs right",
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    description: "Logo and single CTA only, clean look",
+  },
+];
+
+// Footer layout options with visual descriptions
+const FOOTER_LAYOUTS: { id: FooterLayout; name: string; description: string }[] = [
+  {
+    id: "columns-simple",
+    name: "Multi-Column",
+    description: "Multiple link columns with social icons at bottom",
+  },
+  {
+    id: "columns-with-logo",
+    name: "Branded",
+    description: "Logo and description on left, link columns on right",
+  },
+  {
+    id: "centered-minimal",
+    name: "Centered Minimal",
+    description: "Centered logo, links in a row, simple copyright",
+  },
+  {
+    id: "stacked",
+    name: "Stacked",
+    description: "All elements stacked vertically, centered",
+  },
+];
+
 export default function NavigationStep() {
   const { navigation, sitemap, updateNavigation } = useLandfall();
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   if (!navigation || !sitemap) return null;
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    setIsUploadingLogo(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("category", "logo");
+
+    try {
+      const res = await fetch("/api/assets/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        updateNavigation({
+          navbar: {
+            ...navigation.navbar,
+            logo: { type: "image", value: data.path, imagePath: data.path },
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Logo upload failed:", error);
+    } finally {
+      setIsUploadingLogo(false);
+      if (logoInputRef.current) {
+        logoInputRef.current.value = "";
+      }
+    }
+  };
+
+  const removeLogo = () => {
+    updateNavigation({
+      navbar: {
+        ...navigation.navbar,
+        logo: { type: "image", value: "", imagePath: null },
+      },
+    });
+  };
 
   const addNavLink = () => {
     const newLink: NavLink = {
@@ -61,10 +156,13 @@ export default function NavigationStep() {
   };
 
   const addCta = () => {
+    // Limit to 2 CTAs max (primary + secondary is standard for landing pages)
+    if (navigation.navbar.cta.length >= 2) return;
+
     const newCta: NavCta = {
       label: "Button",
       target: "/signup",
-      style: "primary",
+      style: navigation.navbar.cta.length === 0 ? "primary" : "secondary",
     };
     updateNavigation({
       navbar: {
@@ -185,7 +283,7 @@ export default function NavigationStep() {
 
   return (
     <OnboardingShell
-      stepIndex={4}
+      stepIndex={5}
       title="Configure navigation"
       description="Set up your navbar and footer. These will appear on every page."
       preview={<NavigationPreview navigation={navigation} />}
@@ -197,45 +295,124 @@ export default function NavigationStep() {
         </TabsList>
 
         <TabsContent value="navbar" className="space-y-6 mt-6">
-          {/* Logo */}
+          {/* Navbar Layout Selection */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Navbar Layout</Label>
+            <p className="text-sm text-muted-foreground">
+              Choose a layout style for your navigation bar
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {NAVBAR_LAYOUTS.map((layout) => (
+                <button
+                  key={layout.id}
+                  onClick={() =>
+                    updateNavigation({
+                      navbar: { ...navigation.navbar, layout: layout.id },
+                    })
+                  }
+                  className={cn(
+                    "p-4 border-2 rounded-lg text-left transition-all hover:border-primary/50",
+                    navigation.navbar.layout === layout.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  )}
+                >
+                  {/* Mini visual preview */}
+                  <div className="mb-3 p-2 bg-muted/50 rounded border h-12 flex items-center justify-between text-[8px]">
+                    {layout.id === "logo-left-links-right" && (
+                      <>
+                        <div className="w-8 h-3 bg-primary/60 rounded" />
+                        <div className="flex items-center gap-1">
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                          <div className="w-6 h-3 bg-primary rounded" />
+                        </div>
+                      </>
+                    )}
+                    {layout.id === "logo-center-links-sides" && (
+                      <>
+                        <div className="flex gap-1">
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                        </div>
+                        <div className="w-8 h-3 bg-primary/60 rounded" />
+                        <div className="w-6 h-3 bg-primary rounded" />
+                      </>
+                    )}
+                    {layout.id === "logo-left-links-center" && (
+                      <>
+                        <div className="w-8 h-3 bg-primary/60 rounded" />
+                        <div className="flex gap-1">
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
+                        </div>
+                        <div className="w-6 h-3 bg-primary rounded" />
+                      </>
+                    )}
+                    {layout.id === "minimal" && (
+                      <>
+                        <div className="w-8 h-3 bg-primary/60 rounded" />
+                        <div className="w-6 h-3 bg-primary rounded" />
+                      </>
+                    )}
+                  </div>
+                  <div className="font-medium text-sm">{layout.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {layout.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Logo Upload */}
           <div className="space-y-4">
             <Label className="text-base font-medium">Logo</Label>
-            <div className="flex items-center gap-4">
-              <Select
-                value={navigation.navbar.logo.type}
-                onValueChange={(value: "text" | "image") =>
-                  updateNavigation({
-                    navbar: {
-                      ...navigation.navbar,
-                      logo: { ...navigation.navbar.logo, type: value },
-                    },
-                  })
-                }
+            <p className="text-sm text-muted-foreground">
+              Upload your logo image. Recommended: PNG or SVG, max height 40-60px, transparent background.
+            </p>
+
+            {navigation.navbar.logo.imagePath ? (
+              <div className="relative inline-block border rounded-lg p-4 bg-muted/20">
+                <img
+                  src={navigation.navbar.logo.imagePath}
+                  alt="Logo"
+                  className="h-12 max-w-[200px] object-contain"
+                />
+                <button
+                  onClick={removeLogo}
+                  className="absolute -top-2 -right-2 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors shadow-sm"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => !isUploadingLogo && logoInputRef.current?.click()}
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+                  isUploadingLogo
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:border-primary/50 hover:bg-muted/50"
+                )}
               >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="text">Text</SelectItem>
-                  <SelectItem value="image">Image</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                value={navigation.navbar.logo.value}
-                onChange={(e) =>
-                  updateNavigation({
-                    navbar: {
-                      ...navigation.navbar,
-                      logo: { ...navigation.navbar.logo, value: e.target.value },
-                    },
-                  })
-                }
-                placeholder={
-                  navigation.navbar.logo.type === "text" ? "Logo text" : "Image URL"
-                }
-                className="flex-1"
-              />
-            </div>
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  {isUploadingLogo ? "Uploading..." : "Click to upload your logo"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, SVG, or JPG • Max 2MB • Recommended height: 40-60px
+                </p>
+              </div>
+            )}
+
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              className="hidden"
+            />
           </div>
 
           {/* Navigation Links */}
@@ -329,15 +506,128 @@ export default function NavigationStep() {
                   </Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addCta} className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Add CTA
-              </Button>
+              {navigation.navbar.cta.length < 2 && (
+                <Button variant="outline" onClick={addCta} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add CTA
+                </Button>
+              )}
+              {navigation.navbar.cta.length >= 2 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Maximum 2 CTA buttons (primary + secondary is standard for landing pages)
+                </p>
+              )}
             </div>
           </div>
         </TabsContent>
 
         <TabsContent value="footer" className="space-y-6 mt-6">
+          {/* Footer Layout Selection */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Footer Layout</Label>
+            <p className="text-sm text-muted-foreground">
+              Choose a layout style for your footer
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {FOOTER_LAYOUTS.map((layout) => (
+                <button
+                  key={layout.id}
+                  onClick={() =>
+                    updateNavigation({
+                      footer: { ...navigation.footer, layout: layout.id },
+                    })
+                  }
+                  className={cn(
+                    "p-4 border-2 rounded-lg text-left transition-all hover:border-primary/50",
+                    navigation.footer.layout === layout.id
+                      ? "border-primary bg-primary/5"
+                      : "border-border"
+                  )}
+                >
+                  {/* Mini visual preview */}
+                  <div className="mb-3 p-2 bg-muted/50 rounded border h-16 flex flex-col justify-between text-[8px]">
+                    {layout.id === "columns-simple" && (
+                      <>
+                        <div className="flex justify-between">
+                          <div className="space-y-1">
+                            <div className="w-6 h-1.5 bg-muted-foreground/40 rounded" />
+                            <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                            <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="w-6 h-1.5 bg-muted-foreground/40 rounded" />
+                            <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                            <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="w-6 h-1.5 bg-muted-foreground/40 rounded" />
+                            <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center pt-1 border-t border-muted-foreground/10">
+                          <div className="w-10 h-1 bg-muted-foreground/20 rounded" />
+                          <div className="flex gap-0.5">
+                            <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                            <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {layout.id === "columns-with-logo" && (
+                      <>
+                        <div className="flex gap-4">
+                          <div className="space-y-1">
+                            <div className="w-8 h-2 bg-primary/60 rounded" />
+                            <div className="w-12 h-1 bg-muted-foreground/20 rounded" />
+                            <div className="w-10 h-1 bg-muted-foreground/20 rounded" />
+                          </div>
+                          <div className="flex gap-2">
+                            <div className="space-y-1">
+                              <div className="w-5 h-1.5 bg-muted-foreground/40 rounded" />
+                              <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                            </div>
+                            <div className="space-y-1">
+                              <div className="w-5 h-1.5 bg-muted-foreground/40 rounded" />
+                              <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-12 h-1 bg-muted-foreground/20 rounded mx-auto" />
+                      </>
+                    )}
+                    {layout.id === "centered-minimal" && (
+                      <div className="flex flex-col items-center justify-center h-full gap-1">
+                        <div className="w-8 h-2 bg-primary/60 rounded" />
+                        <div className="flex gap-2">
+                          <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                          <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                          <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                        </div>
+                        <div className="w-16 h-1 bg-muted-foreground/20 rounded" />
+                      </div>
+                    )}
+                    {layout.id === "stacked" && (
+                      <div className="flex flex-col items-center justify-center h-full gap-1">
+                        <div className="w-8 h-2 bg-primary/60 rounded" />
+                        <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                        <div className="w-4 h-1 bg-muted-foreground/20 rounded" />
+                        <div className="flex gap-0.5">
+                          <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                          <div className="w-2 h-2 bg-muted-foreground/30 rounded-full" />
+                        </div>
+                        <div className="w-12 h-1 bg-muted-foreground/20 rounded" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="font-medium text-sm">{layout.name}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {layout.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Footer Columns */}
           <div className="space-y-4">
             <Label className="text-base font-medium">Footer Columns</Label>

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X, Plus, MessageSquare, Users, ThumbsUp, ThumbsDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 
 const TONE_KEYWORDS = [
   "Professional",
@@ -37,6 +38,9 @@ const PERSONALITY_SUGGESTIONS = [
   "Helpful",
 ];
 
+const MAX_TONE_KEYWORDS = 3;
+const MAX_PERSONALITY = 3;
+
 export default function ToneStep() {
   const { tone, updateTone } = useLandfall();
   const [newDoItem, setNewDoItem] = React.useState("");
@@ -45,19 +49,31 @@ export default function ToneStep() {
 
   const toggleKeyword = (keyword: string) => {
     if (tone) {
-      const keywords = tone.toneKeywords.includes(keyword)
-        ? tone.toneKeywords.filter((k) => k !== keyword)
-        : [...tone.toneKeywords, keyword];
-      updateTone({ toneKeywords: keywords });
+      const isSelected = tone.toneKeywords.includes(keyword);
+      if (isSelected) {
+        // Always allow deselecting
+        const keywords = tone.toneKeywords.filter((k) => k !== keyword);
+        updateTone({ toneKeywords: keywords });
+      } else if (tone.toneKeywords.length < MAX_TONE_KEYWORDS) {
+        // Only add if under the limit
+        const keywords = [...tone.toneKeywords, keyword];
+        updateTone({ toneKeywords: keywords });
+      }
     }
   };
 
   const togglePersonality = (trait: string) => {
     if (tone) {
-      const personality = tone.brandPersonality.includes(trait)
-        ? tone.brandPersonality.filter((p) => p !== trait)
-        : [...tone.brandPersonality, trait];
-      updateTone({ brandPersonality: personality });
+      const isSelected = tone.brandPersonality.includes(trait);
+      if (isSelected) {
+        // Always allow deselecting
+        const personality = tone.brandPersonality.filter((p) => p !== trait);
+        updateTone({ brandPersonality: personality });
+      } else if (tone.brandPersonality.length < MAX_PERSONALITY) {
+        // Only add if under the limit
+        const personality = [...tone.brandPersonality, trait];
+        updateTone({ brandPersonality: personality });
+      }
     }
   };
 
@@ -124,6 +140,12 @@ export default function ToneStep() {
     }
   };
 
+  const handleInspirationsUpdate = (inspirations: Inspiration[]) => {
+    if (tone) {
+      updateTone({ inspirations });
+    }
+  };
+
   if (!tone) return null;
 
   return (
@@ -135,57 +157,79 @@ export default function ToneStep() {
     >
       {/* Tone Keywords */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          <Label className="text-base font-medium">Tone Keywords</Label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <Label className="text-base font-medium">Tone Keywords</Label>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {tone.toneKeywords.length}/{MAX_TONE_KEYWORDS} selected
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Select keywords that describe how your copy should sound
+          Select up to {MAX_TONE_KEYWORDS} keywords that describe how your copy should sound
         </p>
         <div className="flex flex-wrap gap-2">
-          {TONE_KEYWORDS.map((keyword) => (
-            <Badge
-              key={keyword}
-              variant={tone.toneKeywords.includes(keyword) ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer transition-all px-3 py-1.5",
-                tone.toneKeywords.includes(keyword)
-                  ? "bg-primary hover:bg-primary/90"
-                  : "hover:bg-muted"
-              )}
-              onClick={() => toggleKeyword(keyword)}
-            >
-              {keyword}
-            </Badge>
-          ))}
+          {TONE_KEYWORDS.map((keyword) => {
+            const isSelected = tone.toneKeywords.includes(keyword);
+            const isDisabled = !isSelected && tone.toneKeywords.length >= MAX_TONE_KEYWORDS;
+            return (
+              <Badge
+                key={keyword}
+                variant={isSelected ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer transition-all px-3 py-1.5",
+                  isSelected
+                    ? "bg-primary hover:bg-primary/90"
+                    : isDisabled
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-muted"
+                )}
+                onClick={() => !isDisabled && toggleKeyword(keyword)}
+              >
+                {keyword}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
       {/* Brand Personality */}
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <Label className="text-base font-medium">Brand Personality</Label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <Label className="text-base font-medium">Brand Personality</Label>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {tone.brandPersonality.length}/{MAX_PERSONALITY} selected
+          </span>
         </div>
         <p className="text-sm text-muted-foreground">
-          Select 3-5 adjectives that describe your brand
+          Select up to {MAX_PERSONALITY} adjectives that describe your brand
         </p>
         <div className="flex flex-wrap gap-2">
-          {PERSONALITY_SUGGESTIONS.map((trait) => (
-            <Badge
-              key={trait}
-              variant={tone.brandPersonality.includes(trait) ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer transition-all px-3 py-1.5",
-                tone.brandPersonality.includes(trait)
-                  ? "bg-primary hover:bg-primary/90"
-                  : "hover:bg-muted"
-              )}
-              onClick={() => togglePersonality(trait)}
-            >
-              {trait}
-            </Badge>
-          ))}
+          {PERSONALITY_SUGGESTIONS.map((trait) => {
+            const isSelected = tone.brandPersonality.includes(trait);
+            const isDisabled = !isSelected && tone.brandPersonality.length >= MAX_PERSONALITY;
+            return (
+              <Badge
+                key={trait}
+                variant={isSelected ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer transition-all px-3 py-1.5",
+                  isSelected
+                    ? "bg-primary hover:bg-primary/90"
+                    : isDisabled
+                    ? "opacity-40 cursor-not-allowed"
+                    : "hover:bg-muted"
+                )}
+                onClick={() => !isDisabled && togglePersonality(trait)}
+              >
+                {trait}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
@@ -304,6 +348,15 @@ export default function ToneStep() {
           </div>
         </div>
       </div>
+
+      {/* Tone Inspirations */}
+      <InspirationUploader
+        inspirations={tone.inspirations || []}
+        onUpdate={handleInspirationsUpdate}
+        title="Copy Inspirations"
+        description="Add screenshots or URLs of copy examples you like. Include notes about what appeals to you."
+        uploadCategory="tone-inspirations"
+      />
     </OnboardingShell>
   );
 }

@@ -53,12 +53,21 @@ export interface ToneGuidelines {
   dont: string[];
 }
 
+export interface ToneInspiration {
+  id: string;
+  type: 'image' | 'url';
+  path?: string;
+  url?: string;
+  notes: string;
+}
+
 export interface Tone {
   toneKeywords: string[];
   brandPersonality: string[];
   targetAudience: string;
   guidelines: ToneGuidelines;
   examplePhrases: string[];
+  inspirations: ToneInspiration[];
 }
 
 // Sitemap Types
@@ -94,7 +103,10 @@ export interface NavCta {
   style: 'primary' | 'secondary';
 }
 
+export type NavbarLayout = 'logo-left-links-right' | 'logo-center-links-sides' | 'logo-left-links-center' | 'minimal';
+
 export interface Navbar {
+  layout: NavbarLayout;
   logo: NavbarLogo;
   links: NavLink[];
   cta: NavCta[];
@@ -117,7 +129,10 @@ export interface Newsletter {
   buttonText: string;
 }
 
+export type FooterLayout = 'columns-simple' | 'columns-with-logo' | 'centered-minimal' | 'stacked';
+
 export interface Footer {
+  layout: FooterLayout;
   columns: FooterColumn[];
   social: SocialLink[];
   copyright: string;
@@ -180,12 +195,13 @@ export interface BuildSequence {
 }
 
 // Step definitions
+// Navigation comes after Sections so users can select from sitemap pages and section anchors
 export const STEPS = [
   { id: 1, name: 'Style', slug: 'style', description: 'Define your visual identity' },
   { id: 2, name: 'Tone', slug: 'tone', description: 'Set your voice and messaging' },
   { id: 3, name: 'Sitemap', slug: 'sitemap', description: 'Plan your pages' },
-  { id: 4, name: 'Navigation', slug: 'navigation', description: 'Configure navbar and footer' },
-  { id: 5, name: 'Sections', slug: 'sections', description: 'Build your page layouts' },
+  { id: 4, name: 'Sections', slug: 'sections', description: 'Build your page layouts' },
+  { id: 5, name: 'Navigation', slug: 'navigation', description: 'Configure navbar and footer' },
   { id: 6, name: 'Preview', slug: 'preview', description: 'Review your wireframes' },
   { id: 7, name: 'Build', slug: 'build', description: 'Generate your prompts' },
 ] as const;
