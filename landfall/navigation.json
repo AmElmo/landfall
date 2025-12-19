@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "layout": "logo-center-links-sides",
+    "layout": "logo-left-links-right",
     "logo": {
       "type": "image",
       "value": "/api/assets/serve/logo/android-chrome-512x512-a5361df3.png",
@@ -14,8 +14,8 @@
       },
       {
         "label": "tatata",
-        "target": "/tata",
-        "type": "internal"
+        "target": "#section_1766113771779",
+        "type": "anchor"
       }
     ],
     "cta": [
@@ -23,11 +23,6 @@
         "label": "Signup",
         "target": "/signup",
         "style": "primary"
-      },
-      {
-        "label": "Button",
-        "target": "/signup",
-        "style": "secondary"
       }
     ]
   },

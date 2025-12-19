@@ -4,16 +4,36 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLandfall } from "@/lib/context";
 import { Button } from "@/components/ui/button";
-import { STEPS } from "@/lib/types";
-import { Plus, Trash2, Home, FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { STEPS, SECTION_TYPES, SectionType, Section } from "@/lib/types";
+import { Plus, Trash2, Home, FileText, ArrowLeft, Loader2, ChevronDown, ChevronRight, Layers, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Page } from "@/lib/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Available section types for the sitemap (simplified list)
+const SITEMAP_SECTION_TYPES: { type: SectionType; name: string }[] = [
+  { type: "hero", name: "Hero" },
+  { type: "features", name: "Features" },
+  { type: "how-it-works", name: "How It Works" },
+  { type: "testimonials", name: "Testimonials" },
+  { type: "pricing", name: "Pricing" },
+  { type: "faq", name: "FAQ" },
+  { type: "cta", name: "CTA" },
+  { type: "team", name: "Team" },
+  { type: "stats", name: "Stats" },
+  { type: "contact", name: "Contact" },
+  { type: "logos", name: "Logos" },
+  { type: "content", name: "Content" },
+];
 
 export default function SitemapStep() {
   const router = useRouter();
-  const { sitemap, updateSitemap, refreshData, isSaving, setCurrentStep } = useLandfall();
+  const { sitemap, updateSitemap, pages, updatePage, refreshData, isSaving, setCurrentStep } = useLandfall();
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
+  const [expandedPageId, setExpandedPageId] = useState<string | null>(null);
+  const [addingSectionToPageId, setAddingSectionToPageId] = useState<string | null>(null);
 
   const stepIndex = 3;
   const totalSteps = STEPS.length;
@@ -139,6 +159,49 @@ export default function SitemapStep() {
     }
   };
 
+  const getPageSlug = (page: Page) => {
+    return page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
+  };
+
+  const getPageSections = (page: Page): Section[] => {
+    const pageSlug = getPageSlug(page);
+    return pages[pageSlug]?.sections || [];
+  };
+
+  const addSectionToPage = (page: Page, sectionType: SectionType | 'custom', customName?: string) => {
+    const pageSlug = getPageSlug(page);
+    const currentSections = getPageSections(page);
+
+    const newSection: Section = {
+      id: `section_${Date.now()}`,
+      type: sectionType,
+      customType: sectionType === 'custom' ? customName : undefined,
+      layoutVariant: sectionType === 'custom' ? 'custom' : (SECTION_TYPES[sectionType]?.variants[0]?.id || sectionType),
+      order: currentSections.length + 1,
+      copyInstructions: "",
+      visualInstructions: "",
+      inspirations: [],
+    };
+    updatePage(pageSlug, {
+      sections: [...currentSections, newSection],
+    });
+    setAddingSectionToPageId(null);
+  };
+
+  const removeSectionFromPage = (page: Page, sectionId: string) => {
+    const pageSlug = getPageSlug(page);
+    const currentSections = getPageSections(page);
+    updatePage(pageSlug, {
+      sections: currentSections
+        .filter((s) => s.id !== sectionId)
+        .map((s, i) => ({ ...s, order: i + 1 })),
+    });
+  };
+
+  const toggleExpanded = (pageId: string) => {
+    setExpandedPageId(expandedPageId === pageId ? null : pageId);
+  };
+
   if (!sitemap) return null;
 
   const homepage = sitemap.pages.find((p) => p.isHomepage);
@@ -236,6 +299,14 @@ export default function SitemapStep() {
                     onEditSubmit={() => updatePageName(homepage.id, editingValue)}
                     onKeyDown={(e) => handleKeyDown(e, homepage.id)}
                     onDelete={() => {}}
+                    sections={getPageSections(homepage)}
+                    isExpanded={expandedPageId === homepage.id}
+                    onToggleExpand={() => toggleExpanded(homepage.id)}
+                    isAddingSection={addingSectionToPageId === homepage.id}
+                    onStartAddSection={() => setAddingSectionToPageId(homepage.id)}
+                    onCancelAddSection={() => setAddingSectionToPageId(null)}
+                    onAddSection={(type) => addSectionToPage(homepage, type)}
+                    onRemoveSection={(sectionId) => removeSectionFromPage(homepage, sectionId)}
                   />
 
                   {/* Connector line from homepage */}
@@ -271,6 +342,14 @@ export default function SitemapStep() {
                           onEditSubmit={() => updatePageName(page.id, editingValue)}
                           onKeyDown={(e) => handleKeyDown(e, page.id)}
                           onDelete={() => deletePage(page.id)}
+                          sections={getPageSections(page)}
+                          isExpanded={expandedPageId === page.id}
+                          onToggleExpand={() => toggleExpanded(page.id)}
+                          isAddingSection={addingSectionToPageId === page.id}
+                          onStartAddSection={() => setAddingSectionToPageId(page.id)}
+                          onCancelAddSection={() => setAddingSectionToPageId(null)}
+                          onAddSection={(type) => addSectionToPage(page, type)}
+                          onRemoveSection={(sectionId) => removeSectionFromPage(page, sectionId)}
                         />
                       </div>
                     ))}
@@ -336,7 +415,7 @@ export default function SitemapStep() {
   );
 }
 
-// Inline editable Page Card Component
+// Inline editable Page Card Component with sections
 function InlinePageCard({
   page,
   isHomepage,
@@ -347,6 +426,14 @@ function InlinePageCard({
   onEditSubmit,
   onKeyDown,
   onDelete,
+  sections,
+  isExpanded,
+  onToggleExpand,
+  isAddingSection,
+  onStartAddSection,
+  onCancelAddSection,
+  onAddSection,
+  onRemoveSection,
 }: {
   page: Page;
   isHomepage: boolean;
@@ -357,8 +444,43 @@ function InlinePageCard({
   onEditSubmit: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onDelete: () => void;
+  sections: Section[];
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  isAddingSection: boolean;
+  onStartAddSection: () => void;
+  onCancelAddSection: () => void;
+  onAddSection: (type: SectionType | 'custom', customName?: string) => void;
+  onRemoveSection: (sectionId: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
+  const [customSectionName, setCustomSectionName] = useState("");
+  const customInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAddingCustom && customInputRef.current) {
+      customInputRef.current.focus();
+    }
+  }, [isAddingCustom]);
+
+  const handleAddCustomSection = () => {
+    if (customSectionName.trim()) {
+      onAddSection('custom', customSectionName.trim());
+      setCustomSectionName("");
+      setIsAddingCustom(false);
+    }
+  };
+
+  const handleCustomKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddCustomSection();
+    } else if (e.key === "Escape") {
+      setIsAddingCustom(false);
+      setCustomSectionName("");
+    }
+  };
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -373,64 +495,202 @@ function InlinePageCard({
   };
 
   return (
-    <div
-      className={cn(
-        "group relative px-6 py-4 rounded-xl border-2 shadow-lg",
-        "min-w-[160px] text-center transition-all",
-        isHomepage
-          ? "bg-primary text-primary-foreground border-primary"
-          : "bg-white border-border hover:border-primary/50"
-      )}
-    >
-      <div className="flex items-center justify-center gap-2 mb-1">
-        {isHomepage ? (
-          <Home className="h-4 w-4" />
-        ) : (
-          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+    <div className="flex flex-col items-center">
+      <div
+        className={cn(
+          "group relative px-6 py-4 rounded-xl border-2 shadow-lg",
+          "min-w-[160px] text-center transition-all",
+          isHomepage
+            ? "bg-primary text-primary-foreground border-primary"
+            : "bg-white border-border hover:border-primary/50"
         )}
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editingValue}
-            onChange={(e) => onEditChange(e.target.value)}
-            onBlur={onEditSubmit}
-            onKeyDown={onKeyDown}
-            className={cn(
-              "bg-transparent border-b outline-none text-center font-medium w-24",
-              isHomepage
-                ? "border-primary-foreground/50 text-primary-foreground"
-                : "border-border text-foreground"
-            )}
-            placeholder="Page name"
-          />
-        ) : (
-          <span
-            onClick={onStartEdit}
-            className={cn(
-              "font-medium cursor-text hover:underline",
-              !isHomepage && "text-sm"
-            )}
-          >
-            {page.name || "Untitled"}
-          </span>
-        )}
-      </div>
-      <div className={cn("text-xs", isHomepage ? "opacity-80" : "text-muted-foreground")}>
-        {isEditing ? generateSlug(editingValue) : page.slug}
-      </div>
+      >
+        <div className="flex items-center justify-center gap-2 mb-1">
+          {isHomepage ? (
+            <Home className="h-4 w-4" />
+          ) : (
+            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          )}
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editingValue}
+              onChange={(e) => onEditChange(e.target.value)}
+              onBlur={onEditSubmit}
+              onKeyDown={onKeyDown}
+              className={cn(
+                "bg-transparent border-b outline-none text-center font-medium w-24",
+                isHomepage
+                  ? "border-primary-foreground/50 text-primary-foreground"
+                  : "border-border text-foreground"
+              )}
+              placeholder="Page name"
+            />
+          ) : (
+            <span
+              onClick={onStartEdit}
+              className={cn(
+                "font-medium cursor-text hover:underline",
+                !isHomepage && "text-sm"
+              )}
+            >
+              {page.name || "Untitled"}
+            </span>
+          )}
+        </div>
+        <div className={cn("text-xs", isHomepage ? "opacity-80" : "text-muted-foreground")}>
+          {isEditing ? generateSlug(editingValue) : page.slug}
+        </div>
 
-      {/* Delete button - only visible on hover for non-homepage */}
-      {!isHomepage && (
+        {/* Sections toggle button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete();
+            onToggleExpand();
           }}
-          className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          className={cn(
+            "mt-2 flex items-center justify-center gap-1 text-xs px-2 py-1 rounded transition-colors w-full",
+            isHomepage
+              ? "bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground"
+              : "bg-muted hover:bg-muted/80 text-muted-foreground"
+          )}
         >
-          <Trash2 className="h-4 w-4" />
+          <Layers className="h-3 w-3" />
+          <span>{sections.length} section{sections.length !== 1 ? "s" : ""}</span>
+          {isExpanded ? (
+            <ChevronDown className="h-3 w-3" />
+          ) : (
+            <ChevronRight className="h-3 w-3" />
+          )}
         </button>
+
+        {/* Delete button - only visible on hover for non-homepage */}
+        {!isHomepage && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Expanded sections list */}
+      {isExpanded && (
+        <div className="mt-2 w-full max-w-[240px]">
+          <div className="bg-white border rounded-lg shadow-sm p-2 space-y-1">
+            {sections.map((section, idx) => (
+              <div
+                key={section.id}
+                className="flex items-center justify-between px-2 py-1.5 bg-muted/50 rounded text-xs group/section"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">{idx + 1}.</span>
+                  <span className="font-medium">
+                    {section.type === 'custom'
+                      ? section.customType || 'Custom'
+                      : (SECTION_TYPES[section.type as SectionType]?.name || section.type)}
+                  </span>
+                  {section.type === 'custom' && (
+                    <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                  )}
+                </div>
+                <button
+                  onClick={() => onRemoveSection(section.id)}
+                  className="opacity-0 group-hover/section:opacity-100 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-opacity"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+
+            {/* Add section button or picker */}
+            {isAddingSection ? (
+              <div className="p-2 border rounded bg-background space-y-2">
+                {isAddingCustom ? (
+                  // Custom section name input
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Enter custom section name:
+                    </div>
+                    <Input
+                      ref={customInputRef}
+                      value={customSectionName}
+                      onChange={(e) => setCustomSectionName(e.target.value)}
+                      onKeyDown={handleCustomKeyDown}
+                      placeholder="e.g., Case Studies, Partners..."
+                      className="h-8 text-xs"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={handleAddCustomSection}
+                        disabled={!customSectionName.trim()}
+                        className="flex-1 px-2 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Add Section
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsAddingCustom(false);
+                          setCustomSectionName("");
+                        }}
+                        className="px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground rounded transition-colors"
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Section type picker
+                  <>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                      Select section type:
+                    </div>
+                    <ScrollArea className="h-[200px]">
+                      <div className="grid grid-cols-2 gap-1">
+                        {SITEMAP_SECTION_TYPES.map((st) => (
+                          <button
+                            key={st.type}
+                            onClick={() => onAddSection(st.type)}
+                            className="px-2 py-1.5 text-xs text-left rounded hover:bg-primary/10 hover:text-primary transition-colors"
+                          >
+                            {st.name}
+                          </button>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                    {/* Custom section option */}
+                    <button
+                      onClick={() => setIsAddingCustom(true)}
+                      className="w-full flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium border-t border-dashed text-primary hover:bg-primary/5 rounded transition-colors mt-1"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Add Custom Section
+                    </button>
+                    <button
+                      onClick={onCancelAddSection}
+                      className="w-full text-xs text-muted-foreground hover:text-foreground py-1"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={onStartAddSection}
+                className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 rounded transition-colors"
+              >
+                <Plus className="h-3 w-3" />
+                Add Section
+              </button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

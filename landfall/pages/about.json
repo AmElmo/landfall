@@ -1,4 +1,23 @@
 {
   "pageId": "page_1765891960103",
-  "sections": []
+  "sections": [
+    {
+      "id": "section_1766050836402",
+      "type": "content",
+      "layoutVariant": "content-three-cards",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766050838806",
+      "type": "cta",
+      "layoutVariant": "cta-centered-simple",
+      "order": 2,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
 }

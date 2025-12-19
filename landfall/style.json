@@ -1,21 +1,21 @@
 {
   "colors": {
-    "primary": "#f59e0b",
+    "primary": "#2f6289",
     "primaryLight": "#7186a8",
     "primaryDark": "#8293bf",
     "secondary": "#7c3aed",
     "accent": "#d6a44c",
-    "background": "#1c1917",
+    "background": "#faf5ff",
     "backgroundAlt": "#f8fafc",
-    "text": "#fef3c7",
-    "textMuted": "#a8a29e",
+    "text": "#6e68c0",
+    "textMuted": "#575757",
     "border": "#e2e8f0",
     "success": "#22c55e",
     "error": "#ef4444"
   },
   "typography": {
-    "headingFont": "Montserrat",
-    "bodyFont": "Montserrat",
+    "headingFont": "Poppins",
+    "bodyFont": "Poppins",
     "scale": "default"
   },
   "styleKeywords": [
@@ -23,7 +23,7 @@
     "Playful"
   ],
   "borderRadius": "slightly-rounded",
-  "shadows": "subtle",
+  "shadows": "dramatic",
   "inspirations": [
     {
       "id": "insp_1765896772616",

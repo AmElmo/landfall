@@ -25,6 +25,7 @@ import {
   FileText,
   ChevronRight,
   Check,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Section, SECTION_TYPES, SectionType, LayoutTemplate, SectionInspiration } from "@/lib/types";
@@ -307,8 +308,9 @@ function SectionEditor({
   onClose: () => void;
   onDelete: () => void;
 }) {
-  const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
-  const { templates, isLoading: templatesLoading } = useWireframeTemplates(section.type);
+  const isCustomSection = section.type === 'custom';
+  const sectionType = !isCustomSection ? SECTION_TYPES[section.type as keyof typeof SECTION_TYPES] : null;
+  const { templates, isLoading: templatesLoading } = useWireframeTemplates(isCustomSection ? null : section.type as SectionType);
 
   // Find the current template
   const currentTemplate = templates.find(t => t.id === section.layoutTemplateId);
@@ -330,9 +332,11 @@ function SectionEditor({
       </div>
 
       <div className="p-4 bg-muted/50 rounded-xl">
-        <div className="font-medium">{sectionType?.name || section.type}</div>
+        <div className="font-medium">
+          {isCustomSection ? (section.customType || 'Custom Section') : (sectionType?.name || section.type)}
+        </div>
         <div className="text-sm text-muted-foreground">
-          {displayName}
+          {isCustomSection ? 'Custom section type' : displayName}
         </div>
       </div>
 
@@ -613,7 +617,7 @@ function SectionTypeWireframe({ type }: { type: SectionType }) {
           <div className="h-3 w-8 bg-primary/40 rounded mt-1" />
         </div>
         <div className="w-10 h-8 bg-muted-foreground/20 rounded flex items-center justify-center">
-          <Image className="h-3 w-3 text-muted-foreground/40" />
+          <ImageIcon className="h-3 w-3 text-muted-foreground/40" />
         </div>
       </div>
     ),
@@ -762,7 +766,7 @@ function VariantWireframe({ type, variantId }: { type: SectionType; variantId: s
             <div className="h-3 w-12 bg-primary/40 rounded mt-1" />
           </div>
           <div className="w-1/2 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
-            <Image className="h-4 w-4 text-muted-foreground/40" />
+            <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
           </div>
         </div>
       );
@@ -770,7 +774,7 @@ function VariantWireframe({ type, variantId }: { type: SectionType; variantId: s
     if (variantId === 'hero-fullwidth-bg' || variantId === 'hero-video-bg') {
       return (
         <div className="relative h-full bg-muted-foreground/20 rounded flex flex-col items-center justify-center">
-          <Image className="absolute right-1 top-1 h-2 w-2 text-muted-foreground/30" />
+          <ImageIcon className="absolute right-1 top-1 h-2 w-2 text-muted-foreground/30" />
           <div className="h-2 bg-white/80 rounded w-1/2 mb-1" />
           <div className="h-1.5 bg-white/60 rounded w-1/3" />
           <div className="h-3 w-10 bg-primary/60 rounded mt-1" />
@@ -939,7 +943,7 @@ function VariantWireframe({ type, variantId }: { type: SectionType; variantId: s
             <div className="h-3 w-10 bg-primary/40 rounded mt-1" />
           </div>
           <div className="w-1/3 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
-            <Image className="h-3 w-3 text-muted-foreground/40" />
+            <ImageIcon className="h-3 w-3 text-muted-foreground/40" />
           </div>
         </div>
       );

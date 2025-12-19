@@ -33,11 +33,6 @@ const NAVBAR_LAYOUTS: { id: NavbarLayout; name: string; description: string }[] 
     description: "Logo left, navigation links and CTAs on the right",
   },
   {
-    id: "logo-center-links-sides",
-    name: "Centered Logo",
-    description: "Logo in center, links split on both sides",
-  },
-  {
     id: "logo-left-links-center",
     name: "Centered Links",
     description: "Logo left, navigation centered, CTAs right",
@@ -74,11 +69,14 @@ const FOOTER_LAYOUTS: { id: FooterLayout; name: string; description: string }[] 
 ];
 
 export default function NavigationStep() {
-  const { navigation, sitemap, updateNavigation } = useLandfall();
+  const { navigation, sitemap, pages, updateNavigation } = useLandfall();
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   if (!navigation || !sitemap) return null;
+
+  // Get sections from home page for anchor links
+  const homeSections = pages["home"]?.sections || [];
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -329,19 +327,6 @@ export default function NavigationStep() {
                         </div>
                       </>
                     )}
-                    {layout.id === "logo-center-links-sides" && (
-                      <>
-                        <div className="flex gap-1">
-                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
-                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
-                        </div>
-                        <div className="w-8 h-3 bg-primary/60 rounded" />
-                        <div className="flex items-center gap-1">
-                          <div className="w-4 h-2 bg-muted-foreground/30 rounded" />
-                          <div className="w-6 h-3 bg-primary rounded" />
-                        </div>
-                      </>
-                    )}
                     {layout.id === "logo-left-links-center" && (
                       <>
                         <div className="w-8 h-3 bg-primary/60 rounded" />
@@ -421,6 +406,9 @@ export default function NavigationStep() {
           {/* Navigation Links */}
           <div className="space-y-4">
             <Label className="text-base font-medium">Navigation Links</Label>
+            <p className="text-sm text-muted-foreground">
+              Link to pages or sections on the home page
+            </p>
             <div className="space-y-2">
               {navigation.navbar.links.map((link, index) => (
                 <div key={index} className="flex items-center gap-2">
@@ -431,25 +419,42 @@ export default function NavigationStep() {
                     placeholder="Label"
                     className="flex-1"
                   />
-                  <Input
-                    value={link.target}
-                    onChange={(e) => updateNavLink(index, { target: e.target.value })}
-                    placeholder="Target"
-                    className="flex-1"
-                  />
                   <Select
-                    value={link.type}
-                    onValueChange={(value: "internal" | "external" | "anchor") =>
-                      updateNavLink(index, { type: value })
-                    }
+                    value={link.target}
+                    onValueChange={(value) => {
+                      const isAnchor = value.startsWith("#");
+                      updateNavLink(index, {
+                        target: value,
+                        type: isAnchor ? "anchor" : "internal"
+                      });
+                    }}
                   >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select target" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internal">Internal</SelectItem>
-                      <SelectItem value="external">External</SelectItem>
-                      <SelectItem value="anchor">Anchor</SelectItem>
+                    <SelectContent position="popper" className="max-h-[300px]">
+                      {/* Pages */}
+                      <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                        Pages
+                      </div>
+                      {sitemap.pages.map((page) => (
+                        <SelectItem key={page.id} value={page.slug}>
+                          {page.name || page.slug}
+                        </SelectItem>
+                      ))}
+                      {/* Home Page Sections */}
+                      {homeSections.length > 0 && (
+                        <>
+                          <div className="px-2 py-1 text-xs font-medium text-muted-foreground mt-2">
+                            Sections (Home)
+                          </div>
+                          {homeSections.map((section) => (
+                            <SelectItem key={section.id} value={`#${section.id}`}>
+                              #{section.type}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                   <Button
@@ -495,7 +500,7 @@ export default function NavigationStep() {
                     <SelectTrigger className="w-28">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectItem value="primary">Primary</SelectItem>
                       <SelectItem value="secondary">Secondary</SelectItem>
                     </SelectContent>
@@ -634,6 +639,9 @@ export default function NavigationStep() {
           {/* Footer Columns */}
           <div className="space-y-4">
             <Label className="text-base font-medium">Footer Columns</Label>
+            <p className="text-sm text-muted-foreground">
+              Footer links can only point to pages defined in your sitemap
+            </p>
             <div className="space-y-4">
               {navigation.footer.columns.map((column, colIndex) => (
                 <div key={colIndex} className="border rounded-lg p-4 space-y-3">
@@ -668,17 +676,26 @@ export default function NavigationStep() {
                           placeholder="Label"
                           className="flex-1"
                         />
-                        <Input
+                        <Select
                           value={link.target}
-                          onChange={(e) =>
+                          onValueChange={(value) =>
                             updateColumnLink(colIndex, linkIndex, {
                               ...link,
-                              target: e.target.value,
+                              target: value,
                             })
                           }
-                          placeholder="Target"
-                          className="flex-1"
-                        />
+                        >
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select page" />
+                          </SelectTrigger>
+                          <SelectContent position="popper" className="max-h-[300px]">
+                            {sitemap.pages.map((page) => (
+                              <SelectItem key={page.id} value={page.slug}>
+                                {page.name || page.slug}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -748,7 +765,7 @@ export default function NavigationStep() {
                   footer: { ...navigation.footer, copyright: e.target.value },
                 })
               }
-              placeholder="© 2024 Your Company. All rights reserved."
+              placeholder="© 2025 Your Company. All rights reserved."
             />
           </div>
 
@@ -869,39 +886,6 @@ function NavigationPreview({
               </div>
             )}
 
-            {navigation.navbar.layout === "logo-center-links-sides" && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {navigation.navbar.links.slice(0, Math.ceil(navigation.navbar.links.length / 2)).map((link, i) => (
-                    <span key={i} className="text-sm text-muted-foreground">
-                      {link.label}
-                    </span>
-                  ))}
-                </div>
-                <NavbarLogo navigation={navigation} />
-                <div className="flex items-center gap-4">
-                  {navigation.navbar.links.slice(Math.ceil(navigation.navbar.links.length / 2)).map((link, i) => (
-                    <span key={i} className="text-sm text-muted-foreground">
-                      {link.label}
-                    </span>
-                  ))}
-                  {navigation.navbar.cta.map((cta, i) => (
-                    <button
-                      key={i}
-                      className={cn(
-                        "px-3 py-1.5 text-sm rounded-lg",
-                        cta.style === "primary"
-                          ? "bg-primary text-primary-foreground"
-                          : "border"
-                      )}
-                    >
-                      {cta.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {navigation.navbar.layout === "logo-left-links-center" && (
               <div className="flex items-center justify-between">
                 <NavbarLogo navigation={navigation} />
@@ -987,7 +971,7 @@ function NavigationPreview({
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="text-xs text-muted-foreground">
-                    {navigation.footer.copyright || "© 2024 Your Company"}
+                    {navigation.footer.copyright || "© 2025 Your Company"}
                   </div>
                   <div className="flex gap-3">
                     {navigation.footer.social.map((social) => {
@@ -1039,7 +1023,7 @@ function NavigationPreview({
                 </div>
                 <div className="text-center pt-4 border-t">
                   <div className="text-xs text-muted-foreground">
-                    {navigation.footer.copyright || "© 2024 Your Company"}
+                    {navigation.footer.copyright || "© 2025 Your Company"}
                   </div>
                 </div>
               </>

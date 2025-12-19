@@ -19,6 +19,15 @@
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
+    },
+    {
+      "id": "section_1766113771779",
+      "type": "testimonials",
+      "layoutVariant": "testimonials-single-featured",
+      "order": 3,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
     }
   ]
 }

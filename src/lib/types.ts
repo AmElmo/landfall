@@ -103,7 +103,7 @@ export interface NavCta {
   style: 'primary' | 'secondary';
 }
 
-export type NavbarLayout = 'logo-left-links-right' | 'logo-center-links-sides' | 'logo-left-links-center' | 'minimal';
+export type NavbarLayout = 'logo-left-links-right' | 'logo-left-links-center' | 'minimal';
 
 export interface Navbar {
   layout: NavbarLayout;
@@ -169,7 +169,8 @@ export interface SectionInspiration {
 
 export interface Section {
   id: string;
-  type: SectionType;
+  type: SectionType | 'custom';
+  customType?: string; // For custom section types defined by user
   layoutVariant: string; // Legacy - keeping for backwards compatibility
   layoutTemplateId?: string; // New wireframe-based layout template
   order: number;

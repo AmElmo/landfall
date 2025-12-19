@@ -3,20 +3,17 @@
 import React, { useState } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Monitor,
   Tablet,
   Smartphone,
-  Layers,
   FileText,
   Image,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES } from "@/lib/types";
+import { Section, SECTION_TYPES, NavCta, Navigation, Style } from "@/lib/types";
 
 type ViewMode = "desktop" | "tablet" | "mobile";
 
@@ -33,186 +30,251 @@ export default function PreviewStep() {
 
   if (!sitemap || !style || !navigation) return null;
 
+  // Left panel: Page navigation only
+  const leftPanel = (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        {sitemap.pages.map((page) => {
+          const pageSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
+          return (
+            <button
+              key={page.id}
+              onClick={() => setSelectedPageSlug(pageSlug)}
+              className={cn(
+                "w-full px-4 py-3 rounded-lg text-left font-medium transition-colors",
+                selectedPageSlug === pageSlug
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted hover:bg-muted/80"
+              )}
+            >
+              {page.name}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Right panel: View controls + Preview
+  const rightPanel = (
+    <div className="space-y-4">
+      {/* View Controls at top of preview */}
+      <div className="flex justify-end">
+        <div className="flex bg-muted rounded-lg p-1">
+          <button
+            onClick={() => setViewMode("desktop")}
+            className={cn(
+              "p-2 rounded-md transition-colors",
+              viewMode === "desktop" ? "bg-background shadow-sm" : ""
+            )}
+          >
+            <Monitor className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("tablet")}
+            className={cn(
+              "p-2 rounded-md transition-colors",
+              viewMode === "tablet" ? "bg-background shadow-sm" : ""
+            )}
+          >
+            <Tablet className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("mobile")}
+            className={cn(
+              "p-2 rounded-md transition-colors",
+              viewMode === "mobile" ? "bg-background shadow-sm" : ""
+            )}
+          >
+            <Smartphone className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Preview Area */}
+      <div className="bg-muted/30 rounded-xl p-4 min-h-[500px] flex justify-center">
+        <div
+          className={cn(
+            "bg-white rounded-xl shadow-2xl overflow-hidden border transition-all",
+            viewMode === "desktop" && "w-full max-w-4xl",
+            viewMode === "tablet" && "w-[768px]",
+            viewMode === "mobile" && "w-[375px]"
+          )}
+        >
+          {/* Browser Chrome */}
+          <div className="bg-muted/50 px-4 py-3 flex items-center gap-2 border-b">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-400" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+              <div className="w-3 h-3 rounded-full bg-green-400" />
+            </div>
+            <div className="flex-1 flex justify-center">
+              <div className="bg-background rounded-md px-4 py-1.5 text-xs text-muted-foreground">
+                {currentPageInfo?.name || "Page"}
+              </div>
+            </div>
+          </div>
+
+          {/* Navbar - respects selected layout */}
+          <div
+            className="border-b p-4"
+            style={{ backgroundColor: style.colors.background }}
+          >
+            {navigation.navbar.layout === "logo-left-links-right" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogoPreview navigation={navigation} style={style} />
+                <div className="flex items-center gap-4">
+                  {viewMode !== "mobile" && navigation.navbar.links.map((link, i) => (
+                    <span key={i} className="text-sm" style={{ color: style.colors.textMuted }}>
+                      {link.label}
+                    </span>
+                  ))}
+                  {navigation.navbar.cta.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
+                    <NavbarCtaButton key={i} cta={cta} style={style} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {navigation.navbar.layout === "logo-left-links-center" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogoPreview navigation={navigation} style={style} />
+                <div className="flex items-center gap-4">
+                  {viewMode !== "mobile" && navigation.navbar.links.map((link, i) => (
+                    <span key={i} className="text-sm" style={{ color: style.colors.textMuted }}>
+                      {link.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  {navigation.navbar.cta.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
+                    <NavbarCtaButton key={i} cta={cta} style={style} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {navigation.navbar.layout === "minimal" && (
+              <div className="flex items-center justify-between">
+                <NavbarLogoPreview navigation={navigation} style={style} />
+                <div className="flex items-center gap-2">
+                  {navigation.navbar.cta.slice(0, 1).map((cta, i) => (
+                    <NavbarCtaButton key={i} cta={cta} style={style} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Page Content */}
+          <ScrollArea className="h-[400px]">
+            <div
+              className="p-4 space-y-4"
+              style={{ backgroundColor: style.colors.background }}
+            >
+              {(currentPage?.sections || []).map((section, index) => (
+                <WireframeSection
+                  key={section.id}
+                  section={section}
+                  index={index}
+                  style={style}
+                  showAnnotations={showAnnotations}
+                  viewMode={viewMode}
+                />
+              ))}
+
+              {(!currentPage?.sections || currentPage.sections.length === 0) && (
+                <div className="text-center py-12 text-muted-foreground">
+                  No sections added to this page
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          {/* Footer - respects selected layout */}
+          <div
+            className="border-t p-4"
+            style={{ backgroundColor: style.colors.backgroundAlt }}
+          >
+            {navigation.footer.layout === "columns-simple" && (
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs">
+                  {navigation.footer.columns.slice(0, 3).map((col, i) => (
+                    <div key={i}>
+                      <div className="font-medium mb-1" style={{ color: style.colors.text }}>{col.heading}</div>
+                      {col.links.slice(0, 2).map((link, j) => (
+                        <div key={j} style={{ color: style.colors.textMuted }}>{link.label}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: style.colors.border }}>
+                  <div className="text-xs" style={{ color: style.colors.textMuted }}>
+                    {navigation.footer.copyright || "© 2025 Your Company"}
+                  </div>
+                </div>
+              </div>
+            )}
+            {navigation.footer.layout === "columns-with-logo" && (
+              <div className="space-y-3">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <NavbarLogoPreview navigation={navigation} style={style} />
+                  </div>
+                  <div className="flex-1 flex gap-4 text-xs">
+                    {navigation.footer.columns.slice(0, 2).map((col, i) => (
+                      <div key={i}>
+                        <div className="font-medium mb-1" style={{ color: style.colors.text }}>{col.heading}</div>
+                        {col.links.slice(0, 2).map((link, j) => (
+                          <div key={j} style={{ color: style.colors.textMuted }}>{link.label}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-center text-xs pt-2 border-t" style={{ borderColor: style.colors.border, color: style.colors.textMuted }}>
+                  {navigation.footer.copyright || "© 2025 Your Company"}
+                </div>
+              </div>
+            )}
+            {navigation.footer.layout === "centered-minimal" && (
+              <div className="text-center space-y-2">
+                <NavbarLogoPreview navigation={navigation} style={style} />
+                <div className="flex justify-center gap-3 text-xs" style={{ color: style.colors.textMuted }}>
+                  {navigation.footer.columns.flatMap(col => col.links).slice(0, 4).map((link, i) => (
+                    <span key={i}>{link.label}</span>
+                  ))}
+                </div>
+                <div className="text-xs" style={{ color: style.colors.textMuted }}>
+                  {navigation.footer.copyright || "© 2025 Your Company"}
+                </div>
+              </div>
+            )}
+            {navigation.footer.layout === "stacked" && (
+              <div className="text-center space-y-2">
+                <NavbarLogoPreview navigation={navigation} style={style} />
+                <div className="flex flex-col items-center gap-1 text-xs" style={{ color: style.colors.textMuted }}>
+                  {navigation.footer.columns.flatMap(col => col.links).slice(0, 3).map((link, i) => (
+                    <span key={i}>{link.label}</span>
+                  ))}
+                </div>
+                <div className="text-xs pt-2" style={{ color: style.colors.textMuted }}>
+                  {navigation.footer.copyright || "© 2025 Your Company"}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <OnboardingShell
       stepIndex={6}
       title="Preview your wireframes"
-      description="Review the structure of your landing pages before generating prompts."
-      preview={null}
+      description="Select a page to preview its wireframe structure."
+      preview={rightPanel}
     >
-      {/* Full width preview since this is the preview step */}
-      <div className="space-y-4">
-        {/* Controls */}
-        <div className="flex items-center justify-between">
-          {/* Page Selector */}
-          <div className="flex gap-2">
-            {sitemap.pages.map((page) => {
-              const pageSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
-              return (
-                <button
-                  key={page.id}
-                  onClick={() => setSelectedPageSlug(pageSlug)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                    selectedPageSlug === pageSlug
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted hover:bg-muted/80"
-                  )}
-                >
-                  {page.name}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* View Controls */}
-          <div className="flex items-center gap-2">
-            <div className="flex bg-muted rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("desktop")}
-                className={cn(
-                  "p-2 rounded-md transition-colors",
-                  viewMode === "desktop" ? "bg-background shadow-sm" : ""
-                )}
-              >
-                <Monitor className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("tablet")}
-                className={cn(
-                  "p-2 rounded-md transition-colors",
-                  viewMode === "tablet" ? "bg-background shadow-sm" : ""
-                )}
-              >
-                <Tablet className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("mobile")}
-                className={cn(
-                  "p-2 rounded-md transition-colors",
-                  viewMode === "mobile" ? "bg-background shadow-sm" : ""
-                )}
-              >
-                <Smartphone className="h-4 w-4" />
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Preview Area */}
-        <div className="bg-muted/30 rounded-xl p-4 min-h-[500px] flex justify-center">
-          <div
-            className={cn(
-              "bg-white rounded-xl shadow-2xl overflow-hidden border transition-all",
-              viewMode === "desktop" && "w-full max-w-4xl",
-              viewMode === "tablet" && "w-[768px]",
-              viewMode === "mobile" && "w-[375px]"
-            )}
-          >
-            {/* Browser Chrome */}
-            <div className="bg-muted/50 px-4 py-3 flex items-center gap-2 border-b">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
-              </div>
-              <div className="flex-1 flex justify-center">
-                <div className="bg-background rounded-md px-4 py-1.5 text-xs text-muted-foreground">
-                  {currentPageInfo?.name || "Page"}
-                </div>
-              </div>
-            </div>
-
-            {/* Navbar */}
-            <div
-              className="border-b p-4 flex items-center justify-between"
-              style={{ backgroundColor: style.colors.background }}
-            >
-              <div className="font-semibold" style={{ color: style.colors.text }}>
-                {navigation.navbar.logo.value || "Logo"}
-              </div>
-              <div className="flex items-center gap-4">
-                {navigation.navbar.links.slice(0, viewMode === "mobile" ? 0 : 3).map((link, i) => (
-                  <span
-                    key={i}
-                    className="text-sm"
-                    style={{ color: style.colors.textMuted }}
-                  >
-                    {link.label}
-                  </span>
-                ))}
-                {navigation.navbar.cta.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
-                  <button
-                    key={i}
-                    className={cn(
-                      "px-3 py-1.5 text-sm rounded-lg",
-                      cta.style === "primary" ? "text-white" : "border"
-                    )}
-                    style={{
-                      backgroundColor:
-                        cta.style === "primary" ? style.colors.primary : "transparent",
-                      borderColor: style.colors.border,
-                      color:
-                        cta.style === "primary" ? "white" : style.colors.text,
-                    }}
-                  >
-                    {cta.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Page Content */}
-            <ScrollArea className="h-[400px]">
-              <div
-                className="p-4 space-y-4"
-                style={{ backgroundColor: style.colors.background }}
-              >
-                {(currentPage?.sections || []).map((section, index) => (
-                  <WireframeSection
-                    key={section.id}
-                    section={section}
-                    index={index}
-                    style={style}
-                    showAnnotations={showAnnotations}
-                    viewMode={viewMode}
-                  />
-                ))}
-
-                {(!currentPage?.sections || currentPage.sections.length === 0) && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No sections added to this page
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-
-            {/* Footer */}
-            <div
-              className="border-t p-4"
-              style={{ backgroundColor: style.colors.backgroundAlt }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="text-xs" style={{ color: style.colors.textMuted }}>
-                  {navigation.footer.copyright || "© 2024 Your Company"}
-                </div>
-                <div className="flex gap-2">
-                  {navigation.footer.columns.slice(0, 2).map((col, i) => (
-                    <span
-                      key={i}
-                      className="text-xs"
-                      style={{ color: style.colors.textMuted }}
-                    >
-                      {col.heading}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {leftPanel}
     </OnboardingShell>
   );
 }
@@ -230,8 +292,9 @@ function WireframeSection({
   showAnnotations: boolean;
   viewMode: ViewMode;
 }) {
-  const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
+  const sectionType = section.type !== 'custom' ? SECTION_TYPES[section.type as keyof typeof SECTION_TYPES] : null;
   const variant = sectionType?.variants.find((v) => v.id === section.layoutVariant);
+  const displayName = section.type === 'custom' ? section.customType || 'Custom Section' : (sectionType?.name || section.type);
 
   return (
     <div
@@ -248,10 +311,10 @@ function WireframeSection({
           {index + 1}
         </Badge>
         <span className="font-medium text-sm" style={{ color: style.colors.text }}>
-          {sectionType?.name || section.type}
+          {displayName}
         </span>
         <span className="text-xs" style={{ color: style.colors.textMuted }}>
-          {variant?.name}
+          {section.type === 'custom' ? '(Custom)' : variant?.name}
         </span>
       </div>
 
@@ -388,4 +451,56 @@ function renderWireframe(
         </div>
       );
   }
+}
+
+// Helper component for navbar logo in preview
+function NavbarLogoPreview({
+  navigation,
+  style,
+}: {
+  navigation: Navigation;
+  style: Style;
+}) {
+  if (navigation.navbar.logo.imagePath) {
+    const logoSrc = navigation.navbar.logo.imagePath.startsWith('/api/assets/serve/')
+      ? navigation.navbar.logo.imagePath
+      : `/api/assets/serve/${navigation.navbar.logo.imagePath.replace(/^\/?(landfall\/)?assets\//, '')}`;
+    return (
+      <img
+        src={logoSrc}
+        alt="Logo"
+        className="h-8 max-w-[120px] object-contain"
+      />
+    );
+  }
+  return (
+    <div className="font-semibold" style={{ color: style.colors.text }}>
+      {navigation.navbar.logo.value || "Logo"}
+    </div>
+  );
+}
+
+// Helper component for CTA buttons in preview
+function NavbarCtaButton({
+  cta,
+  style,
+}: {
+  cta: NavCta;
+  style: Style;
+}) {
+  return (
+    <button
+      className={cn(
+        "px-3 py-1.5 text-sm rounded-lg",
+        cta.style === "primary" ? "text-white" : "border"
+      )}
+      style={{
+        backgroundColor: cta.style === "primary" ? style.colors.primary : "transparent",
+        borderColor: style.colors.border,
+        color: cta.style === "primary" ? "white" : style.colors.text,
+      }}
+    >
+      {cta.label}
+    </button>
+  );
 }
