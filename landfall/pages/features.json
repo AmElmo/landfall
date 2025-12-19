@@ -4,8 +4,8 @@
     {
       "id": "section_1766035190597",
       "type": "features",
-      "layoutVariant": "features-bento",
-      "layoutTemplateId": "features-bento",
+      "layoutVariant": "features-3-col-cards",
+      "layoutTemplateId": "features-3-col-cards",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
