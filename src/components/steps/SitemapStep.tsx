@@ -329,14 +329,14 @@ export default function SitemapStep() {
                   <div
                     className="h-0.5 bg-border"
                     style={{
-                      width: `${Math.min((otherPages.length + 1) * 240 + 100, 1000)}px`,
+                      width: `${Math.min((otherPages.length + 1) * 196 + 80, 1000)}px`,
                     }}
                   />
 
                   {/* Child pages in horizontal flex row */}
-                  <div className="flex flex-wrap justify-center gap-8 mt-0 items-start">
+                  <div className="flex flex-wrap justify-center gap-4 mt-0 items-start">
                     {otherPages.map((page) => (
-                      <div key={page.id} className="flex flex-col items-center w-[220px] shrink-0">
+                      <div key={page.id} className="flex flex-col items-center w-[180px] shrink-0">
                         {/* Vertical connector to each page */}
                         <div className="w-0.5 h-6 bg-border" />
                         <InlinePageCard
@@ -362,7 +362,7 @@ export default function SitemapStep() {
                     ))}
 
                     {/* Add Page Card */}
-                    <div className="flex flex-col items-center w-[220px] shrink-0">
+                    <div className="flex flex-col items-center w-[180px] shrink-0">
                       <div className="w-0.5 h-6 bg-border" />
                       <button
                         onClick={addPage}

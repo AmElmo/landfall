@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { cn } from "@/lib/utils";
 import type { LayoutTemplate, WireframeElement } from "@/lib/types";
 
@@ -13,7 +12,7 @@ interface WireframePreviewProps {
 export function WireframePreview({ template, className, compact = false }: WireframePreviewProps) {
   return (
     <div className={cn(
-      "bg-muted/30 rounded-lg p-3 border border-dashed border-muted-foreground/20",
+      "bg-muted/30 rounded-lg p-3 border border-dashed border-muted-foreground/20 flex flex-col justify-center",
       compact ? "p-2" : "p-3",
       className
     )}>
