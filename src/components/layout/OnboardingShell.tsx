@@ -6,6 +6,7 @@ import { STEPS } from "@/lib/types";
 import { useLandfall } from "@/lib/context";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface OnboardingShellProps {
@@ -125,21 +126,27 @@ export function OnboardingShell({
             </div>
 
             {/* Step Progress Dots */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               {STEPS.map((step, idx) => (
-                <button
-                  key={step.id}
-                  onClick={() => navigateToStep(step.id)}
-                  title={step.name}
-                  className={cn(
-                    "h-2 rounded-full transition-all hover:scale-110",
-                    idx + 1 === stepIndex
-                      ? "w-8 bg-primary"
-                      : idx + 1 < stepIndex
-                      ? "w-2 bg-primary/60 hover:bg-primary/80"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  )}
-                />
+                <Tooltip key={step.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => navigateToStep(step.id)}
+                      className={cn(
+                        "rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                        idx + 1 === stepIndex
+                          ? "w-10 h-3 bg-primary"
+                          : idx + 1 < stepIndex
+                          ? "w-3 h-3 bg-primary/70 hover:bg-primary"
+                          : "w-3 h-3 bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={8}>
+                    <span className="font-medium">{step.name}</span>
+                    <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
 

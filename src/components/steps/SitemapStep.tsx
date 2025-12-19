@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { STEPS, SECTION_TYPES, SectionType, Section } from "@/lib/types";
 import { Plus, Trash2, Home, FileText, ArrowLeft, Loader2, ChevronDown, ChevronRight, Layers, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Page } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -238,21 +239,27 @@ export default function SitemapStep() {
 
           <div className="flex items-center gap-3">
             {/* Step Progress Dots */}
-            <div className="flex items-center gap-1.5 mr-4">
+            <div className="flex items-center gap-2 mr-4">
               {STEPS.map((step, idx) => (
-                <button
-                  key={step.id}
-                  onClick={() => navigateToStep(step.id)}
-                  title={step.name}
-                  className={cn(
-                    "h-2 rounded-full transition-all hover:scale-110",
-                    idx + 1 === stepIndex
-                      ? "w-8 bg-primary"
-                      : idx + 1 < stepIndex
-                      ? "w-2 bg-primary/60 hover:bg-primary/80"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  )}
-                />
+                <Tooltip key={step.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => navigateToStep(step.id)}
+                      className={cn(
+                        "rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                        idx + 1 === stepIndex
+                          ? "w-10 h-3 bg-primary"
+                          : idx + 1 < stepIndex
+                          ? "w-3 h-3 bg-primary/70 hover:bg-primary"
+                          : "w-3 h-3 bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" sideOffset={8}>
+                    <span className="font-medium">{step.name}</span>
+                    <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </div>
             <Button onClick={handleNext} disabled={isSaving}>
@@ -271,7 +278,7 @@ export default function SitemapStep() {
 
       {/* Full Page Sitemap Editor */}
       <div className="flex-1 p-8 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {sitemap.pages.length === 0 ? (
             <div className="text-center py-24">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -305,7 +312,7 @@ export default function SitemapStep() {
                     isAddingSection={addingSectionToPageId === homepage.id}
                     onStartAddSection={() => setAddingSectionToPageId(homepage.id)}
                     onCancelAddSection={() => setAddingSectionToPageId(null)}
-                    onAddSection={(type) => addSectionToPage(homepage, type)}
+                    onAddSection={(type, customName) => addSectionToPage(homepage, type, customName)}
                     onRemoveSection={(sectionId) => removeSectionFromPage(homepage, sectionId)}
                   />
 
@@ -318,18 +325,18 @@ export default function SitemapStep() {
 
               {/* Horizontal connector for child pages */}
               {otherPages.length > 0 && (
-                <>
+                <div className="w-full flex flex-col items-center">
                   <div
                     className="h-0.5 bg-border"
                     style={{
-                      width: `${Math.min((otherPages.length + 1) * 200 + 100, 800)}px`,
+                      width: `${Math.min((otherPages.length + 1) * 240 + 100, 1000)}px`,
                     }}
                   />
 
-                  {/* Child pages in a grid layout to prevent layout shift */}
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-6 w-full max-w-4xl mt-0">
+                  {/* Child pages in horizontal flex row */}
+                  <div className="flex flex-wrap justify-center gap-8 mt-0 items-start">
                     {otherPages.map((page) => (
-                      <div key={page.id} className="flex flex-col items-center">
+                      <div key={page.id} className="flex flex-col items-center w-[220px] shrink-0">
                         {/* Vertical connector to each page */}
                         <div className="w-0.5 h-6 bg-border" />
                         <InlinePageCard
@@ -348,21 +355,21 @@ export default function SitemapStep() {
                           isAddingSection={addingSectionToPageId === page.id}
                           onStartAddSection={() => setAddingSectionToPageId(page.id)}
                           onCancelAddSection={() => setAddingSectionToPageId(null)}
-                          onAddSection={(type) => addSectionToPage(page, type)}
+                          onAddSection={(type, customName) => addSectionToPage(page, type, customName)}
                           onRemoveSection={(sectionId) => removeSectionFromPage(page, sectionId)}
                         />
                       </div>
                     ))}
 
                     {/* Add Page Card */}
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center w-[220px] shrink-0">
                       <div className="w-0.5 h-6 bg-border" />
                       <button
                         onClick={addPage}
                         className={cn(
                           "px-6 py-4 rounded-xl border-2 border-dashed",
                           "bg-white/50 hover:bg-white hover:border-primary/50",
-                          "min-w-[160px] h-[110px] text-center transition-all hover:scale-105 cursor-pointer",
+                          "w-full h-[110px] text-center transition-all hover:scale-105 cursor-pointer",
                           "flex flex-col items-center justify-center gap-2"
                         )}
                       >
@@ -371,7 +378,7 @@ export default function SitemapStep() {
                       </button>
                     </div>
                   </div>
-                </>
+                </div>
               )}
 
               {/* Add first child page if only homepage exists */}
@@ -581,7 +588,7 @@ function InlinePageCard({
 
       {/* Expanded sections list */}
       {isExpanded && (
-        <div className="mt-2 w-full max-w-[240px]">
+        <div className="mt-2 w-full max-w-[280px]">
           <div className="bg-white border rounded-lg shadow-sm p-2 space-y-1">
             {sections.map((section, idx) => (
               <div

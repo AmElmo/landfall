@@ -101,7 +101,7 @@ export default function PreviewStep() {
         <div
           className={cn(
             "bg-white rounded-xl shadow-2xl overflow-hidden border transition-all",
-            viewMode === "desktop" && "w-full",
+            viewMode === "desktop" && "w-[1024px] max-w-full",
             viewMode === "tablet" && "w-[768px] max-w-full",
             viewMode === "mobile" && "w-[375px] max-w-full"
           )}

@@ -506,8 +506,8 @@ function SectionsPreview({
           </div>
         </div>
 
-        <ScrollArea className="h-[500px]">
-          <div className="p-4 space-y-3">
+        <ScrollArea className="h-[600px]">
+          <div className="p-4 space-y-4">
             {sections.map((section, index) => (
               <SectionPreviewCard key={section.id} section={section} index={index} />
             ))}
@@ -551,9 +551,11 @@ function SectionPreviewCard({ section, index }: { section: Section; index: numbe
       {/* Wireframe representation - use template preview if available */}
       <div className="bg-muted/30 rounded p-4">
         {selectedTemplate ? (
-          <WireframePreview template={selectedTemplate} className="min-h-[120px]" />
+          <WireframePreview template={selectedTemplate} className="min-h-[280px]" />
         ) : (
-          <DefaultSectionWireframe type={section.type} />
+          <div className="min-h-[280px] flex items-center justify-center">
+            <DefaultSectionWireframe type={section.type} />
+          </div>
         )}
       </div>
 
