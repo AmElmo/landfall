@@ -4,12 +4,12 @@
     {
       "id": "section_1765892055800",
       "type": "features",
-      "layoutVariant": "features-2-col-cards",
+      "layoutVariant": "features-3-col-cards",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
-      "layoutTemplateId": "features-2-col-cards"
+      "layoutTemplateId": "features-3-col-cards"
     },
     {
       "id": "section_1765892089909",

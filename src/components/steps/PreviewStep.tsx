@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Badge } from "@/components/ui/badge";
@@ -18,10 +18,15 @@ import { Section, SECTION_TYPES, NavCta, Navigation, Style } from "@/lib/types";
 type ViewMode = "desktop" | "tablet" | "mobile";
 
 export default function PreviewStep() {
-  const { sitemap, pages, style, navigation } = useLandfall();
+  const { sitemap, pages, style, navigation, refreshData } = useLandfall();
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>("home");
   const [viewMode, setViewMode] = useState<ViewMode>("desktop");
   const showAnnotations = true;
+
+  // Refresh data when component mounts to get latest navigation settings
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   const currentPage = pages[selectedPageSlug];
   const currentPageInfo = sitemap?.pages.find(
@@ -92,13 +97,13 @@ export default function PreviewStep() {
       </div>
 
       {/* Preview Area */}
-      <div className="bg-muted/30 rounded-xl p-4 min-h-[500px] flex justify-center">
+      <div className="bg-muted/30 rounded-xl p-4 flex justify-center overflow-hidden">
         <div
           className={cn(
             "bg-white rounded-xl shadow-2xl overflow-hidden border transition-all",
-            viewMode === "desktop" && "w-full max-w-4xl",
-            viewMode === "tablet" && "w-[768px]",
-            viewMode === "mobile" && "w-[375px]"
+            viewMode === "desktop" && "w-full",
+            viewMode === "tablet" && "w-[768px] max-w-full",
+            viewMode === "mobile" && "w-[375px] max-w-full"
           )}
         >
           {/* Browser Chrome */}
@@ -120,16 +125,16 @@ export default function PreviewStep() {
             className="border-b p-4"
             style={{ backgroundColor: style.colors.background }}
           >
-            {navigation.navbar.layout === "logo-left-links-right" && (
+            {(navigation.navbar.layout === "logo-left-links-right" || !navigation.navbar.layout) && (
               <div className="flex items-center justify-between">
                 <NavbarLogoPreview navigation={navigation} style={style} />
                 <div className="flex items-center gap-4">
-                  {viewMode !== "mobile" && navigation.navbar.links.map((link, i) => (
+                  {viewMode !== "mobile" && navigation.navbar.links?.map((link, i) => (
                     <span key={i} className="text-sm" style={{ color: style.colors.textMuted }}>
                       {link.label}
                     </span>
                   ))}
-                  {navigation.navbar.cta.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
+                  {navigation.navbar.cta?.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
                     <NavbarCtaButton key={i} cta={cta} style={style} />
                   ))}
                 </div>
@@ -139,14 +144,14 @@ export default function PreviewStep() {
               <div className="flex items-center justify-between">
                 <NavbarLogoPreview navigation={navigation} style={style} />
                 <div className="flex items-center gap-4">
-                  {viewMode !== "mobile" && navigation.navbar.links.map((link, i) => (
+                  {viewMode !== "mobile" && navigation.navbar.links?.map((link, i) => (
                     <span key={i} className="text-sm" style={{ color: style.colors.textMuted }}>
                       {link.label}
                     </span>
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  {navigation.navbar.cta.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
+                  {navigation.navbar.cta?.slice(0, viewMode === "mobile" ? 1 : 2).map((cta, i) => (
                     <NavbarCtaButton key={i} cta={cta} style={style} />
                   ))}
                 </div>
@@ -156,7 +161,7 @@ export default function PreviewStep() {
               <div className="flex items-center justify-between">
                 <NavbarLogoPreview navigation={navigation} style={style} />
                 <div className="flex items-center gap-2">
-                  {navigation.navbar.cta.slice(0, 1).map((cta, i) => (
+                  {navigation.navbar.cta?.slice(0, 1).map((cta, i) => (
                     <NavbarCtaButton key={i} cta={cta} style={style} />
                   ))}
                 </div>
@@ -194,13 +199,13 @@ export default function PreviewStep() {
             className="border-t p-4"
             style={{ backgroundColor: style.colors.backgroundAlt }}
           >
-            {navigation.footer.layout === "columns-simple" && (
+            {(navigation.footer.layout === "columns-simple" || !navigation.footer.layout) && (
               <div className="space-y-3">
                 <div className="flex justify-between text-xs">
-                  {navigation.footer.columns.slice(0, 3).map((col, i) => (
+                  {navigation.footer.columns?.slice(0, 3).map((col, i) => (
                     <div key={i}>
                       <div className="font-medium mb-1" style={{ color: style.colors.text }}>{col.heading}</div>
-                      {col.links.slice(0, 2).map((link, j) => (
+                      {col.links?.slice(0, 2).map((link, j) => (
                         <div key={j} style={{ color: style.colors.textMuted }}>{link.label}</div>
                       ))}
                     </div>
@@ -220,10 +225,10 @@ export default function PreviewStep() {
                     <NavbarLogoPreview navigation={navigation} style={style} />
                   </div>
                   <div className="flex-1 flex gap-4 text-xs">
-                    {navigation.footer.columns.slice(0, 2).map((col, i) => (
+                    {navigation.footer.columns?.slice(0, 2).map((col, i) => (
                       <div key={i}>
                         <div className="font-medium mb-1" style={{ color: style.colors.text }}>{col.heading}</div>
-                        {col.links.slice(0, 2).map((link, j) => (
+                        {col.links?.slice(0, 2).map((link, j) => (
                           <div key={j} style={{ color: style.colors.textMuted }}>{link.label}</div>
                         ))}
                       </div>
@@ -239,7 +244,7 @@ export default function PreviewStep() {
               <div className="text-center space-y-2">
                 <NavbarLogoPreview navigation={navigation} style={style} />
                 <div className="flex justify-center gap-3 text-xs" style={{ color: style.colors.textMuted }}>
-                  {navigation.footer.columns.flatMap(col => col.links).slice(0, 4).map((link, i) => (
+                  {navigation.footer.columns?.flatMap(col => col.links || []).slice(0, 4).map((link, i) => (
                     <span key={i}>{link.label}</span>
                   ))}
                 </div>
@@ -252,7 +257,7 @@ export default function PreviewStep() {
               <div className="text-center space-y-2">
                 <NavbarLogoPreview navigation={navigation} style={style} />
                 <div className="flex flex-col items-center gap-1 text-xs" style={{ color: style.colors.textMuted }}>
-                  {navigation.footer.columns.flatMap(col => col.links).slice(0, 3).map((link, i) => (
+                  {navigation.footer.columns?.flatMap(col => col.links || []).slice(0, 3).map((link, i) => (
                     <span key={i}>{link.label}</span>
                   ))}
                 </div>
@@ -273,6 +278,7 @@ export default function PreviewStep() {
       title="Preview your wireframes"
       description="Select a page to preview its wireframe structure."
       preview={rightPanel}
+      widePreview
     >
       {leftPanel}
     </OnboardingShell>

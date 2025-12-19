@@ -326,8 +326,8 @@ export default function SitemapStep() {
                     }}
                   />
 
-                  {/* Child pages in a row */}
-                  <div className="flex gap-6 flex-wrap justify-center mt-0">
+                  {/* Child pages in a grid layout to prevent layout shift */}
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-6 w-full max-w-4xl mt-0">
                     {otherPages.map((page) => (
                       <div key={page.id} className="flex flex-col items-center">
                         {/* Vertical connector to each page */}
@@ -362,7 +362,7 @@ export default function SitemapStep() {
                         className={cn(
                           "px-6 py-4 rounded-xl border-2 border-dashed",
                           "bg-white/50 hover:bg-white hover:border-primary/50",
-                          "min-w-[160px] text-center transition-all hover:scale-105 cursor-pointer",
+                          "min-w-[160px] h-[110px] text-center transition-all hover:scale-105 cursor-pointer",
                           "flex flex-col items-center justify-center gap-2"
                         )}
                       >
@@ -592,11 +592,11 @@ function InlinePageCard({
                   <span className="text-muted-foreground">{idx + 1}.</span>
                   <span className="font-medium">
                     {section.type === 'custom'
-                      ? section.customType || 'Custom'
+                      ? section.customType
                       : (SECTION_TYPES[section.type as SectionType]?.name || section.type)}
                   </span>
-                  {section.type === 'custom' && (
-                    <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                  {section.type === 'custom' && !section.customType && (
+                    <span className="text-muted-foreground italic">(unnamed)</span>
                   )}
                 </div>
                 <button

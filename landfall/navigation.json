@@ -27,7 +27,7 @@
     ]
   },
   "footer": {
-    "layout": "columns-simple",
+    "layout": "columns-with-logo",
     "columns": [
       {
         "heading": "fdsfds",

@@ -19,6 +19,8 @@ interface OnboardingShellProps {
   nextLabel?: string;
   showSkip?: boolean;
   onSkip?: () => void;
+  /** Use wider preview panel (narrower left panel) */
+  widePreview?: boolean;
 }
 
 export function OnboardingShell({
@@ -32,6 +34,7 @@ export function OnboardingShell({
   nextLabel = "Continue",
   showSkip = false,
   onSkip,
+  widePreview = false,
 }: OnboardingShellProps) {
   const router = useRouter();
   const { isSaving, setCurrentStep } = useLandfall();
@@ -65,7 +68,10 @@ export function OnboardingShell({
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
-      <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col min-h-screen">
+      <div className={cn(
+        "w-full flex flex-col min-h-screen",
+        widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]"
+      )}>
         <div className="flex-1 overflow-auto">
           <div className="max-w-xl mx-auto px-8 py-12">
             {/* Back Button & Step Indicator */}
@@ -164,7 +170,10 @@ export function OnboardingShell({
       </div>
 
       {/* Right Panel - Preview */}
-      <div className="hidden lg:block lg:w-1/2 xl:w-[55%] bg-muted/30 border-l">
+      <div className={cn(
+        "hidden lg:block bg-muted/30 border-l",
+        widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
+      )}>
         <div className="sticky top-0 h-screen overflow-auto p-8 flex items-center justify-center">
           {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
         </div>

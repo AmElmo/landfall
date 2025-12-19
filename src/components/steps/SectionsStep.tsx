@@ -508,91 +508,9 @@ function SectionsPreview({
 
         <ScrollArea className="h-[500px]">
           <div className="p-4 space-y-3">
-            {sections.map((section, index) => {
-              const sectionType =
-                SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
-              return (
-                <div
-                  key={section.id}
-                  className="border-2 border-dashed border-muted rounded-lg p-4"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs">
-                      {index + 1}
-                    </Badge>
-                    <span className="font-medium text-sm">
-                      {sectionType?.name || section.type}
-                    </span>
-                  </div>
-
-                  {/* Wireframe representation */}
-                  <div className="bg-muted/30 rounded p-4 space-y-2">
-                    {section.type === "hero" && (
-                      <>
-                        <div className="h-4 bg-muted rounded w-3/4" />
-                        <div className="h-3 bg-muted/60 rounded w-1/2" />
-                        <div className="flex gap-2 mt-4">
-                          <div className="h-8 w-24 bg-primary/20 rounded" />
-                          <div className="h-8 w-24 bg-muted rounded" />
-                        </div>
-                      </>
-                    )}
-                    {section.type === "features" && (
-                      <div className="grid grid-cols-3 gap-2">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="space-y-1">
-                            <div className="h-8 w-8 bg-muted rounded" />
-                            <div className="h-2 bg-muted rounded w-3/4" />
-                            <div className="h-2 bg-muted/60 rounded w-1/2" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {section.type === "testimonials" && (
-                      <div className="flex gap-2">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="flex-1 p-2 bg-background rounded">
-                            <div className="h-2 bg-muted rounded w-full mb-1" />
-                            <div className="h-2 bg-muted/60 rounded w-3/4" />
-                            <div className="flex items-center gap-1 mt-2">
-                              <div className="h-4 w-4 bg-muted rounded-full" />
-                              <div className="h-2 bg-muted rounded w-12" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {section.type === "cta" && (
-                      <div className="text-center space-y-2">
-                        <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
-                        <div className="h-3 bg-muted/60 rounded w-1/3 mx-auto" />
-                        <div className="h-8 w-28 bg-primary/20 rounded mx-auto mt-3" />
-                      </div>
-                    )}
-                    {!["hero", "features", "testimonials", "cta"].includes(
-                      section.type
-                    ) && (
-                      <div className="space-y-2">
-                        <div className="h-4 bg-muted rounded w-1/2" />
-                        <div className="h-3 bg-muted/60 rounded w-3/4" />
-                        <div className="h-3 bg-muted/60 rounded w-2/3" />
-                      </div>
-                    )}
-                  </div>
-
-                  {(section.copyInstructions || section.inspirations?.length > 0) && (
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      {section.copyInstructions && (
-                        <div className="truncate">📝 {section.copyInstructions}</div>
-                      )}
-                      {section.inspirations?.length > 0 && (
-                        <div className="truncate">🖼️ {section.inspirations.length} inspiration{section.inspirations.length !== 1 ? 's' : ''}</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {sections.map((section, index) => (
+              <SectionPreviewCard key={section.id} section={section} index={index} />
+            ))}
 
             {sections.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
@@ -602,6 +520,115 @@ function SectionsPreview({
           </div>
         </ScrollArea>
       </div>
+    </div>
+  );
+}
+
+// Individual section preview card that uses wireframe templates when available
+function SectionPreviewCard({ section, index }: { section: Section; index: number }) {
+  const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
+  const { templates } = useWireframeTemplates(section.type as SectionType);
+
+  // Find the selected template if one exists
+  const selectedTemplate = templates.find(t => t.id === section.layoutTemplateId);
+
+  return (
+    <div className="border-2 border-dashed border-muted rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Badge variant="outline" className="text-xs">
+          {index + 1}
+        </Badge>
+        <span className="font-medium text-sm">
+          {section.type === 'custom' ? (section.customType || 'Custom') : (sectionType?.name || section.type)}
+        </span>
+        {selectedTemplate && (
+          <span className="text-xs text-muted-foreground">
+            - {selectedTemplate.name}
+          </span>
+        )}
+      </div>
+
+      {/* Wireframe representation - use template preview if available */}
+      <div className="bg-muted/30 rounded p-4">
+        {selectedTemplate ? (
+          <WireframePreview template={selectedTemplate} className="min-h-[120px]" />
+        ) : (
+          <DefaultSectionWireframe type={section.type} />
+        )}
+      </div>
+
+      {(section.copyInstructions || section.inspirations?.length > 0) && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          {section.copyInstructions && (
+            <div className="truncate">📝 {section.copyInstructions}</div>
+          )}
+          {section.inspirations?.length > 0 && (
+            <div className="truncate">🖼️ {section.inspirations.length} inspiration{section.inspirations.length !== 1 ? 's' : ''}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Default wireframe for sections without template support
+function DefaultSectionWireframe({ type }: { type: string }) {
+  if (type === "hero") {
+    return (
+      <div className="space-y-2">
+        <div className="h-4 bg-muted rounded w-3/4" />
+        <div className="h-3 bg-muted/60 rounded w-1/2" />
+        <div className="flex gap-2 mt-4">
+          <div className="h-8 w-24 bg-primary/20 rounded" />
+          <div className="h-8 w-24 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
+  if (type === "features") {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-1">
+            <div className="h-8 w-8 bg-muted rounded" />
+            <div className="h-2 bg-muted rounded w-3/4" />
+            <div className="h-2 bg-muted/60 rounded w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (type === "testimonials") {
+    return (
+      <div className="flex gap-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex-1 p-2 bg-background rounded">
+            <div className="h-2 bg-muted rounded w-full mb-1" />
+            <div className="h-2 bg-muted/60 rounded w-3/4" />
+            <div className="flex items-center gap-1 mt-2">
+              <div className="h-4 w-4 bg-muted rounded-full" />
+              <div className="h-2 bg-muted rounded w-12" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (type === "cta") {
+    return (
+      <div className="text-center space-y-2">
+        <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
+        <div className="h-3 bg-muted/60 rounded w-1/3 mx-auto" />
+        <div className="h-8 w-28 bg-primary/20 rounded mx-auto mt-3" />
+      </div>
+    );
+  }
+  // Default fallback
+  return (
+    <div className="space-y-2">
+      <div className="h-4 bg-muted rounded w-1/2" />
+      <div className="h-3 bg-muted/60 rounded w-3/4" />
+      <div className="h-3 bg-muted/60 rounded w-2/3" />
     </div>
   );
 }
