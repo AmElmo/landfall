@@ -1,0 +1,48 @@
+{
+  "sectionType": "logos",
+  "templates": [
+    {
+      "id": "logos-simple-row",
+      "name": "Simple Row",
+      "sectionType": "logos",
+      "description": "Single row of logos, evenly spaced",
+      "structure": "logo-row",
+      "elements": [
+        { "type": "image", "size": "small", "role": "logo", "repeat": 5 }
+      ]
+    },
+    {
+      "id": "logos-with-heading",
+      "name": "With Heading",
+      "sectionType": "logos",
+      "description": "Heading like 'Trusted by' above a row of logos",
+      "structure": "heading-logo-row",
+      "elements": [
+        { "type": "label", "size": "small", "align": "center", "role": "trust-label" },
+        { "type": "image", "size": "small", "role": "logo", "repeat": 5 }
+      ]
+    },
+    {
+      "id": "logos-marquee",
+      "name": "Marquee",
+      "sectionType": "logos",
+      "description": "Scrolling carousel of logos",
+      "structure": "logo-marquee",
+      "elements": [
+        { "type": "label", "size": "small", "align": "center", "role": "trust-label" },
+        { "type": "image", "size": "small", "role": "logo", "repeat": 8 }
+      ]
+    },
+    {
+      "id": "logos-grid",
+      "name": "Grid",
+      "sectionType": "logos",
+      "description": "Two-row grid of logos for more partners",
+      "structure": "logo-grid",
+      "elements": [
+        { "type": "label", "size": "small", "align": "center", "role": "trust-label" },
+        { "type": "image", "size": "small", "role": "logo", "repeat": 8 }
+      ]
+    }
+  ]
+}

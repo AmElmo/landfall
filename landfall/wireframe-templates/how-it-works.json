@@ -1,0 +1,84 @@
+{
+  "sectionType": "how-it-works",
+  "templates": [
+    {
+      "id": "how-it-works-numbered",
+      "name": "Numbered Steps",
+      "sectionType": "how-it-works",
+      "description": "Horizontal numbered steps with connectors",
+      "structure": "numbered-steps",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "label", "size": "large", "role": "step-number" },
+            { "type": "heading", "size": "small", "role": "step-title" },
+            { "type": "paragraph", "size": "small", "role": "step-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "how-it-works-timeline",
+      "name": "Vertical Timeline",
+      "sectionType": "how-it-works",
+      "description": "Vertical timeline with alternating content left/right",
+      "structure": "vertical-timeline",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "list",
+          "repeat": 4,
+          "children": [
+            { "type": "icon", "size": "medium", "role": "step-icon" },
+            { "type": "heading", "size": "small", "role": "step-title" },
+            { "type": "paragraph", "size": "small", "role": "step-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "how-it-works-cards",
+      "name": "Step Cards",
+      "sectionType": "how-it-works",
+      "description": "Step cards in a row with icons",
+      "structure": "step-cards",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "icon", "size": "large", "role": "step-icon" },
+            { "type": "heading", "size": "small", "role": "step-title" },
+            { "type": "paragraph", "size": "small", "role": "step-description" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "how-it-works-screenshots",
+      "name": "With Screenshots",
+      "sectionType": "how-it-works",
+      "description": "Steps with accompanying screenshots or illustrations",
+      "structure": "alternating-rows",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "image", "size": "large", "role": "step-screenshot" },
+            { "type": "label", "size": "small", "role": "step-number" },
+            { "type": "heading", "size": "medium", "role": "step-title" },
+            { "type": "paragraph", "size": "medium", "role": "step-description" }
+          ]
+        }
+      ]
+    }
+  ]
+}

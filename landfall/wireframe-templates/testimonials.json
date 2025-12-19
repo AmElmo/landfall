@@ -1,0 +1,106 @@
+{
+  "sectionType": "testimonials",
+  "templates": [
+    {
+      "id": "testimonials-single-featured",
+      "name": "Single Featured",
+      "sectionType": "testimonials",
+      "description": "One large, prominent testimonial with photo and quote",
+      "structure": "single-featured",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "paragraph", "size": "large", "role": "quote" },
+            { "type": "image", "size": "small", "role": "avatar" },
+            { "type": "heading", "size": "small", "role": "author-name" },
+            { "type": "label", "size": "small", "role": "author-title" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "testimonials-three-cards",
+      "name": "Three Cards",
+      "sectionType": "testimonials",
+      "description": "Three testimonial cards in a row",
+      "structure": "3-column-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "paragraph", "size": "medium", "role": "quote" },
+            { "type": "image", "size": "small", "role": "avatar" },
+            { "type": "heading", "size": "small", "role": "author-name" },
+            { "type": "label", "size": "small", "role": "author-title" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "testimonials-carousel",
+      "name": "Carousel",
+      "sectionType": "testimonials",
+      "description": "Sliding carousel of testimonials with navigation",
+      "structure": "carousel",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "paragraph", "size": "large", "role": "quote" },
+            { "type": "image", "size": "small", "role": "avatar" },
+            { "type": "heading", "size": "small", "role": "author-name" },
+            { "type": "label", "size": "small", "role": "author-title" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "testimonials-grid",
+      "name": "Grid",
+      "sectionType": "testimonials",
+      "description": "2x2 or 2x3 grid of testimonial cards",
+      "structure": "testimonial-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "repeat": 4,
+          "children": [
+            { "type": "paragraph", "size": "small", "role": "quote" },
+            { "type": "image", "size": "small", "role": "avatar" },
+            { "type": "heading", "size": "small", "role": "author-name" },
+            { "type": "label", "size": "small", "role": "author-title" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "testimonials-with-logos",
+      "name": "With Logos",
+      "sectionType": "testimonials",
+      "description": "Testimonials with company logos prominently displayed",
+      "structure": "testimonials-logos",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "image", "size": "medium", "role": "company-logo" },
+            { "type": "paragraph", "size": "medium", "role": "quote" },
+            { "type": "heading", "size": "small", "role": "author-name" },
+            { "type": "label", "size": "small", "role": "author-title" }
+          ]
+        }
+      ]
+    }
+  ]
+}

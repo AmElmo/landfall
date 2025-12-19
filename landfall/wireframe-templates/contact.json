@@ -1,0 +1,108 @@
+{
+  "sectionType": "contact",
+  "templates": [
+    {
+      "id": "contact-simple-form",
+      "name": "Simple Form",
+      "sectionType": "contact",
+      "description": "Basic contact form with name, email, and message fields",
+      "structure": "contact-form",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "label", "size": "small", "role": "name-label" },
+            { "type": "input", "size": "medium", "role": "name-input" },
+            { "type": "label", "size": "small", "role": "email-label" },
+            { "type": "input", "size": "medium", "role": "email-input" },
+            { "type": "label", "size": "small", "role": "message-label" },
+            { "type": "input", "size": "large", "role": "message-input" },
+            { "type": "button-primary", "size": "medium", "role": "submit-button" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-split-info-form",
+      "name": "Split Info + Form",
+      "sectionType": "contact",
+      "description": "Contact information on left, form on right",
+      "structure": "contact-split",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "left", "role": "section-title" },
+        { "type": "paragraph", "size": "medium", "align": "left", "role": "contact-description" },
+        { "type": "icon", "size": "small", "role": "email-icon" },
+        { "type": "paragraph", "size": "small", "role": "email-address" },
+        { "type": "icon", "size": "small", "role": "phone-icon" },
+        { "type": "paragraph", "size": "small", "role": "phone-number" },
+        { "type": "icon", "size": "small", "role": "location-icon" },
+        { "type": "paragraph", "size": "small", "role": "address" },
+        {
+          "type": "card",
+          "children": [
+            { "type": "input", "size": "medium", "role": "name-input" },
+            { "type": "input", "size": "medium", "role": "email-input" },
+            { "type": "input", "size": "large", "role": "message-input" },
+            { "type": "button-primary", "size": "medium", "role": "submit-button" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-with-map",
+      "name": "With Map",
+      "sectionType": "contact",
+      "description": "Contact form alongside an embedded map",
+      "structure": "contact-map",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "image", "size": "large", "role": "map-embed" },
+        {
+          "type": "card",
+          "children": [
+            { "type": "input", "size": "medium", "role": "name-input" },
+            { "type": "input", "size": "medium", "role": "email-input" },
+            { "type": "input", "size": "large", "role": "message-input" },
+            { "type": "button-primary", "size": "medium", "role": "submit-button" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-cards",
+      "name": "Contact Cards",
+      "sectionType": "contact",
+      "description": "Multiple contact method cards (email, phone, chat)",
+      "structure": "contact-cards",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "icon", "size": "large", "role": "contact-icon" },
+            { "type": "heading", "size": "small", "role": "contact-method" },
+            { "type": "paragraph", "size": "small", "role": "contact-detail" },
+            { "type": "button-secondary", "size": "small", "role": "contact-cta" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contact-minimal",
+      "name": "Minimal",
+      "sectionType": "contact",
+      "description": "Just email address and social links",
+      "structure": "contact-minimal",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "heading", "size": "medium", "align": "center", "role": "email-address" },
+        { "type": "icon", "size": "medium", "role": "social-icon", "repeat": 4 }
+      ]
+    }
+  ]
+}

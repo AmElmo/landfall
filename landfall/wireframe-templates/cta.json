@@ -1,0 +1,73 @@
+{
+  "sectionType": "cta",
+  "templates": [
+    {
+      "id": "cta-centered-simple",
+      "name": "Centered Simple",
+      "sectionType": "cta",
+      "description": "Centered headline with CTA button below",
+      "structure": "centered-stack",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "subheadline" },
+        { "type": "button-primary", "size": "large", "role": "cta-button" }
+      ]
+    },
+    {
+      "id": "cta-with-form",
+      "name": "With Form",
+      "sectionType": "cta",
+      "description": "CTA with inline email capture or signup form",
+      "structure": "cta-form",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "subheadline" },
+        { "type": "input", "size": "medium", "role": "email-input" },
+        { "type": "button-primary", "size": "medium", "role": "submit-button" }
+      ]
+    },
+    {
+      "id": "cta-split-image",
+      "name": "Split with Image",
+      "sectionType": "cta",
+      "description": "Text and CTA on one side, image on the other",
+      "structure": "split-half",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "left", "role": "headline" },
+        { "type": "paragraph", "size": "medium", "align": "left", "role": "description" },
+        { "type": "button-primary", "size": "large", "role": "cta-button" },
+        { "type": "image", "size": "large", "role": "cta-image" }
+      ]
+    },
+    {
+      "id": "cta-banner",
+      "name": "Banner",
+      "sectionType": "cta",
+      "description": "Full-width colored banner with inline CTA",
+      "structure": "cta-banner",
+      "elements": [
+        { "type": "heading", "size": "medium", "align": "left", "role": "headline" },
+        { "type": "subheading", "size": "small", "align": "left", "role": "subheadline" },
+        { "type": "button-primary", "size": "medium", "role": "cta-button" }
+      ]
+    },
+    {
+      "id": "cta-card",
+      "name": "Card",
+      "sectionType": "cta",
+      "description": "Contained card-style CTA with border",
+      "structure": "cta-card",
+      "elements": [
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+            { "type": "paragraph", "size": "medium", "align": "center", "role": "description" },
+            { "type": "button-primary", "size": "large", "role": "cta-button" }
+          ]
+        }
+      ]
+    }
+  ]
+}

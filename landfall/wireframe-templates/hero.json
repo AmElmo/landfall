@@ -1,0 +1,73 @@
+{
+  "sectionType": "hero",
+  "templates": [
+    {
+      "id": "hero-centered",
+      "name": "Centered",
+      "sectionType": "hero",
+      "description": "Centered headline, subtext, and CTA buttons stacked vertically",
+      "structure": "centered-stack",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "subheadline" },
+        { "type": "paragraph", "size": "medium", "align": "center", "role": "description" },
+        { "type": "button-primary", "size": "large", "role": "primary-cta" },
+        { "type": "button-secondary", "size": "medium", "role": "secondary-cta" }
+      ]
+    },
+    {
+      "id": "hero-split",
+      "name": "Split 50/50",
+      "sectionType": "hero",
+      "description": "Text content on left, image or visual on right in equal columns",
+      "structure": "split-half",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "left", "role": "headline" },
+        { "type": "paragraph", "size": "medium", "align": "left", "role": "description" },
+        { "type": "button-primary", "size": "large", "role": "primary-cta" },
+        { "type": "button-secondary", "size": "medium", "role": "secondary-cta" },
+        { "type": "image", "size": "large", "role": "hero-image" }
+      ]
+    },
+    {
+      "id": "hero-image-right",
+      "name": "Text Left, Image Right",
+      "sectionType": "hero",
+      "description": "Headline and CTA on left with supporting image on right",
+      "structure": "text-left-image-right",
+      "elements": [
+        { "type": "label", "size": "small", "role": "tagline" },
+        { "type": "heading", "size": "large", "align": "left", "role": "headline" },
+        { "type": "paragraph", "size": "medium", "align": "left", "role": "description" },
+        { "type": "button-primary", "size": "large", "role": "primary-cta" },
+        { "type": "image", "size": "large", "role": "hero-image" }
+      ]
+    },
+    {
+      "id": "hero-fullwidth-bg",
+      "name": "Full Width Background",
+      "sectionType": "hero",
+      "description": "Full-width background image with centered text overlay",
+      "structure": "fullwidth-bg",
+      "elements": [
+        { "type": "image", "size": "large", "role": "background-image" },
+        { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "subheadline" },
+        { "type": "button-primary", "size": "large", "role": "primary-cta" }
+      ]
+    },
+    {
+      "id": "hero-video-bg",
+      "name": "Video Background",
+      "sectionType": "hero",
+      "description": "Video background with centered text overlay and CTA",
+      "structure": "video-bg",
+      "elements": [
+        { "type": "video", "size": "large", "role": "background-video" },
+        { "type": "heading", "size": "large", "align": "center", "role": "headline" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "subheadline" },
+        { "type": "button-primary", "size": "large", "role": "primary-cta" }
+      ]
+    }
+  ]
+}

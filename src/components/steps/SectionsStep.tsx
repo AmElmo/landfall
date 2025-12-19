@@ -34,7 +34,20 @@ import { WireframePreview } from "@/components/wireframe/WireframePreview";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 
 // Section types that have wireframe templates available
-const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = ['features'];
+const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = [
+  'hero',
+  'logos',
+  'features',
+  'how-it-works',
+  'testimonials',
+  'pricing',
+  'faq',
+  'cta',
+  'team',
+  'stats',
+  'contact',
+  'content'
+];
 
 export default function SectionsStep() {
   const { sitemap, pages, updatePage, refreshData } = useLandfall();

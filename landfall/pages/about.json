@@ -4,20 +4,22 @@
     {
       "id": "section_1766050836402",
       "type": "content",
-      "layoutVariant": "content-three-cards",
+      "layoutVariant": "content-featured-grid",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": []
+      "inspirations": [],
+      "layoutTemplateId": "content-featured-grid"
     },
     {
       "id": "section_1766050838806",
       "type": "cta",
-      "layoutVariant": "cta-centered-simple",
+      "layoutVariant": "cta-with-form",
       "order": 2,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": []
+      "inspirations": [],
+      "layoutTemplateId": "cta-with-form"
     }
   ]
 }

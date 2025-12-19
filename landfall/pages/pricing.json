@@ -1,4 +1,35 @@
 {
   "pageId": "page_1765891955495",
-  "sections": []
+  "sections": [
+    {
+      "id": "section_1766127515025",
+      "type": "hero",
+      "layoutVariant": "hero-fullwidth-bg",
+      "layoutTemplateId": "hero-fullwidth-bg",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766127406573",
+      "type": "logos",
+      "layoutVariant": "logos-marquee",
+      "layoutTemplateId": "logos-marquee",
+      "order": 2,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766127486531",
+      "type": "faq",
+      "layoutVariant": "faq-accordion",
+      "layoutTemplateId": "faq-accordion",
+      "order": 3,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
 }

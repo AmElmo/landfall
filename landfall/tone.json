@@ -8,12 +8,14 @@
     "Innovative",
     "Trustworthy"
   ],
-  "targetAudience": "",
+  "targetAudience": "fjdkjfdfdfd",
   "guidelines": {
     "do": [
       "lala"
     ],
-    "dont": []
+    "dont": [
+      "kk"
+    ]
   },
   "examplePhrases": [
     "lalala",
