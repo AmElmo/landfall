@@ -30,6 +30,16 @@
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
+    },
+    {
+      "id": "section_1766129529099",
+      "type": "pricing",
+      "layoutVariant": "pricing-two-tiers",
+      "layoutTemplateId": "pricing-two-tiers",
+      "order": 4,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
     }
   ]
 }

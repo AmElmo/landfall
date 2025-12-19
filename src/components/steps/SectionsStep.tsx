@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus,
@@ -28,7 +26,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, SectionType, LayoutTemplate, SectionInspiration } from "@/lib/types";
+import { Section, SECTION_TYPES, SectionType, SectionInspiration } from "@/lib/types";
 import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
 import { WireframePreview } from "@/components/wireframe/WireframePreview";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
@@ -50,7 +48,7 @@ const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = [
 ];
 
 export default function SectionsStep() {
-  const { sitemap, pages, updatePage, refreshData } = useLandfall();
+  const { sitemap, pages, updatePage } = useLandfall();
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>("home");
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [selectedSectionType, setSelectedSectionType] = useState<SectionType | null>(null);
@@ -79,7 +77,8 @@ export default function SectionsStep() {
       });
       setIsAddingSection(false);
       setSelectedSectionType(null);
-      setEditingSection(newSection);
+      // Don't auto-open editor - let user see the section was added to the list
+      // They can click on it if they want to edit
     }
   };
 
@@ -247,49 +246,59 @@ export default function SectionsStep() {
           })}
 
           {/* Add Section Button */}
-          <Dialog open={isAddingSection} onOpenChange={setIsAddingSection}>
+          <Dialog open={isAddingSection} onOpenChange={(open) => {
+            setIsAddingSection(open);
+            if (!open) setSelectedSectionType(null);
+          }}>
             <DialogTrigger asChild>
               <Button variant="outline" className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Section
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[80vh]">
+            <DialogContent className="max-w-4xl max-h-[85vh]">
               <DialogHeader>
                 <DialogTitle>
                   {selectedSectionType
-                    ? `Select ${SECTION_TYPES[selectedSectionType]?.name} Layout`
-                    : "Add Section"}
+                    ? `Choose ${SECTION_TYPES[selectedSectionType]?.name} Layout`
+                    : "Add a Section"}
                 </DialogTitle>
               </DialogHeader>
 
               {selectedSectionType ? (
-                <LayoutTemplatePicker
-                  sectionType={selectedSectionType}
-                  onBack={() => setSelectedSectionType(null)}
-                  onSelect={(templateId, variantId) => {
-                    addSection(selectedSectionType, variantId, templateId);
-                  }}
-                />
+                <div className="space-y-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedSectionType(null)}
+                    className="text-muted-foreground"
+                  >
+                    ← Back to section types
+                  </Button>
+                  <LayoutTemplatePicker
+                    sectionType={selectedSectionType}
+                    onBack={() => setSelectedSectionType(null)}
+                    onSelect={(templateId, variantId) => {
+                      addSection(selectedSectionType, variantId, templateId);
+                    }}
+                  />
+                </div>
               ) : (
-                <ScrollArea className="h-[500px] pt-4">
-                  <div className="grid grid-cols-3 gap-4 pr-4">
+                <ScrollArea className="h-[60vh]">
+                  <div className="grid grid-cols-4 gap-3 pr-4">
                     {SECTION_TYPES_WITH_TEMPLATES.map((type) => {
                       const sectionType = SECTION_TYPES[type];
                       return (
                         <button
                           key={type}
                           onClick={() => setSelectedSectionType(type)}
-                          className="p-4 border rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
+                          className="p-3 border rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group"
                         >
                           {/* Wireframe Preview */}
-                          <div className="mb-3 p-2 bg-muted/50 rounded-lg border h-16 overflow-hidden">
+                          <div className="mb-2 p-2 bg-muted/50 rounded border h-14 overflow-hidden">
                             <SectionTypeWireframe type={type} />
                           </div>
-                          <div className="font-medium text-sm">{sectionType.name}</div>
-                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {sectionType.description}
-                          </div>
+                          <div className="font-medium text-xs">{sectionType.name}</div>
                         </button>
                       );
                     })}
@@ -445,36 +454,28 @@ function LayoutTemplatePicker({
   const hasWireframeTemplates = templates.length > 0;
 
   return (
-    <div className="space-y-4 pt-4">
-      <Button
-        variant="ghost"
-        onClick={onBack}
-        className="mb-2"
-      >
-        ← Back to section types
-      </Button>
-
+    <div>
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-4 pr-4">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-40 bg-muted/50 rounded-xl animate-pulse" />
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-32 bg-muted/50 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : hasWireframeTemplates ? (
-        <ScrollArea className="h-[400px]">
-          <div className="grid grid-cols-2 gap-4 pr-4">
+        <ScrollArea className="h-[55vh]">
+          <div className="grid grid-cols-3 gap-3 pr-4">
             {templates.map((template) => (
               <button
                 key={template.id}
                 onClick={() => onSelect(template.id, template.id)}
-                className="p-4 border-2 rounded-xl hover:border-primary hover:bg-primary/5 text-left transition-all group"
+                className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group"
               >
                 {/* Wireframe Preview */}
-                <div className="mb-3 h-28 overflow-hidden">
-                  <WireframePreview template={template} className="h-full" />
+                <div className="mb-2 h-24 overflow-hidden">
+                  <WireframePreview template={template} compact className="h-full" />
                 </div>
-                <div className="font-medium text-sm">{template.name}</div>
-                <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                <div className="font-medium text-xs">{template.name}</div>
+                <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                   {template.description}
                 </div>
               </button>
@@ -504,23 +505,23 @@ function SectionsPreview({
   pageName: string;
 }) {
   return (
-    <div className="w-full max-w-2xl">
-      <div className="bg-white rounded-xl shadow-2xl overflow-hidden border">
-        <div className="bg-muted/50 px-4 py-3 flex items-center gap-2 border-b">
+    <div className="w-full max-w-2xl h-full flex flex-col">
+      <div className="bg-white rounded-xl shadow-2xl overflow-hidden border flex-1 flex flex-col min-h-0">
+        <div className="bg-muted/50 px-4 py-2.5 flex items-center gap-2 border-b flex-shrink-0">
           <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400" />
-            <div className="w-3 h-3 rounded-full bg-green-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+            <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
           </div>
           <div className="flex-1 flex justify-center">
-            <div className="bg-background rounded-md px-4 py-1.5 text-xs text-muted-foreground">
+            <div className="bg-background rounded-md px-3 py-1 text-xs text-muted-foreground">
               {pageName}
             </div>
           </div>
         </div>
 
-        <ScrollArea className="h-[600px]">
-          <div className="p-4 space-y-4">
+        <ScrollArea className="flex-1">
+          <div className="p-3 space-y-3">
             {sections.map((section, index) => (
               <SectionPreviewCard key={section.id} section={section} index={index} />
             ))}
@@ -546,39 +547,39 @@ function SectionPreviewCard({ section, index }: { section: Section; index: numbe
   const selectedTemplate = templates.find(t => t.id === section.layoutTemplateId);
 
   return (
-    <div className="border-2 border-dashed border-muted rounded-lg p-4">
+    <div className="border border-dashed border-muted-foreground/30 rounded-lg p-2.5 bg-white/50">
       <div className="flex items-center gap-2 mb-2">
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
           {index + 1}
         </Badge>
-        <span className="font-medium text-sm">
+        <span className="font-medium text-xs">
           {section.type === 'custom' ? (section.customType || 'Custom') : (sectionType?.name || section.type)}
         </span>
         {selectedTemplate && (
-          <span className="text-xs text-muted-foreground">
-            - {selectedTemplate.name}
+          <span className="text-[10px] text-muted-foreground">
+            · {selectedTemplate.name}
           </span>
         )}
       </div>
 
       {/* Wireframe representation - use template preview if available */}
-      <div className="bg-muted/30 rounded p-4">
+      <div className="bg-muted/20 rounded">
         {selectedTemplate ? (
-          <WireframePreview template={selectedTemplate} className="min-h-[280px]" />
+          <WireframePreview template={selectedTemplate} compact className="min-h-[120px]" />
         ) : (
-          <div className="min-h-[280px] flex items-center justify-center">
+          <div className="min-h-[80px] flex items-center justify-center p-3">
             <DefaultSectionWireframe type={section.type} />
           </div>
         )}
       </div>
 
       {(section.copyInstructions || section.inspirations?.length > 0) && (
-        <div className="mt-2 text-xs text-muted-foreground">
+        <div className="mt-1.5 text-[10px] text-muted-foreground flex gap-3">
           {section.copyInstructions && (
-            <div className="truncate">📝 {section.copyInstructions}</div>
+            <div className="truncate flex-1">📝 {section.copyInstructions}</div>
           )}
           {section.inspirations?.length > 0 && (
-            <div className="truncate">🖼️ {section.inspirations.length} inspiration{section.inspirations.length !== 1 ? 's' : ''}</div>
+            <div className="flex-shrink-0">🖼️ {section.inspirations.length}</div>
           )}
         </div>
       )}
@@ -781,228 +782,4 @@ function SectionTypeWireframe({ type }: { type: SectionType }) {
   };
 
   return wireframes[type] || null;
-}
-
-// Wireframe preview for specific layout variants
-function VariantWireframe({ type, variantId }: { type: SectionType; variantId: string }) {
-  // Hero variants
-  if (type === 'hero') {
-    if (variantId === 'hero-centered') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full gap-1">
-          <div className="h-2.5 bg-muted-foreground/40 rounded w-1/2" />
-          <div className="h-1.5 bg-muted-foreground/20 rounded w-1/3" />
-          <div className="flex gap-1 mt-1">
-            <div className="h-3 w-10 bg-primary/40 rounded" />
-            <div className="h-3 w-10 bg-muted-foreground/20 rounded" />
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'hero-centered-image-right' || variantId === 'hero-split-50-50') {
-      return (
-        <div className="flex gap-2 items-center h-full">
-          <div className="flex-1 space-y-1">
-            <div className="h-2 bg-muted-foreground/40 rounded w-3/4" />
-            <div className="h-1.5 bg-muted-foreground/20 rounded w-full" />
-            <div className="h-3 w-12 bg-primary/40 rounded mt-1" />
-          </div>
-          <div className="w-1/2 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
-            <ImageIcon className="h-4 w-4 text-muted-foreground/40" />
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'hero-fullwidth-bg' || variantId === 'hero-video-bg') {
-      return (
-        <div className="relative h-full bg-muted-foreground/20 rounded flex flex-col items-center justify-center">
-          <ImageIcon className="absolute right-1 top-1 h-2 w-2 text-muted-foreground/30" />
-          <div className="h-2 bg-white/80 rounded w-1/2 mb-1" />
-          <div className="h-1.5 bg-white/60 rounded w-1/3" />
-          <div className="h-3 w-10 bg-primary/60 rounded mt-1" />
-        </div>
-      );
-    }
-  }
-
-  // Features variants
-  if (type === 'features') {
-    if (variantId === 'features-three-column-cards') {
-      return (
-        <div className="grid grid-cols-3 gap-2 h-full items-center">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="p-1 border rounded space-y-1">
-              <div className="w-4 h-4 bg-primary/30 rounded" />
-              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
-              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (variantId === 'features-two-column-cards') {
-      return (
-        <div className="grid grid-cols-2 gap-2 h-full items-center">
-          {[1, 2].map((i) => (
-            <div key={i} className="p-1.5 border rounded space-y-1">
-              <div className="w-5 h-5 bg-primary/30 rounded" />
-              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
-              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (variantId === 'features-alternating') {
-      return (
-        <div className="space-y-1 h-full flex flex-col justify-center">
-          <div className="flex gap-2">
-            <div className="flex-1 space-y-0.5">
-              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
-              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
-            </div>
-            <div className="w-8 h-6 bg-muted-foreground/20 rounded" />
-          </div>
-          <div className="flex gap-2">
-            <div className="w-8 h-6 bg-muted-foreground/20 rounded" />
-            <div className="flex-1 space-y-0.5">
-              <div className="h-1.5 bg-muted-foreground/40 rounded w-3/4" />
-              <div className="h-1 bg-muted-foreground/20 rounded w-full" />
-            </div>
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'features-bento-grid') {
-      return (
-        <div className="grid grid-cols-3 grid-rows-2 gap-1 h-full">
-          <div className="col-span-2 bg-muted-foreground/15 rounded p-1">
-            <div className="h-1 bg-muted-foreground/30 rounded w-1/2" />
-          </div>
-          <div className="row-span-2 bg-muted-foreground/15 rounded" />
-          <div className="bg-muted-foreground/15 rounded" />
-          <div className="bg-muted-foreground/15 rounded" />
-        </div>
-      );
-    }
-  }
-
-  // Pricing variants
-  if (type === 'pricing') {
-    if (variantId === 'pricing-three-tiers') {
-      return (
-        <div className="grid grid-cols-3 gap-2 h-full items-center">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={cn("p-1.5 rounded border space-y-1", i === 2 && "border-primary/50 bg-primary/5 scale-105")}>
-              <div className="h-1.5 bg-muted-foreground/30 rounded w-1/2 mx-auto" />
-              <div className="h-2 bg-muted-foreground/40 rounded w-2/3 mx-auto" />
-              <div className="space-y-0.5">
-                {[1, 2].map((j) => (
-                  <div key={j} className="h-0.5 bg-muted-foreground/20 rounded w-full" />
-                ))}
-              </div>
-              <div className="h-2.5 bg-primary/40 rounded w-full" />
-            </div>
-          ))}
-        </div>
-      );
-    }
-    if (variantId === 'pricing-two-tiers') {
-      return (
-        <div className="grid grid-cols-2 gap-3 h-full items-center px-4">
-          {[1, 2].map((i) => (
-            <div key={i} className="p-2 rounded border space-y-1">
-              <div className="h-1.5 bg-muted-foreground/30 rounded w-1/2" />
-              <div className="h-2.5 bg-muted-foreground/40 rounded w-2/3" />
-              <div className="h-3 bg-primary/40 rounded w-full mt-1" />
-            </div>
-          ))}
-        </div>
-      );
-    }
-  }
-
-  // Testimonials variants
-  if (type === 'testimonials') {
-    if (variantId === 'testimonials-single-featured') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full p-2">
-          <div className="h-1.5 bg-muted-foreground/30 rounded w-3/4 mb-1" />
-          <div className="h-1 bg-muted-foreground/20 rounded w-1/2 mb-2" />
-          <div className="flex items-center gap-1">
-            <div className="w-4 h-4 rounded-full bg-muted-foreground/30" />
-            <div className="h-1 bg-muted-foreground/20 rounded w-8" />
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'testimonials-carousel') {
-      return (
-        <div className="flex items-center justify-center gap-2 h-full">
-          <div className="w-2 h-2 bg-muted-foreground/20 rounded">←</div>
-          <div className="flex-1 p-2 bg-background rounded border">
-            <div className="h-1 bg-muted-foreground/30 rounded w-full mb-0.5" />
-            <div className="h-1 bg-muted-foreground/20 rounded w-3/4 mb-1" />
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-              <div className="h-1 bg-muted-foreground/20 rounded w-6" />
-            </div>
-          </div>
-          <div className="w-2 h-2 bg-muted-foreground/20 rounded">→</div>
-        </div>
-      );
-    }
-  }
-
-  // CTA variants
-  if (type === 'cta') {
-    if (variantId === 'cta-centered-simple') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full gap-1">
-          <div className="h-2.5 bg-muted-foreground/40 rounded w-1/2" />
-          <div className="h-1.5 bg-muted-foreground/20 rounded w-1/3" />
-          <div className="h-4 w-14 bg-primary/40 rounded mt-1" />
-        </div>
-      );
-    }
-    if (variantId === 'cta-with-form') {
-      return (
-        <div className="flex flex-col items-center justify-center h-full gap-1">
-          <div className="h-2 bg-muted-foreground/40 rounded w-1/2" />
-          <div className="flex gap-1 w-2/3">
-            <div className="flex-1 h-3 bg-muted-foreground/20 rounded" />
-            <div className="h-3 w-8 bg-primary/40 rounded" />
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'cta-split-with-image') {
-      return (
-        <div className="flex gap-2 items-center h-full">
-          <div className="flex-1 space-y-1">
-            <div className="h-2 bg-muted-foreground/40 rounded w-3/4" />
-            <div className="h-1.5 bg-muted-foreground/20 rounded w-full" />
-            <div className="h-3 w-10 bg-primary/40 rounded mt-1" />
-          </div>
-          <div className="w-1/3 h-full bg-muted-foreground/20 rounded flex items-center justify-center">
-            <ImageIcon className="h-3 w-3 text-muted-foreground/40" />
-          </div>
-        </div>
-      );
-    }
-    if (variantId === 'cta-banner') {
-      return (
-        <div className="h-full bg-primary/20 rounded flex items-center justify-between px-3">
-          <div className="space-y-0.5">
-            <div className="h-2 bg-primary/60 rounded w-16" />
-            <div className="h-1 bg-primary/40 rounded w-12" />
-          </div>
-          <div className="h-4 w-10 bg-white/80 rounded" />
-        </div>
-      );
-    }
-  }
-
-  // Default fallback - use the section type wireframe
-  return <SectionTypeWireframe type={type} />;
 }

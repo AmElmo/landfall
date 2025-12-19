@@ -73,11 +73,12 @@ export function OnboardingShell({
         "w-full flex flex-col min-h-screen",
         widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]"
       )}>
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-xl mx-auto px-8 py-12">
-            {/* Back Button & Step Indicator */}
-            <div className="flex items-center gap-4 mb-8">
-              {stepIndex > 1 ? (
+        {/* Sticky Top Navigation Bar */}
+        <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-8 py-3">
+          <div className="max-w-xl mx-auto flex items-center justify-between">
+            {/* Back Button */}
+            <div className="flex items-center gap-3 min-w-[100px]">
+              {stepIndex > 1 && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -86,41 +87,6 @@ export function OnboardingShell({
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
-                </Button>
-              ) : (
-                <div className="w-[72px]" />
-              )}
-              <span className="text-sm text-muted-foreground">
-                {stepIndex}/{totalSteps}
-              </span>
-            </div>
-
-            {/* Title & Description */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-semibold tracking-tight mb-2">{title}</h1>
-              {description && (
-                <p className="text-muted-foreground">{description}</p>
-              )}
-            </div>
-
-            {/* Form Content */}
-            <div className="space-y-6">{children}</div>
-          </div>
-        </div>
-
-        {/* Footer with Navigation */}
-        <div className="border-t bg-background px-8 py-4">
-          <div className="max-w-xl mx-auto flex items-center justify-between">
-            {/* Back Button in Footer */}
-            <div className="flex items-center gap-3">
-              {stepIndex > 1 && (
-                <Button
-                  variant="outline"
-                  onClick={handleBack}
-                  className="gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Previous
                 </Button>
               )}
             </div>
@@ -142,7 +108,7 @@ export function OnboardingShell({
                       )}
                     />
                   </TooltipTrigger>
-                  <TooltipContent side="top" sideOffset={8}>
+                  <TooltipContent side="bottom" sideOffset={8}>
                     <span className="font-medium">{step.name}</span>
                     <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
                   </TooltipContent>
@@ -151,17 +117,18 @@ export function OnboardingShell({
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-[100px] justify-end">
               {showSkip && (
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={onSkip || handleNext}
                   className="text-muted-foreground"
                 >
-                  Skip for now
+                  Skip
                 </Button>
               )}
-              <Button onClick={handleNext} disabled={isSaving}>
+              <Button size="sm" onClick={handleNext} disabled={isSaving}>
                 {isSaving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -174,6 +141,26 @@ export function OnboardingShell({
             </div>
           </div>
         </div>
+
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-xl mx-auto px-8 py-8">
+            {/* Title & Description */}
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-sm text-muted-foreground font-medium">
+                  Step {stepIndex} of {totalSteps}
+                </span>
+              </div>
+              <h1 className="text-2xl font-semibold tracking-tight mb-2">{title}</h1>
+              {description && (
+                <p className="text-muted-foreground">{description}</p>
+              )}
+            </div>
+
+            {/* Form Content */}
+            <div className="space-y-6">{children}</div>
+          </div>
+        </div>
       </div>
 
       {/* Right Panel - Preview */}
@@ -181,8 +168,10 @@ export function OnboardingShell({
         "hidden lg:block bg-muted/30 border-l",
         widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
       )}>
-        <div className="sticky top-0 h-screen overflow-auto p-8 flex items-center justify-center">
-          {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+        <div className="sticky top-0 h-screen overflow-auto p-6 flex flex-col">
+          <div className="flex-1 flex items-start justify-center pt-4">
+            {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+          </div>
         </div>
       </div>
     </div>

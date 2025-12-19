@@ -362,6 +362,8 @@ export default function ToneStep() {
 }
 
 function TonePreview({ tone }: { tone: NonNullable<ReturnType<typeof useLandfall>["tone"]> }) {
+  const hasDosOrDonts = tone.guidelines.do.length > 0 || tone.guidelines.dont.length > 0;
+
   return (
     <div className="w-full max-w-2xl">
       <div className="bg-white rounded-xl shadow-2xl overflow-hidden border">
@@ -373,13 +375,13 @@ function TonePreview({ tone }: { tone: NonNullable<ReturnType<typeof useLandfall
           </div>
         </div>
 
-        <div className="p-8 min-h-[500px] space-y-8">
+        <div className="p-6 min-h-[500px] space-y-6">
           {/* Tone Summary */}
           <div className="text-center">
-            <h2 className="text-xl font-semibold mb-4">Your Brand Voice</h2>
+            <h2 className="text-lg font-semibold mb-3">Your Brand Voice</h2>
 
             {tone.toneKeywords.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center mb-4">
+              <div className="flex flex-wrap gap-2 justify-center mb-3">
                 {tone.toneKeywords.map((keyword) => (
                   <span
                     key={keyword}
@@ -392,25 +394,88 @@ function TonePreview({ tone }: { tone: NonNullable<ReturnType<typeof useLandfall
             )}
 
             {tone.brandPersonality.length > 0 && (
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {tone.brandPersonality.join(" • ")}
               </p>
             )}
           </div>
 
+          {/* Do's and Don'ts */}
+          {hasDosOrDonts && (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Do's */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+                  <ThumbsUp className="h-4 w-4" />
+                  <span>Do&apos;s</span>
+                </div>
+                {tone.guidelines.do.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {tone.guidelines.do.slice(0, 4).map((item, index) => (
+                      <div
+                        key={index}
+                        className="text-xs p-2 bg-green-50 border border-green-200 rounded-lg text-green-800"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                    {tone.guidelines.do.length > 4 && (
+                      <div className="text-xs text-muted-foreground">
+                        +{tone.guidelines.do.length - 4} more
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic">
+                    No guidelines added yet
+                  </div>
+                )}
+              </div>
+
+              {/* Don'ts */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-red-700">
+                  <ThumbsDown className="h-4 w-4" />
+                  <span>Don&apos;ts</span>
+                </div>
+                {tone.guidelines.dont.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {tone.guidelines.dont.slice(0, 4).map((item, index) => (
+                      <div
+                        key={index}
+                        className="text-xs p-2 bg-red-50 border border-red-200 rounded-lg text-red-800"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                    {tone.guidelines.dont.length > 4 && (
+                      <div className="text-xs text-muted-foreground">
+                        +{tone.guidelines.dont.length - 4} more
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic">
+                    No guidelines added yet
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Sample Copy */}
-          <div className="bg-muted/30 rounded-xl p-6 space-y-4">
-            <div className="text-sm text-muted-foreground uppercase tracking-wide">
+          <div className="bg-muted/30 rounded-xl p-5 space-y-3">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
               Sample Hero Copy
             </div>
-            <h3 className="text-2xl font-bold">
+            <h3 className="text-xl font-bold">
               {tone.toneKeywords.includes("Playful")
                 ? "Ready to supercharge your workflow? 🚀"
                 : tone.toneKeywords.includes("Professional")
                 ? "Enterprise-grade solutions for modern teams"
                 : "Build something amazing today"}
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {tone.toneKeywords.includes("Technical")
                 ? "Powerful APIs, comprehensive SDKs, and developer-first documentation."
                 : tone.toneKeywords.includes("Friendly")
@@ -421,25 +486,30 @@ function TonePreview({ tone }: { tone: NonNullable<ReturnType<typeof useLandfall
 
           {/* Example Phrases */}
           {tone.examplePhrases.length > 0 && (
-            <div className="space-y-3">
-              <div className="text-sm text-muted-foreground uppercase tracking-wide">
+            <div className="space-y-2">
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">
                 Your Example Phrases
               </div>
-              {tone.examplePhrases.map((phrase, index) => (
+              {tone.examplePhrases.slice(0, 3).map((phrase, index) => (
                 <div
                   key={index}
-                  className="p-3 bg-primary/5 border-l-4 border-primary rounded-r-lg"
+                  className="p-2.5 bg-primary/5 border-l-4 border-primary rounded-r-lg"
                 >
-                  <p className="italic">&ldquo;{phrase}&rdquo;</p>
+                  <p className="italic text-sm">&ldquo;{phrase}&rdquo;</p>
                 </div>
               ))}
+              {tone.examplePhrases.length > 3 && (
+                <div className="text-xs text-muted-foreground">
+                  +{tone.examplePhrases.length - 3} more phrases
+                </div>
+              )}
             </div>
           )}
 
           {/* Target Audience */}
           {tone.targetAudience && (
-            <div className="text-center pt-4 border-t">
-              <div className="text-sm text-muted-foreground">
+            <div className="text-center pt-3 border-t">
+              <div className="text-xs text-muted-foreground">
                 Speaking to: <span className="font-medium">{tone.targetAudience}</span>
               </div>
             </div>
