@@ -9,7 +9,8 @@ import {
   Check,
   Copy,
   Download,
-  Sparkles,
+  Rocket,
+  Play,
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -191,8 +192,8 @@ export default function BuildStep() {
           {/* Generate Button or Prompts List */}
           {prompts.length === 0 ? (
             <div className="bg-white rounded-xl border shadow-sm p-12 text-center">
-              <Sparkles className="h-16 w-16 mx-auto text-primary/50 mb-6" />
-              <h2 className="text-2xl font-semibold mb-3">Ready to Generate</h2>
+              <Rocket className="h-16 w-16 mx-auto text-primary/50 mb-6" />
+              <h2 className="text-2xl font-semibold mb-3">Ready to Build</h2>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
                 Click the button below to create a sequence of AI-ready prompts
                 for building your landing page.
@@ -210,8 +211,8 @@ export default function BuildStep() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Generate Prompts
+                    <Play className="h-5 w-5 mr-2" />
+                    Build Prompts
                   </>
                 )}
               </Button>

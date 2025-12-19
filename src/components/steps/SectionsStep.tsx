@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Label } from "@/components/ui/label";
@@ -164,6 +164,7 @@ export default function SectionsStep() {
                 (p.slug === "/" ? "home" : p.slug.replace(/^\//, "")) === selectedPageSlug
             )?.name || "Page"
           }
+          activeSectionId={editingSection?.id || null}
         />
       }
     >
@@ -498,10 +499,24 @@ function LayoutTemplatePicker({
 function SectionsPreview({
   sections,
   pageName,
+  activeSectionId,
 }: {
   sections: Section[];
   pageName: string;
+  activeSectionId: string | null;
 }) {
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Scroll to active section when it changes
+  useEffect(() => {
+    if (activeSectionId && sectionRefs.current[activeSectionId]) {
+      sectionRefs.current[activeSectionId]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [activeSectionId]);
+
   return (
     <div className="w-full max-w-2xl h-full flex flex-col">
       <div className="bg-white rounded-xl shadow-2xl overflow-hidden border flex-1 flex flex-col min-h-0">
@@ -521,7 +536,16 @@ function SectionsPreview({
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {sections.map((section, index) => (
-              <SectionPreviewCard key={section.id} section={section} index={index} />
+              <div
+                key={section.id}
+                ref={(el) => { sectionRefs.current[section.id] = el; }}
+              >
+                <SectionPreviewCard
+                  section={section}
+                  index={index}
+                  isActive={section.id === activeSectionId}
+                />
+              </div>
             ))}
 
             {sections.length === 0 && (
@@ -537,7 +561,15 @@ function SectionsPreview({
 }
 
 // Individual section preview card that uses wireframe templates when available
-function SectionPreviewCard({ section, index }: { section: Section; index: number }) {
+function SectionPreviewCard({
+  section,
+  index,
+  isActive = false,
+}: {
+  section: Section;
+  index: number;
+  isActive?: boolean;
+}) {
   const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
   const { templates } = useWireframeTemplates(section.type as SectionType);
 
@@ -545,7 +577,14 @@ function SectionPreviewCard({ section, index }: { section: Section; index: numbe
   const selectedTemplate = templates.find(t => t.id === section.layoutTemplateId);
 
   return (
-    <div className="border border-dashed border-muted-foreground/30 rounded-lg p-2.5 bg-white/50">
+    <div
+      className={cn(
+        "border rounded-lg p-2.5 transition-all",
+        isActive
+          ? "border-primary border-2 bg-primary/5 shadow-md ring-2 ring-primary/20"
+          : "border-dashed border-muted-foreground/30 bg-white/50"
+      )}
+    >
       <div className="flex items-center gap-2 mb-2">
         <Badge variant="outline" className="text-[10px] h-5 px-1.5">
           {index + 1}

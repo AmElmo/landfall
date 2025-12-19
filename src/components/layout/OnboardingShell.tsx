@@ -4,10 +4,32 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { STEPS } from "@/lib/types";
 import { useLandfall } from "@/lib/context";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Loader2,
+  Palette,
+  MessageSquare,
+  Map,
+  Layers,
+  Menu,
+  Eye,
+  Rocket,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+// Map step slugs to icons
+const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  style: Palette,
+  tone: MessageSquare,
+  sitemap: Map,
+  sections: Layers,
+  navigation: Menu,
+  preview: Eye,
+  build: Rocket,
+};
 
 interface OnboardingShellProps {
   children: React.ReactNode;
@@ -86,29 +108,37 @@ export function OnboardingShell({
             )}
           </div>
 
-          {/* Step Progress Dots */}
-          <div className="flex items-center gap-2">
-            {STEPS.map((step, idx) => (
-              <Tooltip key={step.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => navigateToStep(step.id)}
-                    className={cn(
-                      "rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50",
-                      idx + 1 === stepIndex
-                        ? "w-10 h-3 bg-primary"
-                        : idx + 1 < stepIndex
-                        ? "w-3 h-3 bg-primary/70 hover:bg-primary"
-                        : "w-3 h-3 bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                    )}
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={8}>
-                  <span className="font-medium">{step.name}</span>
-                  <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
-                </TooltipContent>
-              </Tooltip>
-            ))}
+          {/* Step Progress Icons */}
+          <div className="flex items-center gap-1.5">
+            {STEPS.map((step, idx) => {
+              const StepIcon = STEP_ICONS[step.slug];
+              const isActive = idx + 1 === stepIndex;
+              const isCompleted = idx + 1 < stepIndex;
+
+              return (
+                <Tooltip key={step.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => navigateToStep(step.id)}
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/50",
+                        isActive
+                          ? "bg-primary text-primary-foreground scale-110 shadow-md"
+                          : isCompleted
+                          ? "bg-primary/20 text-primary hover:bg-primary/30"
+                          : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+                      )}
+                    >
+                      {StepIcon && <StepIcon className="h-4 w-4" />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    <span className="font-medium">{step.name}</span>
+                    <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
 
           {/* Navigation Buttons */}
