@@ -13,7 +13,7 @@ export function WireframePreview({ template, className, compact = false }: Wiref
   return (
     <div className={cn(
       "bg-muted/30 rounded-lg border border-dashed border-muted-foreground/20 flex flex-col justify-center",
-      compact ? "p-3" : "p-6",
+      compact ? "p-4 py-6" : "p-6 py-8",
       className
     )}>
       <WireframeLayout structure={template.structure} elements={template.elements} compact={compact} />

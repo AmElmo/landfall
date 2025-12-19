@@ -20,6 +20,16 @@
       "visualInstructions": "",
       "inspirations": [],
       "layoutTemplateId": "cta-with-form"
+    },
+    {
+      "id": "section_1766130052460",
+      "type": "custom",
+      "customType": "lalala",
+      "layoutVariant": "custom",
+      "order": 3,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
     }
   ]
 }

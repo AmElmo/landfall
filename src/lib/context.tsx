@@ -169,16 +169,15 @@ export function LandfallProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updatePage = async (pageSlug: string, data: Partial<PageSections>) => {
-    const currentPage = pages[pageSlug];
-    if (currentPage) {
-      const updated = { ...currentPage, ...data };
-      setPages((prev) => ({ ...prev, [pageSlug]: updated }));
-      await fetch(`/api/config/pages/${pageSlug}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
-    }
+    // Create a new page with empty sections if it doesn't exist yet
+    const currentPage = pages[pageSlug] || { sections: [] };
+    const updated = { ...currentPage, ...data };
+    setPages((prev) => ({ ...prev, [pageSlug]: updated }));
+    await fetch(`/api/config/pages/${pageSlug}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updated),
+    });
   };
 
   return (

@@ -24,8 +24,8 @@
     {
       "id": "section_1766127486531",
       "type": "faq",
-      "layoutVariant": "faq-accordion",
-      "layoutTemplateId": "faq-accordion",
+      "layoutVariant": "faq-simple-list",
+      "layoutTemplateId": "faq-simple-list",
       "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",

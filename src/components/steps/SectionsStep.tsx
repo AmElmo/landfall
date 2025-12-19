@@ -61,25 +61,23 @@ export default function SectionsStep() {
   const generateId = () => `section_${Date.now()}`;
 
   const addSection = (type: SectionType, variant: string, templateId?: string) => {
-    if (currentPage) {
-      const newSection: Section = {
-        id: generateId(),
-        type,
-        layoutVariant: variant,
-        layoutTemplateId: templateId,
-        order: (currentPage.sections?.length || 0) + 1,
-        copyInstructions: "",
-        visualInstructions: "",
-        inspirations: [],
-      };
-      updatePage(selectedPageSlug, {
-        sections: [...(currentPage.sections || []), newSection],
-      });
-      setIsAddingSection(false);
-      setSelectedSectionType(null);
-      // Don't auto-open editor - let user see the section was added to the list
-      // They can click on it if they want to edit
-    }
+    const newSection: Section = {
+      id: generateId(),
+      type,
+      layoutVariant: variant,
+      layoutTemplateId: templateId,
+      order: ((currentPage?.sections?.length) || 0) + 1,
+      copyInstructions: "",
+      visualInstructions: "",
+      inspirations: [],
+    };
+    updatePage(selectedPageSlug, {
+      sections: [...(currentPage?.sections || []), newSection],
+    });
+    setIsAddingSection(false);
+    setSelectedSectionType(null);
+    // Don't auto-open editor - let user see the section was added to the list
+    // They can click on it if they want to edit
   };
 
   const updateSection = (sectionId: string, updates: Partial<Section>) => {
@@ -368,13 +366,13 @@ function SectionEditor({
           <Label className="text-base font-medium">Layout Template</Label>
 
           {templatesLoading ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
+                <div key={i} className="h-40 bg-muted/50 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {templates.map((template) => (
                 <button
                   key={template.id}
@@ -390,7 +388,7 @@ function SectionEditor({
                   )}
                 >
                   {/* Wireframe Preview */}
-                  <div className="mb-3 h-24 overflow-hidden">
+                  <div className="mb-3 h-32 overflow-hidden">
                     <WireframePreview template={template} compact className="h-full" />
                   </div>
 
@@ -456,14 +454,14 @@ function LayoutTemplatePicker({
   return (
     <div>
       {isLoading ? (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-32 bg-muted/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-40 bg-muted/50 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : hasWireframeTemplates ? (
         <ScrollArea className="h-[55vh]">
-          <div className="grid grid-cols-3 gap-3 pr-4">
+          <div className="grid grid-cols-3 gap-4 pr-4">
             {templates.map((template) => (
               <button
                 key={template.id}
@@ -471,7 +469,7 @@ function LayoutTemplatePicker({
                 className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group"
               >
                 {/* Wireframe Preview */}
-                <div className="mb-2 h-24 overflow-hidden">
+                <div className="mb-3 h-32 overflow-hidden">
                   <WireframePreview template={template} compact className="h-full" />
                 </div>
                 <div className="font-medium text-xs">{template.name}</div>
@@ -521,7 +519,7 @@ function SectionsPreview({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="p-3 space-y-3">
+          <div className="p-4 space-y-4">
             {sections.map((section, index) => (
               <SectionPreviewCard key={section.id} section={section} index={index} />
             ))}
@@ -565,9 +563,9 @@ function SectionPreviewCard({ section, index }: { section: Section; index: numbe
       {/* Wireframe representation - use template preview if available */}
       <div className="bg-muted/20 rounded">
         {selectedTemplate ? (
-          <WireframePreview template={selectedTemplate} compact className="min-h-[120px]" />
+          <WireframePreview template={selectedTemplate} compact className="min-h-[160px]" />
         ) : (
-          <div className="min-h-[80px] flex items-center justify-center p-3">
+          <div className="min-h-[120px] flex items-center justify-center p-4">
             <DefaultSectionWireframe type={section.type} />
           </div>
         )}

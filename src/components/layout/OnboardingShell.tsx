@@ -67,110 +67,113 @@ export function OnboardingShell({
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Panel - Form */}
-      <div className={cn(
-        "w-full flex flex-col min-h-screen",
-        widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]"
-      )}>
-        {/* Sticky Top Navigation Bar */}
-        <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-8 py-3">
-          <div className="max-w-xl mx-auto flex items-center justify-between">
-            {/* Back Button */}
-            <div className="flex items-center gap-3 min-w-[100px]">
-              {stepIndex > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBack}
-                  className="gap-2 text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back
-                </Button>
-              )}
-            </div>
-
-            {/* Step Progress Dots */}
-            <div className="flex items-center gap-2">
-              {STEPS.map((step, idx) => (
-                <Tooltip key={step.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => navigateToStep(step.id)}
-                      className={cn(
-                        "rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50",
-                        idx + 1 === stepIndex
-                          ? "w-10 h-3 bg-primary"
-                          : idx + 1 < stepIndex
-                          ? "w-3 h-3 bg-primary/70 hover:bg-primary"
-                          : "w-3 h-3 bg-muted-foreground/40 hover:bg-muted-foreground/60"
-                      )}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={8}>
-                    <span className="font-medium">{step.name}</span>
-                    <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
-                  </TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-3 min-w-[100px] justify-end">
-              {showSkip && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onSkip || handleNext}
-                  className="text-muted-foreground"
-                >
-                  Skip
-                </Button>
-              )}
-              <Button size="sm" onClick={handleNext} disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  nextLabel
-                )}
+    <div className="min-h-screen flex flex-col">
+      {/* Sticky Top Navigation Bar - Full Width */}
+      <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 px-8 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Back Button */}
+          <div className="flex items-center gap-3 min-w-[100px]">
+            {stepIndex > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
               </Button>
-            </div>
+            )}
           </div>
-        </div>
 
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-xl mx-auto px-8 py-8">
-            {/* Title & Description */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm text-muted-foreground font-medium">
-                  Step {stepIndex} of {totalSteps}
-                </span>
-              </div>
-              <h1 className="text-2xl font-semibold tracking-tight mb-2">{title}</h1>
-              {description && (
-                <p className="text-muted-foreground">{description}</p>
+          {/* Step Progress Dots */}
+          <div className="flex items-center gap-2">
+            {STEPS.map((step, idx) => (
+              <Tooltip key={step.id}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigateToStep(step.id)}
+                    className={cn(
+                      "rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      idx + 1 === stepIndex
+                        ? "w-10 h-3 bg-primary"
+                        : idx + 1 < stepIndex
+                        ? "w-3 h-3 bg-primary/70 hover:bg-primary"
+                        : "w-3 h-3 bg-muted-foreground/40 hover:bg-muted-foreground/60"
+                    )}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={8}>
+                  <span className="font-medium">{step.name}</span>
+                  <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center gap-3 min-w-[100px] justify-end">
+            {showSkip && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onSkip || handleNext}
+                className="text-muted-foreground"
+              >
+                Skip
+              </Button>
+            )}
+            <Button size="sm" onClick={handleNext} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                nextLabel
               )}
-            </div>
-
-            {/* Form Content */}
-            <div className="space-y-6">{children}</div>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Right Panel - Preview */}
-      <div className={cn(
-        "hidden lg:block bg-muted/30 border-l",
-        widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
-      )}>
-        <div className="sticky top-0 h-screen overflow-auto p-6 flex flex-col">
-          <div className="flex-1 flex items-start justify-center pt-4">
-            {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+      {/* Main Content Area */}
+      <div className="flex-1 flex">
+        {/* Left Panel - Form */}
+        <div className={cn(
+          "w-full flex flex-col",
+          widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]"
+        )}>
+          <div className="flex-1 overflow-auto">
+            <div className="max-w-xl mx-auto px-8 py-8">
+              {/* Title & Description */}
+              <div className="mb-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Step {stepIndex} of {totalSteps}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-semibold tracking-tight mb-2">{title}</h1>
+                {description && (
+                  <p className="text-muted-foreground">{description}</p>
+                )}
+              </div>
+
+              {/* Form Content */}
+              <div className="space-y-6">{children}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Preview */}
+        <div className={cn(
+          "hidden lg:block bg-muted/30 border-l",
+          widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
+        )}>
+          <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-auto p-6 flex flex-col">
+            <div className="flex-1 flex items-start justify-center pt-4">
+              {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+            </div>
           </div>
         </div>
       </div>

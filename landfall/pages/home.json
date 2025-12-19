@@ -1,0 +1,14 @@
+{
+  "sections": [
+    {
+      "id": "section_1766130013227",
+      "type": "testimonials",
+      "layoutVariant": "testimonials-single-featured",
+      "layoutTemplateId": "testimonials-single-featured",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
+}
