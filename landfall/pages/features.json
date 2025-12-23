@@ -2,21 +2,11 @@
   "pageId": "page_features",
   "sections": [
     {
-      "id": "section_1766035190597",
-      "type": "features",
-      "layoutVariant": "features-3-col-cards",
-      "layoutTemplateId": "features-3-col-cards",
-      "order": 1,
-      "copyInstructions": "",
-      "visualInstructions": "",
-      "inspirations": []
-    },
-    {
       "id": "section_1766127648507",
       "type": "hero",
       "layoutVariant": "hero-split",
       "layoutTemplateId": "hero-split",
-      "order": 2,
+      "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
@@ -24,8 +14,18 @@
     {
       "id": "section_1766127656628",
       "type": "logos",
-      "layoutVariant": "logos-simple-row",
-      "layoutTemplateId": "logos-simple-row",
+      "layoutVariant": "logos-grid",
+      "layoutTemplateId": "logos-grid",
+      "order": 2,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766035190597",
+      "type": "features",
+      "layoutVariant": "features-alternating",
+      "layoutTemplateId": "features-alternating",
       "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",

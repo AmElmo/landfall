@@ -165,6 +165,7 @@ export default function SectionsStep() {
             )?.name || "Page"
           }
           activeSectionId={editingSection?.id || null}
+          onSectionClick={(section) => setEditingSection(section)}
         />
       }
     >
@@ -500,10 +501,12 @@ function SectionsPreview({
   sections,
   pageName,
   activeSectionId,
+  onSectionClick,
 }: {
   sections: Section[];
   pageName: string;
   activeSectionId: string | null;
+  onSectionClick?: (section: Section) => void;
 }) {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -544,6 +547,7 @@ function SectionsPreview({
                   section={section}
                   index={index}
                   isActive={section.id === activeSectionId}
+                  onClick={onSectionClick ? () => onSectionClick(section) : undefined}
                 />
               </div>
             ))}
@@ -565,10 +569,12 @@ function SectionPreviewCard({
   section,
   index,
   isActive = false,
+  onClick,
 }: {
   section: Section;
   index: number;
   isActive?: boolean;
+  onClick?: () => void;
 }) {
   const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
   const { templates } = useWireframeTemplates(section.type as SectionType);
@@ -578,11 +584,13 @@ function SectionPreviewCard({
 
   return (
     <div
+      onClick={onClick}
       className={cn(
         "border rounded-lg p-2.5 transition-all",
+        onClick && "cursor-pointer hover:shadow-md",
         isActive
           ? "border-primary border-2 bg-primary/5 shadow-md ring-2 ring-primary/20"
-          : "border-dashed border-muted-foreground/30 bg-white/50"
+          : "border-dashed border-muted-foreground/30 bg-white/50 hover:border-primary/50"
       )}
     >
       <div className="flex items-center gap-2 mb-2">

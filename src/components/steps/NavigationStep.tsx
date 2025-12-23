@@ -292,9 +292,9 @@ export default function NavigationStep() {
           <TabsTrigger value="footer">Footer</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="navbar" className="space-y-6 mt-6">
+        <TabsContent value="navbar" className="space-y-8 mt-6">
           {/* Navbar Layout Selection */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Navbar Layout</Label>
             <p className="text-sm text-muted-foreground">
               Choose a layout style for your navigation bar
@@ -354,7 +354,7 @@ export default function NavigationStep() {
           </div>
 
           {/* Logo Upload */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Logo</Label>
             <p className="text-sm text-muted-foreground">
               Upload your logo image. Recommended: PNG or SVG, max height 40-60px, transparent background.
@@ -404,7 +404,7 @@ export default function NavigationStep() {
           </div>
 
           {/* Navigation Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Navigation Links</Label>
             <p className="text-sm text-muted-foreground">
               Link to pages or sections on the home page
@@ -529,9 +529,9 @@ export default function NavigationStep() {
           </div>
         </TabsContent>
 
-        <TabsContent value="footer" className="space-y-6 mt-6">
+        <TabsContent value="footer" className="space-y-8 mt-6">
           {/* Footer Layout Selection */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Footer Layout</Label>
             <p className="text-sm text-muted-foreground">
               Choose a layout style for your footer
@@ -637,7 +637,7 @@ export default function NavigationStep() {
           </div>
 
           {/* Footer Columns */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Footer Columns</Label>
             <p className="text-sm text-muted-foreground">
               Footer links can only point to pages defined in your sitemap
@@ -725,7 +725,7 @@ export default function NavigationStep() {
           </div>
 
           {/* Social Links */}
-          <div className="space-y-4">
+          <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Social Links</Label>
             <div className="space-y-3">
               {SOCIAL_PLATFORMS.map((platform) => {

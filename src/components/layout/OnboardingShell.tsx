@@ -14,7 +14,7 @@ import {
   Layers,
   Menu,
   Eye,
-  Rocket,
+  Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -28,7 +28,7 @@ const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   sections: Layers,
   navigation: Menu,
   preview: Eye,
-  build: Rocket,
+  build: Wand2,
 };
 
 interface OnboardingShellProps {
@@ -109,34 +109,48 @@ export function OnboardingShell({
           </div>
 
           {/* Step Progress Icons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center">
             {STEPS.map((step, idx) => {
               const StepIcon = STEP_ICONS[step.slug];
               const isActive = idx + 1 === stepIndex;
               const isCompleted = idx + 1 < stepIndex;
+              const isLast = idx === STEPS.length - 1;
 
               return (
-                <Tooltip key={step.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => navigateToStep(step.id)}
+                <React.Fragment key={step.id}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => navigateToStep(step.id)}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/50",
+                          isActive
+                            ? "bg-primary text-primary-foreground scale-110 shadow-md"
+                            : isCompleted
+                            ? "bg-primary/20 text-primary hover:bg-primary/30"
+                            : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+                        )}
+                      >
+                        {StepIcon && <StepIcon className="h-4 w-4" />}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8}>
+                      <span className="font-medium">{step.name}</span>
+                      <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                    </TooltipContent>
+                  </Tooltip>
+                  {/* Connector line between steps */}
+                  {!isLast && (
+                    <div
                       className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/50",
-                        isActive
-                          ? "bg-primary text-primary-foreground scale-110 shadow-md"
-                          : isCompleted
-                          ? "bg-primary/20 text-primary hover:bg-primary/30"
-                          : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+                        "w-6 h-0.5 mx-1",
+                        idx + 1 < stepIndex
+                          ? "bg-primary/40"
+                          : "bg-muted"
                       )}
-                    >
-                      {StepIcon && <StepIcon className="h-4 w-4" />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={8}>
-                    <span className="font-medium">{step.name}</span>
-                    <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
-                  </TooltipContent>
-                </Tooltip>
+                    />
+                  )}
+                </React.Fragment>
               );
             })}
           </div>

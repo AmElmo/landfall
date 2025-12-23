@@ -9,16 +9,34 @@ import {
   Check,
   Copy,
   Download,
-  Rocket,
   Play,
   Loader2,
   ChevronDown,
   ChevronUp,
   AlertCircle,
   ArrowLeft,
+  Palette,
+  MessageSquare,
+  Map,
+  Layers,
+  Menu,
+  Eye,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BuildPrompt, STEPS } from "@/lib/types";
+
+// Map step slugs to icons (matching OnboardingShell)
+const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  style: Palette,
+  tone: MessageSquare,
+  sitemap: Map,
+  sections: Layers,
+  navigation: Menu,
+  preview: Eye,
+  build: Wand2,
+};
 
 export default function BuildStep() {
   const router = useRouter();
@@ -131,23 +149,51 @@ export default function BuildStep() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Step Progress Dots */}
-            <div className="flex items-center gap-1.5">
-              {STEPS.map((step, idx) => (
-                <button
-                  key={step.id}
-                  onClick={() => navigateToStep(step.id)}
-                  title={step.name}
-                  className={cn(
-                    "h-2 rounded-full transition-all hover:scale-110",
-                    idx + 1 === stepIndex
-                      ? "w-8 bg-primary"
-                      : idx + 1 < stepIndex
-                      ? "w-2 bg-primary/60 hover:bg-primary/80"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                  )}
-                />
-              ))}
+            {/* Step Progress Icons */}
+            <div className="flex items-center">
+              {STEPS.map((step, idx) => {
+                const StepIcon = STEP_ICONS[step.slug];
+                const isActive = idx + 1 === stepIndex;
+                const isCompleted = idx + 1 < stepIndex;
+                const isLast = idx === STEPS.length - 1;
+
+                return (
+                  <React.Fragment key={step.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigateToStep(step.id)}
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-primary/50",
+                            isActive
+                              ? "bg-primary text-primary-foreground scale-110 shadow-md"
+                              : isCompleted
+                              ? "bg-primary/20 text-primary hover:bg-primary/30"
+                              : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+                          )}
+                        >
+                          {StepIcon && <StepIcon className="h-4 w-4" />}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={8}>
+                        <span className="font-medium">{step.name}</span>
+                        <span className="ml-1.5 text-muted-foreground">({idx + 1}/{STEPS.length})</span>
+                      </TooltipContent>
+                    </Tooltip>
+                    {/* Connector line between steps */}
+                    {!isLast && (
+                      <div
+                        className={cn(
+                          "w-6 h-0.5 mx-1",
+                          idx + 1 < stepIndex
+                            ? "bg-primary/40"
+                            : "bg-muted"
+                        )}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -192,7 +238,7 @@ export default function BuildStep() {
           {/* Generate Button or Prompts List */}
           {prompts.length === 0 ? (
             <div className="bg-white rounded-xl border shadow-sm p-12 text-center">
-              <Rocket className="h-16 w-16 mx-auto text-primary/50 mb-6" />
+              <Wand2 className="h-16 w-16 mx-auto text-primary/50 mb-6" />
               <h2 className="text-2xl font-semibold mb-3">Ready to Build</h2>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
                 Click the button below to create a sequence of AI-ready prompts
