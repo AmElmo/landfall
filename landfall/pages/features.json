@@ -14,8 +14,8 @@
     {
       "id": "section_1766127656628",
       "type": "logos",
-      "layoutVariant": "logos-grid",
-      "layoutTemplateId": "logos-grid",
+      "layoutVariant": "logos-simple-row",
+      "layoutTemplateId": "logos-simple-row",
       "order": 2,
       "copyInstructions": "",
       "visualInstructions": "",

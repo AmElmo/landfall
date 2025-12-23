@@ -1,4 +1,15 @@
 {
   "pageId": "page_1766119251122",
-  "sections": []
+  "sections": [
+    {
+      "id": "section_1766472950490",
+      "type": "custom",
+      "customType": "tatat",
+      "layoutVariant": "custom",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
 }

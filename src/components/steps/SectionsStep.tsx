@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Label } from "@/components/ui/label";
@@ -26,10 +26,69 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, SectionType, SectionInspiration } from "@/lib/types";
+import { Section, SECTION_TYPES, SectionType, SectionInspiration, StyleColors } from "@/lib/types";
 import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
 import { WireframePreview } from "@/components/wireframe/WireframePreview";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
+
+// Hook for smooth drag-and-drop reordering
+function useSortable<T>(
+  items: T[],
+  onReorder: (newItems: T[]) => void
+) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [displayItems, setDisplayItems] = useState(items);
+
+  // Sync displayItems with items when not dragging
+  useEffect(() => {
+    if (draggedIndex === null) {
+      setDisplayItems(items);
+    }
+  }, [items, draggedIndex]);
+
+  const handleDragStart = useCallback((index: number) => {
+    setDraggedIndex(index);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    // Only update if the index changed
+    if (overIndex !== index) {
+      setOverIndex(index);
+
+      // Immediately reorder the display items for visual feedback
+      setDisplayItems((prev) => {
+        const newItems = [...prev];
+        const [draggedItem] = newItems.splice(draggedIndex, 1);
+        newItems.splice(index, 0, draggedItem);
+        return newItems;
+      });
+
+      // Update the dragged index to track where the item now is
+      setDraggedIndex(index);
+    }
+  }, [draggedIndex, overIndex]);
+
+  const handleDragEnd = useCallback(() => {
+    if (draggedIndex !== null) {
+      // Commit the reorder
+      onReorder(displayItems);
+    }
+    setDraggedIndex(null);
+    setOverIndex(null);
+  }, [draggedIndex, displayItems, onReorder]);
+
+  return {
+    displayItems,
+    draggedIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  };
+}
 
 // Section types that have wireframe templates available
 const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = [
@@ -48,15 +107,28 @@ const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = [
 ];
 
 export default function SectionsStep() {
-  const { sitemap, pages, updatePage } = useLandfall();
+  const { sitemap, pages, updatePage, style } = useLandfall();
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>("home");
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [selectedSectionType, setSelectedSectionType] = useState<SectionType | null>(null);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const currentPage = pages[selectedPageSlug];
+  const sections = currentPage?.sections || [];
+
+  // Use the sortable hook for smooth drag-and-drop
+  const handleReorderSections = useCallback((newSections: Section[]) => {
+    const reorderedSections = newSections.map((s, i) => ({ ...s, order: i + 1 }));
+    updatePage(selectedPageSlug, { sections: reorderedSections });
+  }, [selectedPageSlug, updatePage]);
+
+  const {
+    displayItems: displaySections,
+    draggedIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useSortable(sections, handleReorderSections);
 
   const generateId = () => `section_${Date.now()}`;
 
@@ -106,48 +178,6 @@ export default function SectionsStep() {
     }
   };
 
-  const reorderSections = (fromIndex: number, toIndex: number) => {
-    if (currentPage && fromIndex !== toIndex) {
-      const sections = [...currentPage.sections];
-      const [removed] = sections.splice(fromIndex, 1);
-      sections.splice(toIndex, 0, removed);
-      const reorderedSections = sections.map((s, i) => ({ ...s, order: i + 1 }));
-      updatePage(selectedPageSlug, { sections: reorderedSections });
-    }
-  };
-
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', index.toString());
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (draggedIndex !== null && draggedIndex !== index) {
-      setDragOverIndex(index);
-    }
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (draggedIndex !== null && draggedIndex !== index) {
-      reorderSections(draggedIndex, index);
-    }
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
   if (!sitemap) return null;
 
   return (
@@ -166,6 +196,7 @@ export default function SectionsStep() {
           }
           activeSectionId={editingSection?.id || null}
           onSectionClick={(section) => setEditingSection(section)}
+          styleColors={style?.colors}
         />
       }
     >
@@ -203,31 +234,39 @@ export default function SectionsStep() {
         />
       ) : (
         <div className="space-y-3">
-          {(currentPage?.sections || []).map((section, index) => {
+          {displaySections.map((section, index) => {
             const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
             const variant = sectionType?.variants.find(
               (v) => v.id === section.layoutVariant
             );
             const isDragging = draggedIndex === index;
-            const isDragOver = dragOverIndex === index;
             return (
               <div
                 key={section.id}
                 draggable
-                onDragStart={(e) => handleDragStart(e, index)}
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = 'move';
+                  handleDragStart(index);
+                }}
                 onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
                 onClick={() => setEditingSection(section)}
                 className={cn(
-                  "w-full flex items-center gap-3 p-4 border rounded-xl transition-all text-left cursor-pointer",
-                  isDragging && "opacity-50 scale-95",
-                  isDragOver && "border-primary border-2 bg-primary/5",
-                  !isDragging && !isDragOver && "hover:border-primary/50"
+                  "w-full flex items-center gap-3 p-4 border rounded-xl text-left cursor-pointer",
+                  "transition-transform duration-150 ease-out",
+                  isDragging
+                    ? "opacity-70 scale-[0.98] shadow-lg border-primary bg-primary/5 z-10"
+                    : "hover:border-primary/50"
                 )}
+                style={{
+                  // Add smooth transition for reordering
+                  transform: isDragging ? 'scale(0.98)' : 'scale(1)',
+                }}
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab flex-shrink-0" />
+                <GripVertical className={cn(
+                  "h-4 w-4 text-muted-foreground flex-shrink-0 transition-colors",
+                  isDragging ? "cursor-grabbing text-primary" : "cursor-grab"
+                )} />
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Layers className="h-4 w-4 text-primary" />
                 </div>
@@ -502,11 +541,13 @@ function SectionsPreview({
   pageName,
   activeSectionId,
   onSectionClick,
+  styleColors,
 }: {
   sections: Section[];
   pageName: string;
   activeSectionId: string | null;
   onSectionClick?: (section: Section) => void;
+  styleColors?: StyleColors;
 }) {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -520,17 +561,47 @@ function SectionsPreview({
     }
   }, [activeSectionId]);
 
+  // Create CSS variables from style colors
+  const styleVars = styleColors ? {
+    '--preview-primary': styleColors.primary,
+    '--preview-primary-light': styleColors.primaryLight,
+    '--preview-background': styleColors.background,
+    '--preview-background-alt': styleColors.backgroundAlt,
+    '--preview-text': styleColors.text,
+    '--preview-text-muted': styleColors.textMuted,
+    '--preview-border': styleColors.border,
+  } as React.CSSProperties : {};
+
   return (
     <div className="w-full max-w-2xl h-full flex flex-col">
-      <div className="bg-white rounded-xl shadow-2xl overflow-hidden border flex-1 flex flex-col min-h-0">
-        <div className="bg-muted/50 px-4 py-2.5 flex items-center gap-2 border-b flex-shrink-0">
+      <div
+        className="rounded-xl shadow-2xl overflow-hidden border flex-1 flex flex-col min-h-0"
+        style={{
+          backgroundColor: styleColors?.background || 'white',
+          borderColor: styleColors?.border || undefined,
+          ...styleVars,
+        }}
+      >
+        <div
+          className="px-4 py-2.5 flex items-center gap-2 border-b flex-shrink-0"
+          style={{
+            backgroundColor: styleColors?.backgroundAlt || undefined,
+            borderColor: styleColors?.border || undefined,
+          }}
+        >
           <div className="flex gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
             <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
             <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
           </div>
           <div className="flex-1 flex justify-center">
-            <div className="bg-background rounded-md px-3 py-1 text-xs text-muted-foreground">
+            <div
+              className="rounded-md px-3 py-1 text-xs"
+              style={{
+                backgroundColor: styleColors?.background || undefined,
+                color: styleColors?.textMuted || undefined,
+              }}
+            >
               {pageName}
             </div>
           </div>
@@ -548,12 +619,16 @@ function SectionsPreview({
                   index={index}
                   isActive={section.id === activeSectionId}
                   onClick={onSectionClick ? () => onSectionClick(section) : undefined}
+                  styleColors={styleColors}
                 />
               </div>
             ))}
 
             {sections.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
+              <div
+                className="text-center py-12"
+                style={{ color: styleColors?.textMuted || undefined }}
+              >
                 Add sections to see the wireframe preview
               </div>
             )}
@@ -570,11 +645,13 @@ function SectionPreviewCard({
   index,
   isActive = false,
   onClick,
+  styleColors,
 }: {
   section: Section;
   index: number;
   isActive?: boolean;
   onClick?: () => void;
+  styleColors?: StyleColors;
 }) {
   const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
   const { templates } = useWireframeTemplates(section.type as SectionType);
@@ -586,40 +663,79 @@ function SectionPreviewCard({
     <div
       onClick={onClick}
       className={cn(
-        "border rounded-lg p-2.5 transition-all",
+        "border rounded-lg p-3 transition-all",
         onClick && "cursor-pointer hover:shadow-md",
         isActive
-          ? "border-primary border-2 bg-primary/5 shadow-md ring-2 ring-primary/20"
-          : "border-dashed border-muted-foreground/30 bg-white/50 hover:border-primary/50"
+          ? "border-2 shadow-md ring-2"
+          : "hover:shadow-sm"
       )}
+      style={{
+        backgroundColor: styleColors?.backgroundAlt || (isActive ? undefined : 'rgba(255,255,255,0.5)'),
+        borderColor: isActive ? styleColors?.primary : (styleColors?.border || 'rgba(0,0,0,0.1)'),
+        borderStyle: isActive ? 'solid' : 'solid',
+        ...(isActive && styleColors?.primary ? {
+          boxShadow: `0 4px 6px -1px ${styleColors.primary}20`,
+          outline: `2px solid ${styleColors.primary}30`,
+          outlineOffset: '1px',
+        } : {}),
+      }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+      <div className="flex items-center gap-2 mb-3">
+        <Badge
+          variant="outline"
+          className="text-[10px] h-5 px-1.5"
+          style={{
+            borderColor: styleColors?.primary || undefined,
+            color: styleColors?.primary || undefined,
+          }}
+        >
           {index + 1}
         </Badge>
-        <span className="font-medium text-xs">
+        <span
+          className="font-medium text-xs"
+          style={{ color: styleColors?.text || undefined }}
+        >
           {section.type === 'custom' ? (section.customType || 'Custom') : (sectionType?.name || section.type)}
         </span>
         {selectedTemplate && (
-          <span className="text-[10px] text-muted-foreground">
+          <span
+            className="text-[10px]"
+            style={{ color: styleColors?.textMuted || undefined }}
+          >
             · {selectedTemplate.name}
           </span>
         )}
       </div>
 
       {/* Wireframe representation - use template preview if available */}
-      <div className="bg-muted/20 rounded">
+      <div
+        className="rounded overflow-hidden"
+        style={{
+          backgroundColor: styleColors?.background || 'rgba(0,0,0,0.03)',
+        }}
+      >
         {selectedTemplate ? (
-          <WireframePreview template={selectedTemplate} compact className="min-h-[160px]" />
+          <WireframePreview
+            template={selectedTemplate}
+            compact
+            className="min-h-[200px]"
+            styleColors={styleColors}
+          />
         ) : (
-          <div className="min-h-[120px] flex items-center justify-center p-4">
-            <DefaultSectionWireframe type={section.type} />
+          <div
+            className="min-h-[180px] flex items-center justify-center p-4"
+            style={{ backgroundColor: styleColors?.backgroundAlt || undefined }}
+          >
+            <DefaultSectionWireframe type={section.type} styleColors={styleColors} />
           </div>
         )}
       </div>
 
       {(section.copyInstructions || section.inspirations?.length > 0) && (
-        <div className="mt-1.5 text-[10px] text-muted-foreground flex gap-3">
+        <div
+          className="mt-2 text-[10px] flex gap-3"
+          style={{ color: styleColors?.textMuted || undefined }}
+        >
           {section.copyInstructions && (
             <div className="truncate flex-1">📝 {section.copyInstructions}</div>
           )}
@@ -633,15 +749,19 @@ function SectionPreviewCard({
 }
 
 // Default wireframe for sections without template support
-function DefaultSectionWireframe({ type }: { type: string }) {
+function DefaultSectionWireframe({ type, styleColors }: { type: string; styleColors?: StyleColors }) {
+  const primaryBg = styleColors?.primary ? `${styleColors.primary}30` : undefined;
+  const mutedBg = styleColors?.textMuted ? `${styleColors.textMuted}30` : undefined;
+  const mutedBgLight = styleColors?.textMuted ? `${styleColors.textMuted}20` : undefined;
+
   if (type === "hero") {
     return (
       <div className="space-y-2">
-        <div className="h-4 bg-muted rounded w-3/4" />
-        <div className="h-3 bg-muted/60 rounded w-1/2" />
+        <div className="h-4 bg-muted rounded w-3/4" style={{ backgroundColor: mutedBg }} />
+        <div className="h-3 bg-muted/60 rounded w-1/2" style={{ backgroundColor: mutedBgLight }} />
         <div className="flex gap-2 mt-4">
-          <div className="h-8 w-24 bg-primary/20 rounded" />
-          <div className="h-8 w-24 bg-muted rounded" />
+          <div className="h-8 w-24 bg-primary/20 rounded" style={{ backgroundColor: primaryBg }} />
+          <div className="h-8 w-24 bg-muted rounded" style={{ backgroundColor: mutedBg }} />
         </div>
       </div>
     );
@@ -651,9 +771,9 @@ function DefaultSectionWireframe({ type }: { type: string }) {
       <div className="grid grid-cols-3 gap-2">
         {[1, 2, 3].map((i) => (
           <div key={i} className="space-y-1">
-            <div className="h-8 w-8 bg-muted rounded" />
-            <div className="h-2 bg-muted rounded w-3/4" />
-            <div className="h-2 bg-muted/60 rounded w-1/2" />
+            <div className="h-8 w-8 bg-muted rounded" style={{ backgroundColor: primaryBg }} />
+            <div className="h-2 bg-muted rounded w-3/4" style={{ backgroundColor: mutedBg }} />
+            <div className="h-2 bg-muted/60 rounded w-1/2" style={{ backgroundColor: mutedBgLight }} />
           </div>
         ))}
       </div>
@@ -663,12 +783,16 @@ function DefaultSectionWireframe({ type }: { type: string }) {
     return (
       <div className="flex gap-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex-1 p-2 bg-background rounded">
-            <div className="h-2 bg-muted rounded w-full mb-1" />
-            <div className="h-2 bg-muted/60 rounded w-3/4" />
+          <div
+            key={i}
+            className="flex-1 p-2 bg-background rounded"
+            style={{ backgroundColor: styleColors?.background }}
+          >
+            <div className="h-2 bg-muted rounded w-full mb-1" style={{ backgroundColor: mutedBg }} />
+            <div className="h-2 bg-muted/60 rounded w-3/4" style={{ backgroundColor: mutedBgLight }} />
             <div className="flex items-center gap-1 mt-2">
-              <div className="h-4 w-4 bg-muted rounded-full" />
-              <div className="h-2 bg-muted rounded w-12" />
+              <div className="h-4 w-4 bg-muted rounded-full" style={{ backgroundColor: mutedBg }} />
+              <div className="h-2 bg-muted rounded w-12" style={{ backgroundColor: mutedBg }} />
             </div>
           </div>
         ))}
@@ -678,18 +802,18 @@ function DefaultSectionWireframe({ type }: { type: string }) {
   if (type === "cta") {
     return (
       <div className="text-center space-y-2">
-        <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
-        <div className="h-3 bg-muted/60 rounded w-1/3 mx-auto" />
-        <div className="h-8 w-28 bg-primary/20 rounded mx-auto mt-3" />
+        <div className="h-4 bg-muted rounded w-1/2 mx-auto" style={{ backgroundColor: mutedBg }} />
+        <div className="h-3 bg-muted/60 rounded w-1/3 mx-auto" style={{ backgroundColor: mutedBgLight }} />
+        <div className="h-8 w-28 bg-primary/20 rounded mx-auto mt-3" style={{ backgroundColor: primaryBg }} />
       </div>
     );
   }
   // Default fallback
   return (
     <div className="space-y-2">
-      <div className="h-4 bg-muted rounded w-1/2" />
-      <div className="h-3 bg-muted/60 rounded w-3/4" />
-      <div className="h-3 bg-muted/60 rounded w-2/3" />
+      <div className="h-4 bg-muted rounded w-1/2" style={{ backgroundColor: mutedBg }} />
+      <div className="h-3 bg-muted/60 rounded w-3/4" style={{ backgroundColor: mutedBgLight }} />
+      <div className="h-3 bg-muted/60 rounded w-2/3" style={{ backgroundColor: mutedBgLight }} />
     </div>
   );
 }

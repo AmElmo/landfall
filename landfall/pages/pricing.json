@@ -4,8 +4,8 @@
     {
       "id": "section_1766127515025",
       "type": "hero",
-      "layoutVariant": "hero-fullwidth-bg",
-      "layoutTemplateId": "hero-fullwidth-bg",
+      "layoutVariant": "hero-split",
+      "layoutTemplateId": "hero-split",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
@@ -37,6 +37,16 @@
       "layoutVariant": "pricing-two-tiers",
       "layoutTemplateId": "pricing-two-tiers",
       "order": 4,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766473515553",
+      "type": "how-it-works",
+      "layoutVariant": "how-it-works-cards",
+      "layoutTemplateId": "how-it-works-cards",
+      "order": 5,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []

@@ -1,22 +1,29 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { LayoutTemplate, WireframeElement } from "@/lib/types";
+import type { LayoutTemplate, WireframeElement, StyleColors } from "@/lib/types";
 
 interface WireframePreviewProps {
   template: LayoutTemplate;
   className?: string;
   compact?: boolean;
+  styleColors?: StyleColors;
 }
 
-export function WireframePreview({ template, className, compact = false }: WireframePreviewProps) {
+export function WireframePreview({ template, className, compact = false, styleColors }: WireframePreviewProps) {
   return (
-    <div className={cn(
-      "bg-muted/30 rounded-lg border border-dashed border-muted-foreground/20 flex flex-col justify-center",
-      compact ? "p-4 py-6" : "p-6 py-8",
-      className
-    )}>
-      <WireframeLayout structure={template.structure} elements={template.elements} compact={compact} />
+    <div
+      className={cn(
+        "rounded-lg border border-dashed flex flex-col justify-center",
+        compact ? "p-4 py-6" : "p-6 py-8",
+        className
+      )}
+      style={{
+        backgroundColor: styleColors?.backgroundAlt || 'rgba(0,0,0,0.03)',
+        borderColor: styleColors?.border ? `${styleColors.border}40` : 'rgba(0,0,0,0.1)',
+      }}
+    >
+      <WireframeLayout structure={template.structure} elements={template.elements} compact={compact} styleColors={styleColors} />
     </div>
   );
 }
@@ -24,6 +31,7 @@ export function WireframePreview({ template, className, compact = false }: Wiref
 interface WireframeLayoutProps {
   structure: string;
   elements: WireframeElement[];
+  styleColors?: StyleColors;
   compact?: boolean;
 }
 

@@ -241,7 +241,7 @@ export default function SitemapStep() {
       {/* Header */}
       <div className="border-b bg-background px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 min-w-[100px]">
             {stepIndex > 1 && (
               <Button
                 variant="ghost"
@@ -253,22 +253,11 @@ export default function SitemapStep() {
                 Back
               </Button>
             )}
-            <span className="text-sm text-muted-foreground">
-              {stepIndex}/{totalSteps}
-            </span>
           </div>
 
-          <div className="text-center">
-            <h1 className="text-xl font-semibold tracking-tight">Plan your pages</h1>
-            <p className="text-sm text-muted-foreground">
-              Click on a page name to edit it directly
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Step Progress Icons */}
-            <div className="flex items-center mr-4">
-              {STEPS.map((step, idx) => {
+          {/* Step Progress Icons */}
+          <div className="flex items-center">
+            {STEPS.map((step, idx) => {
                 const StepIcon = STEP_ICONS[step.slug];
                 const isActive = idx + 1 === stepIndex;
                 const isCompleted = idx + 1 < stepIndex;
@@ -310,8 +299,10 @@ export default function SitemapStep() {
                     )}
                   </React.Fragment>
                 );
-              })}
-            </div>
+            })}
+          </div>
+
+          <div className="flex items-center gap-3 min-w-[100px] justify-end">
             <Button onClick={handleNext} disabled={isSaving}>
               {isSaving ? (
                 <>
@@ -329,6 +320,17 @@ export default function SitemapStep() {
       {/* Full Page Sitemap Editor */}
       <div className="flex-1 p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
+          {/* Title & Description */}
+          <div className="mb-8 text-center">
+            <span className="text-sm text-muted-foreground font-medium">
+              Step {stepIndex} of {totalSteps}
+            </span>
+            <h1 className="text-2xl font-semibold tracking-tight mt-1 mb-2">Plan your pages</h1>
+            <p className="text-muted-foreground">
+              Click on a page name to edit it directly
+            </p>
+          </div>
+
           {sitemap.pages.length === 0 ? (
             <div className="text-center py-24">
               <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
@@ -638,7 +640,7 @@ function InlinePageCard({
 
       {/* Expanded sections list */}
       {isExpanded && (
-        <div className="mt-2 w-[400px]">
+        <div className="mt-2 w-[220px]">
           <div className="bg-white border rounded-lg shadow-sm p-3 space-y-1">
             {sections.map((section, idx) => (
               <div
@@ -708,12 +710,12 @@ function InlinePageCard({
                       Select section type:
                     </div>
                     <ScrollArea className="h-[200px]">
-                      <div className="grid grid-cols-3 gap-1.5 pr-3">
+                      <div className="grid grid-cols-2 gap-1 pr-3">
                         {SITEMAP_SECTION_TYPES.map((st) => (
                           <button
                             key={st.type}
                             onClick={() => onAddSection(st.type)}
-                            className="px-3 py-2 text-xs text-left rounded hover:bg-primary/10 hover:text-primary transition-colors"
+                            className="px-2 py-1.5 text-xs text-left rounded hover:bg-primary/10 hover:text-primary transition-colors"
                           >
                             {st.name}
                           </button>

@@ -124,7 +124,7 @@ export default function BuildStep() {
       {/* Header */}
       <div className="border-b bg-background px-8 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 min-w-[100px]">
             {stepIndex > 1 && (
               <Button
                 variant="ghost"
@@ -136,21 +136,10 @@ export default function BuildStep() {
                 Back
               </Button>
             )}
-            <span className="text-sm text-muted-foreground">
-              {stepIndex}/{totalSteps}
-            </span>
           </div>
 
-          <div className="text-center">
-            <h1 className="text-xl font-semibold tracking-tight">Generate your prompts</h1>
-            <p className="text-sm text-muted-foreground">
-              Review your specification and generate AI-ready prompts for your landing page
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Step Progress Icons */}
-            <div className="flex items-center">
+          {/* Step Progress Icons */}
+          <div className="flex items-center">
               {STEPS.map((step, idx) => {
                 const StepIcon = STEP_ICONS[step.slug];
                 const isActive = idx + 1 === stepIndex;
@@ -194,14 +183,27 @@ export default function BuildStep() {
                   </React.Fragment>
                 );
               })}
-            </div>
           </div>
+
+          {/* Empty right side for balance */}
+          <div className="min-w-[100px]" />
         </div>
       </div>
 
       {/* Full Width Content */}
       <div className="flex-1 p-8 overflow-auto">
         <div className="max-w-4xl mx-auto">
+          {/* Title & Description */}
+          <div className="mb-8 text-center">
+            <span className="text-sm text-muted-foreground font-medium">
+              Step {stepIndex} of {totalSteps}
+            </span>
+            <h1 className="text-2xl font-semibold tracking-tight mt-1 mb-2">Generate your prompts</h1>
+            <p className="text-muted-foreground">
+              Review your specification and generate AI-ready prompts for your landing page
+            </p>
+          </div>
+
           {/* Summary Stats */}
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="p-6 bg-white rounded-xl border shadow-sm text-center">
