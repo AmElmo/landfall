@@ -167,6 +167,16 @@ export interface SectionInspiration {
   notes: string;
 }
 
+// Inspiration for a specific image element within a section
+export interface ImageInspiration {
+  id: string;
+  elementRole: string;      // The role from wireframe element (e.g., "hero-image", "background-image")
+  type: 'image' | 'url';
+  path?: string;            // Path to uploaded reference image
+  url?: string;             // URL to reference image
+  description: string;      // Text description of what this image should show
+}
+
 export interface Section {
   id: string;
   type: SectionType | 'custom';
@@ -177,6 +187,7 @@ export interface Section {
   copyInstructions: string;
   visualInstructions: string;
   inspirations: SectionInspiration[];
+  imageInspirations?: ImageInspiration[]; // Per-image inspiration/instructions
 }
 
 export interface PageSections {
@@ -360,6 +371,8 @@ export type WireframeElementType =
   | 'video'
   | 'input'
   | 'icon'
+  | 'avatar'
+  | 'logo'
   | 'list'
   | 'card';
 

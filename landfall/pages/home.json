@@ -2,10 +2,29 @@
   "pageId": "page_1766475400592",
   "sections": [
     {
+      "id": "section_1766475411005",
+      "type": "hero",
+      "layoutVariant": "hero-split",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": [],
+      "layoutTemplateId": "hero-split",
+      "imageInspirations": [
+        {
+          "id": "img_insp_1766478797988",
+          "elementRole": "hero-image",
+          "type": "image",
+          "path": "/api/assets/serve/image-inspirations/CleanShot-2025-12-16-at-15-48-26-2x-546c8950.png",
+          "description": ""
+        }
+      ]
+    },
+    {
       "id": "section_1766475417455",
       "type": "faq",
       "layoutVariant": "faq-two-column",
-      "order": 1,
+      "order": 2,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
@@ -14,36 +33,28 @@
     {
       "id": "section_1766475414734",
       "type": "logos",
-      "layoutVariant": "logos-simple-row",
-      "order": 2,
-      "copyInstructions": "",
-      "visualInstructions": "",
-      "inspirations": [],
-      "layoutTemplateId": "logos-simple-row"
-    },
-    {
-      "id": "section_1766475411005",
-      "type": "hero",
-      "layoutVariant": "hero-centered",
+      "layoutVariant": "logos-grid",
       "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": []
+      "inspirations": [],
+      "layoutTemplateId": "logos-grid"
     },
     {
       "id": "section_1766475419038",
       "type": "testimonials",
-      "layoutVariant": "testimonials-single-featured",
+      "layoutVariant": "testimonials-three-cards",
       "order": 4,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": []
+      "inspirations": [],
+      "layoutTemplateId": "testimonials-three-cards"
     },
     {
       "id": "section_1766475773902",
       "type": "features",
-      "layoutVariant": "features-2-col-cards",
-      "layoutTemplateId": "features-2-col-cards",
+      "layoutVariant": "features-alternating",
+      "layoutTemplateId": "features-alternating",
       "order": 5,
       "copyInstructions": "",
       "visualInstructions": "",
@@ -62,9 +73,19 @@
     {
       "id": "section_1766477449038",
       "type": "features",
-      "layoutVariant": "features-2-col-cards",
-      "layoutTemplateId": "features-2-col-cards",
+      "layoutVariant": "features-3-col-cards",
+      "layoutTemplateId": "features-3-col-cards",
       "order": 7,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766478867768",
+      "type": "features",
+      "layoutVariant": "features-alternating",
+      "layoutTemplateId": "features-alternating",
+      "order": 8,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []

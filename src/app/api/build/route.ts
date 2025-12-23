@@ -45,6 +45,27 @@ export async function POST(request: NextRequest) {
       prompt: generateLayoutPrompt(sitemap, navigation, tone),
     });
 
+    // Load wireframe templates cache
+    const templateCache: Record<string, any> = {};
+    const loadTemplate = async (sectionType: string, templateId?: string) => {
+      if (!templateId) return undefined;
+      const cacheKey = `${sectionType}:${templateId}`;
+      if (templateCache[cacheKey]) return templateCache[cacheKey];
+
+      try {
+        const templatePath = path.join(landfallDir, "wireframe-templates", `${sectionType}.json`);
+        const templateData = await fs.readFile(templatePath, "utf-8").then(JSON.parse);
+        const template = templateData.templates?.find((t: any) => t.id === templateId);
+        if (template) {
+          templateCache[cacheKey] = template;
+          return template;
+        }
+      } catch {
+        // Template file doesn't exist
+      }
+      return undefined;
+    };
+
     // Generate section prompts for each page
     for (const page of sitemap.pages) {
       const pageSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
@@ -54,11 +75,14 @@ export async function POST(request: NextRequest) {
         const pageData = await fs.readFile(pagePath, "utf-8").then(JSON.parse);
 
         for (const section of pageData.sections || []) {
+          // Load the wireframe template if available
+          const template = await loadTemplate(section.type, section.layoutTemplateId);
+
           prompts.push({
             step: stepNumber++,
             name: `${page.name} - ${formatSectionType(section.type)}`,
             description: `Build ${section.type} section for ${page.name} page`,
-            prompt: generateSectionPrompt(page, section, tone, style),
+            prompt: generateSectionPrompt(page, section, tone, style, template),
           });
         }
       } catch (e) {
@@ -219,8 +243,38 @@ ${tone.toneKeywords?.length > 0 ? `\n## Tone Guidelines\nThe copy should feel: $
 Use the style system created in the previous step for all styling.`;
 }
 
-function generateSectionPrompt(page: any, section: any, tone: any, style: any): string {
+function generateSectionPrompt(page: any, section: any, tone: any, style: any, template?: any): string {
   const pageSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
+
+  // Build image requirements section from imageInspirations
+  let imageRequirements = "";
+  if (section.imageInspirations?.length > 0) {
+    imageRequirements = `\n## Image Requirements\n\n${section.imageInspirations.map((img: any) => {
+      const roleName = img.elementRole.split("-").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      let content = `### ${roleName} (\`${img.elementRole}\`)\n`;
+      if (img.description) {
+        content += `**Description:** ${img.description}\n`;
+      }
+      if (img.path) {
+        content += `**Reference Image:** See \`landfall/${img.path}\`\n`;
+      } else if (img.url) {
+        content += `**Reference URL:** ${img.url}\n`;
+      }
+      return content;
+    }).join("\n")}`;
+  }
+
+  // Build layout elements section from template
+  let layoutElements = "";
+  if (template?.elements) {
+    const elementsList = template.elements
+      .filter((el: any) => el.role)
+      .map((el: any) => `- ${el.type} (role: ${el.role}${el.size ? `, size: ${el.size}` : ""}${el.align ? `, align: ${el.align}` : ""})`)
+      .join("\n");
+    if (elementsList) {
+      layoutElements = `\n## Layout Elements\nThis section includes:\n${elementsList}\n`;
+    }
+  }
 
   return `# Task: Build ${formatSectionType(section.type)} Section for ${page.name}
 
@@ -228,16 +282,14 @@ Read the section configuration at \`landfall/pages/${pageSlug}.json\`, section I
 
 ## Section Details
 - **Type:** ${section.type}
-- **Layout Variant:** ${section.layoutVariant}
+- **Layout Template:** ${section.layoutTemplateId || section.layoutVariant}${template ? ` (${template.name})` : ""}
+- **Structure:** ${template?.structure || section.layoutVariant}
 - **Order:** ${section.order} (position on page)
-
+${layoutElements}
 ## Copy Instructions
 ${section.copyInstructions || "No specific copy instructions provided. Use placeholder content that matches the section type."}
-
-## Visual Instructions
-${section.visualInstructions || "No specific visual instructions provided. Follow the layout variant and use appropriate placeholder images."}
-
-${section.inspirations?.length > 0 ? `\n## Reference Images\nSee inspiration images at:\n${section.inspirations.map((i: any) => `- \`landfall/${i.path}\`${i.notes ? ` - ${i.notes}` : ""}`).join("\n")}` : ""}
+${imageRequirements}
+${section.inspirations?.length > 0 ? `\n## Style Inspiration\nSee section style references at:\n${section.inspirations.map((i: any) => `- \`landfall/${i.path || ""}\`${i.url ? ` or ${i.url}` : ""}${i.notes ? ` - ${i.notes}` : ""}`).join("\n")}` : ""}
 
 ## Tone Guidelines
 ${tone.toneKeywords?.length > 0 ? `The copy should feel: ${tone.toneKeywords.join(", ")}` : "Use professional, clear language."}
@@ -251,7 +303,7 @@ ${tone.guidelines?.dont?.length > 0 ? `\nDon't: ${tone.guidelines.dont.join("; "
    Create \`components/sections/${formatSectionType(section.type).replace(/ /g, "")}Section.tsx\`
 
 2. **Follow Layout Pattern**
-   Implement the "${section.layoutVariant}" variant layout
+   Implement the "${template?.structure || section.layoutVariant}" layout structure
 
 3. **Apply Styles**
    Use the color palette from the style system:
@@ -270,7 +322,7 @@ ${tone.guidelines?.dont?.length > 0 ? `\nDon't: ${tone.guidelines.dont.join("; "
 export function ${formatSectionType(section.type).replace(/ /g, "")}Section() {
   return (
     <section className="...">
-      {/* Implement ${section.layoutVariant} layout */}
+      {/* Implement ${template?.structure || section.layoutVariant} layout */}
     </section>
   );
 }

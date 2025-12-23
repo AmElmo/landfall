@@ -1,30 +1,82 @@
 "use client";
 
+import { createContext, useContext } from "react";
 import { cn } from "@/lib/utils";
-import type { LayoutTemplate, WireframeElement, StyleColors } from "@/lib/types";
+import { Plus, Check } from "lucide-react";
+import type { LayoutTemplate, WireframeElement, StyleColors, ImageInspiration } from "@/lib/types";
+
+// Visual element types that can have inspirations
+const VISUAL_ELEMENT_TYPES = ["image", "video", "icon", "avatar", "logo"] as const;
+type VisualElementType = typeof VISUAL_ELEMENT_TYPES[number];
+
+function isVisualElement(type: string): type is VisualElementType {
+  return VISUAL_ELEMENT_TYPES.includes(type as VisualElementType);
+}
+
+// Check if a template has any visual elements with roles that can have inspirations
+export function templateHasInteractiveVisuals(template: LayoutTemplate): boolean {
+  const checkElements = (elements: WireframeElement[]): boolean => {
+    for (const el of elements) {
+      if (isVisualElement(el.type) && el.role) {
+        return true;
+      }
+      if (el.children && checkElements(el.children)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  return checkElements(template.elements);
+}
+
+// Context to pass interactive mode props down the tree
+interface WireframeInteractiveContext {
+  interactive: boolean;
+  imageInspirations: ImageInspiration[];
+  onVisualClick?: (elementRole: string, elementType: string) => void;
+}
+
+const InteractiveContext = createContext<WireframeInteractiveContext>({
+  interactive: false,
+  imageInspirations: [],
+});
 
 interface WireframePreviewProps {
   template: LayoutTemplate;
   className?: string;
   compact?: boolean;
   styleColors?: StyleColors;
+  // Interactive mode props
+  interactive?: boolean;
+  imageInspirations?: ImageInspiration[];
+  onVisualClick?: (elementRole: string, elementType: string) => void;
 }
 
-export function WireframePreview({ template, className, compact = false, styleColors }: WireframePreviewProps) {
+export function WireframePreview({
+  template,
+  className,
+  compact = false,
+  styleColors,
+  interactive = false,
+  imageInspirations = [],
+  onVisualClick,
+}: WireframePreviewProps) {
   return (
-    <div
-      className={cn(
-        "rounded-lg border border-dashed flex flex-col justify-center",
-        compact ? "p-4 py-6" : "p-6 py-8",
-        className
-      )}
-      style={{
-        backgroundColor: styleColors?.backgroundAlt || 'rgba(0,0,0,0.03)',
-        borderColor: styleColors?.border ? `${styleColors.border}40` : 'rgba(0,0,0,0.1)',
-      }}
-    >
-      <WireframeLayout structure={template.structure} elements={template.elements} compact={compact} styleColors={styleColors} />
-    </div>
+    <InteractiveContext.Provider value={{ interactive, imageInspirations, onVisualClick }}>
+      <div
+        className={cn(
+          "rounded-lg border border-dashed flex flex-col justify-center",
+          compact ? "p-4 py-6" : "p-6 py-8",
+          className
+        )}
+        style={{
+          backgroundColor: styleColors?.backgroundAlt || 'rgba(0,0,0,0.03)',
+          borderColor: styleColors?.border ? `${styleColors.border}40` : 'rgba(0,0,0,0.1)',
+        }}
+      >
+        <WireframeLayout structure={template.structure} elements={template.elements} compact={compact} styleColors={styleColors} />
+      </div>
+    </InteractiveContext.Provider>
   );
 }
 
@@ -270,14 +322,27 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
           const repeatCount = card.repeat || 1;
           return Array.from({ length: compact ? Math.min(repeatCount, 2) : repeatCount }).map((_, j) => {
             const isEven = j % 2 === 0;
+            // Find the image element in this card's children and give it an indexed role
+            const imageChild = card.children?.find(c => c.type === 'image');
+            const indexedImageElement = imageChild ? {
+              ...imageChild,
+              role: imageChild.role ? `${imageChild.role}-${j + 1}` : undefined
+            } : null;
+
             return (
               <div key={`${i}-${j}`} className={cn("flex gap-4 items-center", !isEven && "flex-row-reverse")}>
-                <div className={cn(
-                  "bg-muted-foreground/20 rounded flex items-center justify-center",
-                  compact ? "w-14 h-10" : "w-24 h-16"
-                )}>
-                  <ImagePlaceholder compact={compact} />
-                </div>
+                {indexedImageElement ? (
+                  <div className={cn(compact ? "w-14 h-10" : "w-24 h-16")}>
+                    <WireframeElementRenderer element={indexedImageElement} compact={compact} />
+                  </div>
+                ) : (
+                  <div className={cn(
+                    "bg-muted-foreground/20 rounded flex items-center justify-center",
+                    compact ? "w-14 h-10" : "w-24 h-16"
+                  )}>
+                    <ImagePlaceholder compact={compact} />
+                  </div>
+                )}
                 <div className="flex-1 space-y-2">
                   <div className={cn(
                     "bg-muted-foreground/40 rounded",
@@ -436,7 +501,9 @@ function FullwidthBackground({ compact, isVideo }: { elements: WireframeElement[
 // Logo layouts
 function LogoRow({ elements, compact, hasHeading }: { elements: WireframeElement[]; compact?: boolean; hasHeading?: boolean }) {
   const labelEl = elements.find(e => e.type === 'label');
-  const logoCount = elements.find(e => e.type === 'image')?.repeat || 5;
+  const imageEl = elements.find(e => e.type === 'image');
+  const logoCount = imageEl?.repeat || 5;
+  const displayCount = compact ? Math.min(logoCount, 4) : logoCount;
 
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
@@ -444,9 +511,20 @@ function LogoRow({ elements, compact, hasHeading }: { elements: WireframeElement
         <div className={cn("mx-auto bg-muted-foreground/30 rounded", compact ? "h-2 w-24" : "h-2.5 w-32")} />
       )}
       <div className={cn("flex items-center justify-center", compact ? "gap-3" : "gap-6")}>
-        {Array.from({ length: compact ? Math.min(logoCount, 4) : logoCount }).map((_, i) => (
-          <div key={i} className={cn("bg-muted-foreground/20 rounded", compact ? "w-8 h-5" : "w-12 h-8")} />
-        ))}
+        {Array.from({ length: displayCount }).map((_, i) => {
+          const indexedElement = imageEl ? {
+            ...imageEl,
+            type: 'logo' as const,
+            role: imageEl.role ? `${imageEl.role}-${i + 1}` : undefined
+          } : null;
+          return indexedElement ? (
+            <div key={i} className={cn(compact ? "w-8 h-5" : "w-12 h-8")}>
+              <WireframeElementRenderer element={indexedElement} compact={compact} />
+            </div>
+          ) : (
+            <div key={i} className={cn("bg-muted-foreground/20 rounded", compact ? "w-8 h-5" : "w-12 h-8")} />
+          );
+        })}
       </div>
     </div>
   );
@@ -454,6 +532,8 @@ function LogoRow({ elements, compact, hasHeading }: { elements: WireframeElement
 
 function LogoMarquee({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
   const labelEl = elements.find(e => e.type === 'label');
+  const imageEl = elements.find(e => e.type === 'image');
+  const displayCount = compact ? 5 : 7;
 
   return (
     <div className={cn("space-y-3", compact && "space-y-2")}>
@@ -461,9 +541,20 @@ function LogoMarquee({ elements, compact }: { elements: WireframeElement[]; comp
         <div className={cn("mx-auto bg-muted-foreground/30 rounded", compact ? "h-2 w-24" : "h-2.5 w-32")} />
       )}
       <div className={cn("flex items-center justify-center overflow-hidden", compact ? "gap-2" : "gap-4")}>
-        {Array.from({ length: compact ? 5 : 7 }).map((_, i) => (
-          <div key={i} className={cn("bg-muted-foreground/20 rounded flex-shrink-0", compact ? "w-7 h-4" : "w-10 h-6")} />
-        ))}
+        {Array.from({ length: displayCount }).map((_, i) => {
+          const indexedElement = imageEl ? {
+            ...imageEl,
+            type: 'logo' as const,
+            role: imageEl.role ? `${imageEl.role}-${i + 1}` : undefined
+          } : null;
+          return indexedElement ? (
+            <div key={i} className={cn("flex-shrink-0", compact ? "w-7 h-4" : "w-10 h-6")}>
+              <WireframeElementRenderer element={indexedElement} compact={compact} />
+            </div>
+          ) : (
+            <div key={i} className={cn("bg-muted-foreground/20 rounded flex-shrink-0", compact ? "w-7 h-4" : "w-10 h-6")} />
+          );
+        })}
       </div>
     </div>
   );
@@ -1262,6 +1353,8 @@ function WireframeCard({ element, compact, size = "small" }: { element: Wirefram
 
 // Element renderer
 function WireframeElementRenderer({ element, compact }: { element: WireframeElement; compact?: boolean }) {
+  const { interactive, imageInspirations, onVisualClick } = useContext(InteractiveContext);
+
   const sizeMap = {
     small: { height: compact ? "h-2" : "h-2.5", iconSize: compact ? "w-3 h-3" : "w-5 h-5" },
     medium: { height: compact ? "h-2.5" : "h-3", iconSize: compact ? "w-4 h-4" : "w-6 h-6" },
@@ -1270,6 +1363,64 @@ function WireframeElementRenderer({ element, compact }: { element: WireframeElem
 
   const size = element.size || "medium";
   const styles = sizeMap[size];
+
+  // Check if this is a visual element that can have inspiration
+  const isVisual = isVisualElement(element.type);
+  const hasRole = !!element.role;
+  const canHaveInspiration = isVisual && hasRole && interactive;
+  const inspiration = canHaveInspiration ? imageInspirations.find(i => i.elementRole === element.role) : undefined;
+  const hasInspiration = !!inspiration;
+  const inspirationImageUrl = inspiration?.path || inspiration?.url;
+
+  // Wrapper for interactive visual elements
+  const InteractiveWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+    if (!canHaveInspiration) {
+      return <div className={className}>{children}</div>;
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onVisualClick?.(element.role!, element.type);
+        }}
+        className={cn(
+          className,
+          "relative group cursor-pointer transition-all overflow-hidden",
+          "hover:ring-2 hover:ring-primary hover:ring-offset-1",
+          hasInspiration && "ring-1 ring-primary/50"
+        )}
+      >
+        {/* Show inspiration image if available, otherwise show placeholder */}
+        {inspirationImageUrl ? (
+          <img
+            src={inspirationImageUrl}
+            alt="Reference"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          children
+        )}
+        {/* Overlay indicator */}
+        <div className={cn(
+          "absolute inset-0 flex items-center justify-center transition-opacity",
+          hasInspiration ? "bg-black/20 opacity-0 group-hover:opacity-100" : "bg-primary/10 opacity-0 group-hover:opacity-100"
+        )}>
+          <div className={cn(
+            "rounded-full p-1",
+            hasInspiration ? "bg-primary text-primary-foreground" : "bg-background border shadow-sm"
+          )}>
+            {hasInspiration ? (
+              <Check className="w-3 h-3" />
+            ) : (
+              <Plus className="w-3 h-3 text-primary" />
+            )}
+          </div>
+        </div>
+      </button>
+    );
+  };
 
   switch (element.type) {
     case "heading":
@@ -1301,10 +1452,12 @@ function WireframeElementRenderer({ element, compact }: { element: WireframeElem
 
     case "icon":
       return (
-        <div className={cn(
-          "bg-primary/30 rounded",
+        <InteractiveWrapper className={cn(
+          "bg-primary/30 rounded flex items-center justify-center",
           styles.iconSize
-        )} />
+        )}>
+          <div className="w-full h-full" />
+        </InteractiveWrapper>
       );
 
     case "button-primary":
@@ -1325,17 +1478,16 @@ function WireframeElementRenderer({ element, compact }: { element: WireframeElem
 
     case "image":
       return (
-        <div className={cn(
-          "bg-muted-foreground/20 rounded flex items-center justify-center",
-          compact ? "h-10 w-full" : "h-16 w-full"
+        <InteractiveWrapper className={cn(
+          "bg-muted-foreground/20 rounded flex items-center justify-center w-full h-full min-h-[2.5rem]"
         )}>
           <ImagePlaceholder compact={compact} />
-        </div>
+        </InteractiveWrapper>
       );
 
     case "video":
       return (
-        <div className={cn(
+        <InteractiveWrapper className={cn(
           "bg-muted-foreground/20 rounded flex items-center justify-center",
           compact ? "h-10 w-full" : "h-16 w-full"
         )}>
@@ -1343,7 +1495,37 @@ function WireframeElementRenderer({ element, compact }: { element: WireframeElem
             "w-0 h-0 border-t-transparent border-b-transparent border-l-muted-foreground/40",
             compact ? "border-t-[4px] border-b-[4px] border-l-[6px]" : "border-t-[6px] border-b-[6px] border-l-[9px]"
           )} />
-        </div>
+        </InteractiveWrapper>
+      );
+
+    case "avatar":
+      return (
+        <InteractiveWrapper className={cn(
+          "bg-muted-foreground/20 rounded-full flex items-center justify-center flex-shrink-0",
+          compact ? "w-6 h-6" : "w-10 h-10"
+        )}>
+          <svg
+            className={cn("text-muted-foreground/40", compact ? "w-3 h-3" : "w-5 h-5")}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          </svg>
+        </InteractiveWrapper>
+      );
+
+    case "logo":
+      return (
+        <InteractiveWrapper className={cn(
+          "bg-muted-foreground/25 rounded flex items-center justify-center",
+          compact ? "w-16 h-5" : "w-24 h-8"
+        )}>
+          <div className={cn(
+            "bg-muted-foreground/40 rounded",
+            compact ? "w-10 h-2.5" : "w-16 h-4"
+          )} />
+        </InteractiveWrapper>
       );
 
     case "input":
