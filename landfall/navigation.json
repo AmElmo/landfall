@@ -8,14 +8,14 @@
     },
     "links": [
       {
-        "label": "lalal",
-        "target": "/fdfd",
-        "type": "anchor"
+        "label": "",
+        "target": "/features",
+        "type": "internal"
       },
       {
-        "label": "tatata",
-        "target": "#section_1766113771779",
-        "type": "anchor"
+        "label": "fdfd",
+        "target": "/pricing",
+        "type": "internal"
       }
     ],
     "cta": [

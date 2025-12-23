@@ -263,11 +263,12 @@ export default function SectionsStep() {
     setZoom(DEFAULT_ZOOM);
   };
 
-  // Handle wheel zoom with trackpad
+  // Handle wheel zoom with trackpad (very low sensitivity for smooth control)
   const handleWheel = useCallback((e: WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      // Use very small delta for smooth trackpad zooming
+      const delta = e.deltaY > 0 ? -0.01 : 0.01;
       setZoom(prev => Math.max(0.25, Math.min(2, prev + delta)));
     }
   }, []);
@@ -576,9 +577,9 @@ function FloatingSectionEditor({
   const hasWireframeTemplates = templates.length > 0;
 
   return (
-    <div className="fixed right-6 top-[140px] bottom-6 w-[400px] bg-background border rounded-xl shadow-2xl flex flex-col overflow-hidden z-50">
+    <div className="fixed right-6 top-[140px] bottom-6 w-[400px] bg-background border rounded-xl shadow-2xl flex flex-col z-50">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-muted/30">
+      <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-muted/30">
         <div>
           <div className="font-medium">
             {isCustomSection ? (section.customType || 'Custom Section') : (sectionType?.name || section.type)}
@@ -597,8 +598,8 @@ function FloatingSectionEditor({
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <ScrollArea className="flex-1">
+      {/* Scrollable Content - use overflow-y-auto with min-h-0 to enable scrolling */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-4 space-y-6">
           {/* Layout Template Selector */}
           {hasWireframeTemplates && (
@@ -668,7 +669,7 @@ function FloatingSectionEditor({
             />
           </div>
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
@@ -825,6 +826,10 @@ function CanvasPreview({
                 draggable
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = 'move';
+                  // Hide the default browser drag ghost by using a transparent image
+                  const transparentImg = new Image();
+                  transparentImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                  e.dataTransfer.setDragImage(transparentImg, 0, 0);
                   onDragStart(index);
                 }}
                 onDragOver={(e) => onDragOver(e, index)}
@@ -840,8 +845,11 @@ function CanvasPreview({
                 />
               </div>
 
-              {/* Add Section Button Between Sections */}
-              <AddSectionButton onClick={() => onAddSection(index + 1)} />
+              {/* Add Section Button Between Sections (bigger at bottom) */}
+              <AddSectionButton
+                onClick={() => onAddSection(index + 1)}
+                isLast={index === sections.length - 1}
+              />
             </React.Fragment>
           ))}
 
@@ -865,23 +873,23 @@ function CanvasPreview({
 }
 
 // Add section button shown between sections
-function AddSectionButton({ onClick, isFirst = false }: { onClick: () => void; isFirst?: boolean }) {
+function AddSectionButton({ onClick, isFirst = false, isLast = false }: { onClick: () => void; isFirst?: boolean; isLast?: boolean }) {
   return (
     <div className={cn(
       "group flex items-center justify-center",
-      isFirst ? "h-2" : "h-4"
+      isFirst ? "h-2" : isLast ? "h-12 mt-4" : "h-4"
     )}>
       <button
         onClick={onClick}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs",
-          "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground",
-          "opacity-0 group-hover:opacity-100 transition-all duration-200",
-          "border border-primary/20 hover:border-primary",
-          "shadow-sm hover:shadow-md"
+          "flex items-center gap-1.5 rounded-full transition-all duration-200",
+          "border shadow-sm hover:shadow-md",
+          isLast
+            ? "px-5 py-2.5 text-sm bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border-primary/30 hover:border-primary opacity-100"
+            : "px-3 py-1 text-xs bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border-primary/20 hover:border-primary opacity-0 group-hover:opacity-100"
         )}
       >
-        <Plus className="h-3 w-3" />
+        <Plus className={isLast ? "h-4 w-4" : "h-3 w-3"} />
         <span>Add Section</span>
       </button>
     </div>
@@ -914,10 +922,10 @@ function CanvasSectionCard({
     <div
       onClick={onClick}
       className={cn(
-        "border rounded-lg p-3 transition-all",
+        "border rounded-lg p-3 transition-all duration-150",
         onClick && "cursor-pointer",
         isDragging
-          ? "opacity-70 scale-[0.98] shadow-lg border-primary bg-primary/5"
+          ? "opacity-80 shadow-md border-primary/50 bg-primary/5 rotate-[0.5deg]"
           : isActive
           ? "border-2 shadow-lg ring-2"
           : "hover:shadow-md hover:border-primary/30"

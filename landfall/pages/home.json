@@ -2,13 +2,14 @@
   "pageId": "page_1766475400592",
   "sections": [
     {
-      "id": "section_1766475411005",
-      "type": "hero",
-      "layoutVariant": "hero-centered",
+      "id": "section_1766475417455",
+      "type": "faq",
+      "layoutVariant": "faq-two-column",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": []
+      "inspirations": [],
+      "layoutTemplateId": "faq-two-column"
     },
     {
       "id": "section_1766475414734",
@@ -21,14 +22,13 @@
       "layoutTemplateId": "logos-simple-row"
     },
     {
-      "id": "section_1766475417455",
-      "type": "faq",
-      "layoutVariant": "faq-two-column",
+      "id": "section_1766475411005",
+      "type": "hero",
+      "layoutVariant": "hero-centered",
       "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": [],
-      "layoutTemplateId": "faq-two-column"
+      "inspirations": []
     },
     {
       "id": "section_1766475419038",
@@ -45,6 +45,26 @@
       "layoutVariant": "features-2-col-cards",
       "layoutTemplateId": "features-2-col-cards",
       "order": 5,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766477253760",
+      "type": "pricing",
+      "layoutVariant": "pricing-comparison",
+      "layoutTemplateId": "pricing-comparison",
+      "order": 6,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766477449038",
+      "type": "features",
+      "layoutVariant": "features-2-col-cards",
+      "layoutTemplateId": "features-2-col-cards",
+      "order": 7,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
