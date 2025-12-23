@@ -2,10 +2,10 @@
   "pageId": "page_1765891955495",
   "sections": [
     {
-      "id": "section_1766127515025",
-      "type": "hero",
-      "layoutVariant": "hero-split",
-      "layoutTemplateId": "hero-split",
+      "id": "section_1766127486531",
+      "type": "faq",
+      "layoutVariant": "faq-simple-list",
+      "layoutTemplateId": "faq-simple-list",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
@@ -22,10 +22,10 @@
       "inspirations": []
     },
     {
-      "id": "section_1766127486531",
-      "type": "faq",
-      "layoutVariant": "faq-simple-list",
-      "layoutTemplateId": "faq-simple-list",
+      "id": "section_1766127515025",
+      "type": "hero",
+      "layoutVariant": "hero-split",
+      "layoutTemplateId": "hero-split",
       "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",

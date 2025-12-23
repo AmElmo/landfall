@@ -73,8 +73,8 @@
     {
       "id": "section_1766477449038",
       "type": "features",
-      "layoutVariant": "features-3-col-cards",
-      "layoutTemplateId": "features-3-col-cards",
+      "layoutVariant": "features-alternating",
+      "layoutTemplateId": "features-alternating",
       "order": 7,
       "copyInstructions": "",
       "visualInstructions": "",
@@ -86,6 +86,26 @@
       "layoutVariant": "features-alternating",
       "layoutTemplateId": "features-alternating",
       "order": 8,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766482976749",
+      "type": "faq",
+      "layoutVariant": "faq-simple-list",
+      "layoutTemplateId": "faq-simple-list",
+      "order": 9,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766483008578",
+      "type": "contact",
+      "layoutVariant": "contact-cards",
+      "layoutTemplateId": "contact-cards",
+      "order": 10,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []

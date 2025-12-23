@@ -6,7 +6,6 @@ import { useLandfall } from "@/lib/context";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +20,6 @@ import {
   GripVertical,
   Layers,
   FileText,
-  ChevronRight,
   Check,
   Image as ImageIcon,
   ZoomIn,
@@ -964,11 +962,9 @@ function AddSectionButton({ onClick, isFirst = false, isLast = false }: { onClic
 // Canvas section card that uses wireframe templates when available
 function CanvasSectionCard({
   section,
-  index,
   isActive = false,
   isDragging = false,
   onClick,
-  styleColors,
 }: {
   section: Section;
   index: number;
@@ -977,7 +973,6 @@ function CanvasSectionCard({
   onClick?: () => void;
   styleColors?: StyleColors;
 }) {
-  const sectionType = SECTION_TYPES[section.type as keyof typeof SECTION_TYPES];
   const { templates } = useWireframeTemplates(section.type as SectionType);
 
   // Find the selected template if one exists
@@ -987,163 +982,116 @@ function CanvasSectionCard({
     <div
       onClick={onClick}
       className={cn(
-        "border rounded-lg p-3 transition-all duration-150",
+        "rounded-lg transition-all duration-150 group relative",
         onClick && "cursor-pointer",
         isDragging
-          ? "opacity-80 shadow-md border-primary/50 bg-primary/5 rotate-[0.5deg]"
+          ? "opacity-80 rotate-[0.5deg]"
           : isActive
-          ? "border-2 shadow-lg ring-2"
-          : "hover:shadow-md hover:border-primary/30"
+          ? "ring-[3px] ring-primary"
+          : "hover:ring-[3px] hover:ring-primary/60"
       )}
-      style={{
-        backgroundColor: styleColors?.backgroundAlt || (isActive ? undefined : 'rgba(255,255,255,0.5)'),
-        borderColor: isActive ? styleColors?.primary : (styleColors?.border || 'rgba(0,0,0,0.1)'),
-        ...(isActive && styleColors?.primary ? {
-          boxShadow: `0 4px 6px -1px ${styleColors.primary}20`,
-          outline: `2px solid ${styleColors.primary}30`,
-          outlineOffset: '1px',
-        } : {}),
-      }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <GripVertical className={cn(
-          "h-4 w-4 flex-shrink-0 cursor-grab",
-          isDragging ? "cursor-grabbing text-primary" : "text-muted-foreground"
-        )} />
-        <Badge
-          variant="outline"
-          className="text-[10px] h-5 px-1.5"
-          style={{
-            borderColor: styleColors?.primary || undefined,
-            color: styleColors?.primary || undefined,
-          }}
-        >
-          {index + 1}
-        </Badge>
-        <span
-          className="font-medium text-xs"
-          style={{ color: styleColors?.text || undefined }}
-        >
-          {section.type === 'custom' ? (section.customType || 'Custom') : (sectionType?.name || section.type)}
-        </span>
-        {selectedTemplate && (
-          <span
-            className="text-[10px]"
-            style={{ color: styleColors?.textMuted || undefined }}
-          >
-            · {selectedTemplate.name}
-          </span>
-        )}
-        <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
-      </div>
-
-      {/* Wireframe representation */}
-      <div
-        className="rounded overflow-hidden"
-        style={{
-          backgroundColor: styleColors?.background || 'rgba(0,0,0,0.03)',
-        }}
-      >
+      {/* Wireframe representation - clean like Relume */}
+      <div className="rounded-lg overflow-hidden bg-neutral-100">
         {selectedTemplate ? (
           <WireframePreview
             template={selectedTemplate}
             compact
-            className="min-h-[200px]"
-            styleColors={styleColors}
+            className="min-h-[280px]"
           />
         ) : (
-          <div
-            className="min-h-[180px] flex items-center justify-center p-4"
-            style={{ backgroundColor: styleColors?.backgroundAlt || undefined }}
-          >
-            <DefaultSectionWireframe type={section.type} styleColors={styleColors} />
+          <div className="min-h-[280px] flex items-center justify-center p-8 bg-neutral-100">
+            <DefaultSectionWireframe type={section.type} />
           </div>
         )}
       </div>
 
-      {(section.copyInstructions || section.inspirations?.length > 0) && (
-        <div
-          className="mt-2 text-[10px] flex gap-3"
-          style={{ color: styleColors?.textMuted || undefined }}
-        >
-          {section.copyInstructions && (
-            <div className="truncate flex-1">📝 {section.copyInstructions}</div>
-          )}
-          {section.inspirations?.length > 0 && (
-            <div className="flex-shrink-0">🖼️ {section.inspirations.length}</div>
-          )}
-        </div>
-      )}
+      {/* Drag handle - shows on hover */}
+      <div className={cn(
+        "absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity",
+        isDragging && "opacity-100"
+      )}>
+        <GripVertical className={cn(
+          "h-5 w-5 cursor-grab text-neutral-400",
+          isDragging && "cursor-grabbing text-primary"
+        )} />
+      </div>
     </div>
   );
 }
 
-// Default wireframe for sections without template support
-function DefaultSectionWireframe({ type, styleColors }: { type: string; styleColors?: StyleColors }) {
-  const primaryBg = styleColors?.primary ? `${styleColors.primary}30` : undefined;
-  const mutedBg = styleColors?.textMuted ? `${styleColors.textMuted}30` : undefined;
-  const mutedBgLight = styleColors?.textMuted ? `${styleColors.textMuted}20` : undefined;
-
+// Default wireframe for sections without template support - Relume style with actual text
+function DefaultSectionWireframe({ type }: { type: string }) {
   if (type === "hero") {
     return (
-      <div className="space-y-2">
-        <div className="h-4 bg-muted rounded w-3/4" style={{ backgroundColor: mutedBg }} />
-        <div className="h-3 bg-muted/60 rounded w-1/2" style={{ backgroundColor: mutedBgLight }} />
-        <div className="flex gap-2 mt-4">
-          <div className="h-8 w-24 bg-primary/20 rounded" style={{ backgroundColor: primaryBg }} />
-          <div className="h-8 w-24 bg-muted rounded" style={{ backgroundColor: mutedBg }} />
+      <div className="space-y-4 max-w-lg">
+        <p className="font-bold text-neutral-800 text-xl leading-tight">
+          Medium length hero heading goes here
+        </p>
+        <p className="text-neutral-500 text-sm">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim.
+        </p>
+        <div className="flex gap-3 pt-2">
+          <button className="bg-neutral-900 text-white font-medium rounded px-4 py-2 text-xs">Button</button>
+          <button className="bg-white text-neutral-900 font-medium rounded border border-neutral-300 px-4 py-2 text-xs">Button</button>
         </div>
       </div>
     );
   }
   if (type === "features") {
     return (
-      <div className="grid grid-cols-3 gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="space-y-1">
-            <div className="h-8 w-8 bg-muted rounded" style={{ backgroundColor: primaryBg }} />
-            <div className="h-2 bg-muted rounded w-3/4" style={{ backgroundColor: mutedBg }} />
-            <div className="h-2 bg-muted/60 rounded w-1/2" style={{ backgroundColor: mutedBgLight }} />
-          </div>
-        ))}
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <p className="font-bold text-neutral-800 text-lg">Features section heading</p>
+          <p className="text-neutral-500 text-xs">Lorem ipsum dolor sit amet</p>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center space-y-2">
+              <div className="bg-neutral-300 rounded-md mx-auto w-10 h-10" />
+              <p className="font-semibold text-neutral-800 text-sm">Feature</p>
+              <p className="text-neutral-500 text-xs">Lorem ipsum dolor sit amet</p>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
   if (type === "testimonials") {
     return (
-      <div className="flex gap-2">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="flex-1 p-2 bg-background rounded"
-            style={{ backgroundColor: styleColors?.background }}
-          >
-            <div className="h-2 bg-muted rounded w-full mb-1" style={{ backgroundColor: mutedBg }} />
-            <div className="h-2 bg-muted/60 rounded w-3/4" style={{ backgroundColor: mutedBgLight }} />
-            <div className="flex items-center gap-1 mt-2">
-              <div className="h-4 w-4 bg-muted rounded-full" style={{ backgroundColor: mutedBg }} />
-              <div className="h-2 bg-muted rounded w-12" style={{ backgroundColor: mutedBg }} />
+      <div className="space-y-6">
+        <p className="font-bold text-neutral-800 text-lg text-center">Testimonials</p>
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg border border-neutral-200 p-4 space-y-3">
+              <p className="text-neutral-600 text-xs">"Lorem ipsum dolor sit amet"</p>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-neutral-300" />
+                <div>
+                  <p className="text-neutral-800 text-xs font-medium">Name</p>
+                  <p className="text-neutral-500 text-[10px]">Role</p>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
   if (type === "cta") {
     return (
-      <div className="text-center space-y-2">
-        <div className="h-4 bg-muted rounded w-1/2 mx-auto" style={{ backgroundColor: mutedBg }} />
-        <div className="h-3 bg-muted/60 rounded w-1/3 mx-auto" style={{ backgroundColor: mutedBgLight }} />
-        <div className="h-8 w-28 bg-primary/20 rounded mx-auto mt-3" style={{ backgroundColor: primaryBg }} />
+      <div className="text-center space-y-4">
+        <p className="font-bold text-neutral-800 text-lg">Call to action heading</p>
+        <p className="text-neutral-500 text-sm">Lorem ipsum dolor sit amet</p>
+        <button className="bg-neutral-900 text-white font-medium rounded px-5 py-2.5 text-sm">Button</button>
       </div>
     );
   }
   // Default fallback
   return (
-    <div className="space-y-2">
-      <div className="h-4 bg-muted rounded w-1/2" style={{ backgroundColor: mutedBg }} />
-      <div className="h-3 bg-muted/60 rounded w-3/4" style={{ backgroundColor: mutedBgLight }} />
-      <div className="h-3 bg-muted/60 rounded w-2/3" style={{ backgroundColor: mutedBgLight }} />
+    <div className="space-y-3 max-w-md">
+      <p className="font-bold text-neutral-800 text-lg">Section heading</p>
+      <p className="text-neutral-500 text-sm">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
     </div>
   );
 }
