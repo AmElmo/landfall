@@ -1,11 +1,50 @@
 {
+  "pageId": "page_1766475400592",
   "sections": [
     {
-      "id": "section_1766130013227",
+      "id": "section_1766475411005",
+      "type": "hero",
+      "layoutVariant": "hero-centered",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766475414734",
+      "type": "logos",
+      "layoutVariant": "logos-simple-row",
+      "order": 2,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": [],
+      "layoutTemplateId": "logos-simple-row"
+    },
+    {
+      "id": "section_1766475417455",
+      "type": "faq",
+      "layoutVariant": "faq-two-column",
+      "order": 3,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": [],
+      "layoutTemplateId": "faq-two-column"
+    },
+    {
+      "id": "section_1766475419038",
       "type": "testimonials",
       "layoutVariant": "testimonials-single-featured",
-      "layoutTemplateId": "testimonials-single-featured",
-      "order": 1,
+      "order": 4,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766475773902",
+      "type": "features",
+      "layoutVariant": "features-2-col-cards",
+      "layoutTemplateId": "features-2-col-cards",
+      "order": 5,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
