@@ -364,10 +364,10 @@ export default function SectionsStep() {
         </div>
       </div>
 
-      {/* Sub-header with page tabs and zoom controls */}
+      {/* Sub-header with centered page tabs */}
       <div className="border-b bg-background/80 backdrop-blur px-8 py-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Page Tabs */}
+        <div className="max-w-7xl mx-auto flex items-center justify-center">
+          {/* Centered Page Tabs */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground mr-2">Pages:</span>
             <div className="flex gap-1.5 overflow-x-auto">
@@ -394,64 +394,64 @@ export default function SectionsStep() {
               })}
             </div>
           </div>
-
-          {/* Zoom Controls */}
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={zoomOut}
-                  className="p-1.5 rounded hover:bg-background transition-colors"
-                  disabled={zoom <= ZOOM_LEVELS[0]}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Zoom out</TooltipContent>
-            </Tooltip>
-
-            <button
-              onClick={resetZoom}
-              className="px-2 py-1 text-xs font-medium min-w-[50px] hover:bg-background rounded transition-colors"
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={zoomIn}
-                  className="p-1.5 rounded hover:bg-background transition-colors"
-                  disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Zoom in</TooltipContent>
-            </Tooltip>
-
-            <div className="w-px h-4 bg-border mx-1" />
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={resetZoom}
-                  className="p-1.5 rounded hover:bg-background transition-colors"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Reset zoom</TooltipContent>
-            </Tooltip>
-          </div>
         </div>
       </div>
 
       {/* Full Canvas Area */}
       <div
         ref={canvasRef}
-        className="flex-1 overflow-auto bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0_/_0.05)_1px,_transparent_0)] [background-size:24px_24px]"
+        className="flex-1 overflow-auto bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0_/_0.05)_1px,_transparent_0)] [background-size:24px_24px] relative"
       >
+        {/* Floating Zoom Controls in Canvas */}
+        <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 bg-background/90 backdrop-blur border rounded-lg p-1 shadow-sm">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={zoomOut}
+                className="p-1.5 rounded hover:bg-muted transition-colors"
+                disabled={zoom <= ZOOM_LEVELS[0]}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Zoom out</TooltipContent>
+          </Tooltip>
+
+          <button
+            onClick={resetZoom}
+            className="px-2 py-1 text-xs font-medium min-w-[50px] hover:bg-muted rounded transition-colors"
+          >
+            {Math.round(zoom * 100)}%
+          </button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={zoomIn}
+                className="p-1.5 rounded hover:bg-muted transition-colors"
+                disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Zoom in</TooltipContent>
+          </Tooltip>
+
+          <div className="w-px h-4 bg-border mx-1" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={resetZoom}
+                className="p-1.5 rounded hover:bg-muted transition-colors"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Reset zoom</TooltipContent>
+          </Tooltip>
+        </div>
+
         <div className="min-h-full p-8 flex justify-center">
           <div
             className="transition-transform duration-200 origin-top"
@@ -661,8 +661,10 @@ function FloatingSectionEditor({
                           : "border-border hover:border-primary/50 hover:bg-muted/30"
                       )}
                     >
-                      <div className="mb-2 h-20 overflow-hidden">
-                        <WireframePreview template={template} compact className="h-full" />
+                      <div className="mb-2 h-20 overflow-hidden rounded bg-neutral-100">
+                        <div className="origin-top-left scale-[0.2] w-[500%]">
+                          <WireframePreview template={template} />
+                        </div>
                       </div>
                       <div className="flex items-start gap-1.5">
                         {section.layoutTemplateId === template.id && (
@@ -768,9 +770,11 @@ function LayoutTemplatePicker({
                 onClick={() => onSelect(template.id, template.id)}
                 className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group"
               >
-                {/* Wireframe Preview */}
-                <div className="mb-3 h-32 overflow-hidden">
-                  <WireframePreview template={template} compact className="h-full" />
+                {/* Wireframe Preview - scaled down */}
+                <div className="mb-3 h-24 overflow-hidden rounded bg-neutral-100">
+                  <div className="origin-top-left scale-[0.25] w-[400%]">
+                    <WireframePreview template={template} />
+                  </div>
                 </div>
                 <div className="font-medium text-xs">{template.name}</div>
                 <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
@@ -865,14 +869,8 @@ function CanvasPreview({
             <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
           </div>
           <div className="flex-1 flex justify-center">
-            <div
-              className="rounded-md px-3 py-1 text-xs"
-              style={{
-                backgroundColor: styleColors?.background || undefined,
-                color: styleColors?.textMuted || undefined,
-              }}
-            >
-              {pageName}
+            <div className="rounded-md px-4 py-1.5 text-sm font-medium bg-white text-neutral-500 border border-neutral-200">
+              /{pageName.toLowerCase().replace(/\s+/g, '-')}
             </div>
           </div>
         </div>
@@ -925,8 +923,14 @@ function CanvasPreview({
               }}
             >
               <Layers className="h-8 w-8 mx-auto mb-3 opacity-50" />
-              <p className="text-sm mb-1">No sections yet</p>
-              <p className="text-xs opacity-70">Click the + button above to add your first section</p>
+              <p className="text-sm mb-2">No sections yet</p>
+              <button
+                onClick={() => onAddSection(0)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                Add your first section
+              </button>
             </div>
           )}
         </div>
@@ -982,10 +986,13 @@ function CanvasSectionCard({
     <div
       onClick={onClick}
       className={cn(
-        "rounded-lg transition-all duration-150 group relative",
+        "rounded-lg group relative",
         onClick && "cursor-pointer",
+        // Smooth transitions when not dragging
+        !isDragging && "transition-all duration-200",
+        // Dragging state: lift up with shadow, scale slightly, rotate for visual effect
         isDragging
-          ? "opacity-80 rotate-[0.5deg]"
+          ? "scale-[1.02] shadow-2xl ring-2 ring-primary z-50 rotate-[1deg] opacity-95"
           : isActive
           ? "ring-[3px] ring-primary"
           : "hover:ring-[3px] hover:ring-primary/60"
@@ -996,11 +1003,11 @@ function CanvasSectionCard({
         {selectedTemplate ? (
           <WireframePreview
             template={selectedTemplate}
-            compact
-            className="min-h-[280px]"
+            compact={false}
+            className="min-h-[420px]"
           />
         ) : (
-          <div className="min-h-[280px] flex items-center justify-center p-8 bg-neutral-100">
+          <div className="min-h-[420px] flex items-center justify-center p-8 bg-neutral-100">
             <DefaultSectionWireframe type={section.type} />
           </div>
         )}
@@ -1008,11 +1015,11 @@ function CanvasSectionCard({
 
       {/* Drag handle - shows on hover */}
       <div className={cn(
-        "absolute -left-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity",
-        isDragging && "opacity-100"
+        "absolute -left-4 top-1/2 -translate-y-1/2 p-1 rounded bg-background/80 shadow-sm border opacity-0 group-hover:opacity-100 transition-opacity",
+        isDragging && "opacity-100 bg-primary/10 border-primary"
       )}>
         <GripVertical className={cn(
-          "h-5 w-5 cursor-grab text-neutral-400",
+          "h-4 w-4 cursor-grab text-neutral-400",
           isDragging && "cursor-grabbing text-primary"
         )} />
       </div>

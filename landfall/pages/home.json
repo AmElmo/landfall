@@ -2,14 +2,24 @@
   "pageId": "page_1766475400592",
   "sections": [
     {
-      "id": "section_1766475411005",
-      "type": "hero",
-      "layoutVariant": "hero-split",
+      "id": "section_1766475417455",
+      "type": "faq",
+      "layoutVariant": "faq-simple-list",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
-      "layoutTemplateId": "hero-split",
+      "layoutTemplateId": "faq-simple-list"
+    },
+    {
+      "id": "section_1766475411005",
+      "type": "hero",
+      "layoutVariant": "hero-image-right",
+      "order": 2,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": [],
+      "layoutTemplateId": "hero-image-right",
       "imageInspirations": [
         {
           "id": "img_insp_1766478797988",
@@ -21,57 +31,47 @@
       ]
     },
     {
-      "id": "section_1766475417455",
-      "type": "faq",
-      "layoutVariant": "faq-two-column",
-      "order": 2,
+      "id": "section_1766477253760",
+      "type": "pricing",
+      "layoutVariant": "pricing-comparison",
+      "layoutTemplateId": "pricing-comparison",
+      "order": 3,
       "copyInstructions": "",
       "visualInstructions": "",
-      "inspirations": [],
-      "layoutTemplateId": "faq-two-column"
+      "inspirations": []
     },
     {
       "id": "section_1766475414734",
       "type": "logos",
-      "layoutVariant": "logos-grid",
-      "order": 3,
+      "layoutVariant": "logos-simple-row",
+      "order": 4,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
-      "layoutTemplateId": "logos-grid"
+      "layoutTemplateId": "logos-simple-row"
     },
     {
       "id": "section_1766475419038",
       "type": "testimonials",
       "layoutVariant": "testimonials-three-cards",
-      "order": 4,
+      "order": 5,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
       "layoutTemplateId": "testimonials-three-cards"
     },
     {
-      "id": "section_1766475773902",
+      "id": "section_1766477449038",
       "type": "features",
       "layoutVariant": "features-alternating",
       "layoutTemplateId": "features-alternating",
-      "order": 5,
-      "copyInstructions": "",
-      "visualInstructions": "",
-      "inspirations": []
-    },
-    {
-      "id": "section_1766477253760",
-      "type": "pricing",
-      "layoutVariant": "pricing-comparison",
-      "layoutTemplateId": "pricing-comparison",
       "order": 6,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
     },
     {
-      "id": "section_1766477449038",
+      "id": "section_1766475773902",
       "type": "features",
       "layoutVariant": "features-alternating",
       "layoutTemplateId": "features-alternating",
@@ -91,21 +91,41 @@
       "inspirations": []
     },
     {
-      "id": "section_1766482976749",
-      "type": "faq",
-      "layoutVariant": "faq-simple-list",
-      "layoutTemplateId": "faq-simple-list",
+      "id": "section_1766483008578",
+      "type": "contact",
+      "layoutVariant": "contact-cards",
+      "layoutTemplateId": "contact-cards",
       "order": 9,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
     },
     {
-      "id": "section_1766483008578",
-      "type": "contact",
-      "layoutVariant": "contact-cards",
-      "layoutTemplateId": "contact-cards",
+      "id": "section_1766482976749",
+      "type": "faq",
+      "layoutVariant": "faq-simple-list",
+      "layoutTemplateId": "faq-simple-list",
       "order": 10,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766545452194",
+      "type": "pricing",
+      "layoutVariant": "pricing-comparison",
+      "layoutTemplateId": "pricing-comparison",
+      "order": 11,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766555275036",
+      "type": "hero",
+      "layoutVariant": "hero-centered",
+      "layoutTemplateId": "hero-centered",
+      "order": 12,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []

@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "layout": "logo-left-links-right",
+    "layout": "logo-left-links-center",
     "logo": {
       "type": "image",
       "value": "/api/assets/serve/logo/android-chrome-512x512-a5361df3.png",

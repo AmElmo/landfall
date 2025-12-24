@@ -13,7 +13,9 @@ import {
   Image,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, NavCta, Navigation, Style } from "@/lib/types";
+import { Section, SECTION_TYPES, NavCta, Navigation, Style, SectionType } from "@/lib/types";
+import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
+import { WireframePreview } from "@/components/wireframe/WireframePreview";
 
 type ViewMode = "desktop" | "tablet" | "mobile";
 
@@ -62,7 +64,7 @@ export default function PreviewStep() {
 
   // Right panel: View controls + Preview
   const rightPanel = (
-    <div className="space-y-4">
+    <div className="space-y-2 h-full flex flex-col">
       {/* View Controls at top of preview */}
       <div className="flex justify-end">
         <div className="flex bg-muted rounded-lg p-1">
@@ -97,7 +99,7 @@ export default function PreviewStep() {
       </div>
 
       {/* Preview Area */}
-      <div className="bg-muted/30 rounded-xl p-4 flex justify-center overflow-hidden">
+      <div className="bg-muted/30 rounded-xl p-3 flex justify-center overflow-hidden flex-1">
         <div
           className={cn(
             "bg-white rounded-xl shadow-2xl overflow-hidden border transition-all",
@@ -290,7 +292,6 @@ function WireframeSection({
   index,
   style,
   showAnnotations,
-  viewMode,
 }: {
   section: Section;
   index: number;
@@ -298,17 +299,16 @@ function WireframeSection({
   showAnnotations: boolean;
   viewMode: ViewMode;
 }) {
+  const { templates } = useWireframeTemplates(section.type as SectionType);
+  const selectedTemplate = templates.find(t => t.id === section.layoutTemplateId);
+
   const sectionType = section.type !== 'custom' ? SECTION_TYPES[section.type as keyof typeof SECTION_TYPES] : null;
-  const variant = sectionType?.variants.find((v) => v.id === section.layoutVariant);
   const displayName = section.type === 'custom' ? section.customType || 'Custom Section' : (sectionType?.name || section.type);
 
   return (
-    <div
-      className="relative border-2 border-dashed rounded-xl p-4"
-      style={{ borderColor: style.colors.border }}
-    >
+    <div className="relative rounded-xl overflow-hidden">
       {/* Section Header */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2 px-1">
         <Badge
           variant="outline"
           className="text-xs"
@@ -319,23 +319,32 @@ function WireframeSection({
         <span className="font-medium text-sm" style={{ color: style.colors.text }}>
           {displayName}
         </span>
-        <span className="text-xs" style={{ color: style.colors.textMuted }}>
-          {section.type === 'custom' ? '(Custom)' : variant?.name}
-        </span>
       </div>
 
-      {/* Wireframe Content */}
-      <div
-        className="rounded-lg p-4"
-        style={{ backgroundColor: style.colors.backgroundAlt }}
-      >
-        {renderWireframe(section, style, viewMode)}
+      {/* Wireframe Content - use same rendering as SectionsStep */}
+      <div className="rounded-lg overflow-hidden">
+        {selectedTemplate ? (
+          <WireframePreview
+            template={selectedTemplate}
+            compact={false}
+            className="min-h-[380px]"
+          />
+        ) : (
+          <div
+            className="min-h-[300px] rounded-lg p-4 flex items-center justify-center"
+            style={{ backgroundColor: style.colors.backgroundAlt }}
+          >
+            <span className="text-sm" style={{ color: style.colors.textMuted }}>
+              {displayName} section
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Annotations */}
       {showAnnotations && (section.copyInstructions || section.visualInstructions) && (
         <div
-          className="mt-3 p-3 rounded-lg border space-y-2"
+          className="mt-2 p-3 rounded-lg border space-y-2"
           style={{
             backgroundColor: `${style.colors.primary}10`,
             borderColor: `${style.colors.primary}30`,
@@ -357,106 +366,6 @@ function WireframeSection({
       )}
     </div>
   );
-}
-
-function renderWireframe(
-  section: Section,
-  style: NonNullable<ReturnType<typeof useLandfall>["style"]>,
-  viewMode: ViewMode
-) {
-  const isMobile = viewMode === "mobile";
-
-  switch (section.type) {
-    case "hero":
-      return (
-        <div className={cn("flex gap-6", isMobile && "flex-col")}>
-          <div className="flex-1 space-y-3">
-            <div className="h-6 rounded w-3/4" style={{ backgroundColor: style.colors.border }} />
-            <div className="h-4 rounded w-full" style={{ backgroundColor: `${style.colors.border}80` }} />
-            <div className="h-4 rounded w-2/3" style={{ backgroundColor: `${style.colors.border}80` }} />
-            <div className="flex gap-2 mt-4">
-              <div className="h-10 w-28 rounded-lg" style={{ backgroundColor: style.colors.primary }} />
-              <div className="h-10 w-28 rounded-lg border" style={{ borderColor: style.colors.border }} />
-            </div>
-          </div>
-          {!isMobile && (
-            <div className="w-1/2 h-40 rounded-lg flex items-center justify-center" style={{ backgroundColor: style.colors.border }}>
-              <Image className="h-8 w-8" style={{ color: style.colors.textMuted }} />
-            </div>
-          )}
-        </div>
-      );
-
-    case "features":
-      return (
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-3")}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="p-4 rounded-lg" style={{ backgroundColor: style.colors.background }}>
-              <div className="w-10 h-10 rounded-lg mb-3" style={{ backgroundColor: style.colors.primary }} />
-              <div className="h-4 rounded w-3/4 mb-2" style={{ backgroundColor: style.colors.border }} />
-              <div className="h-3 rounded w-full" style={{ backgroundColor: `${style.colors.border}60` }} />
-              <div className="h-3 rounded w-2/3 mt-1" style={{ backgroundColor: `${style.colors.border}60` }} />
-            </div>
-          ))}
-        </div>
-      );
-
-    case "testimonials":
-      return (
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-3")}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="p-4 rounded-lg" style={{ backgroundColor: style.colors.background }}>
-              <div className="h-3 rounded w-full mb-1" style={{ backgroundColor: `${style.colors.border}60` }} />
-              <div className="h-3 rounded w-full mb-1" style={{ backgroundColor: `${style.colors.border}60` }} />
-              <div className="h-3 rounded w-3/4 mb-4" style={{ backgroundColor: `${style.colors.border}60` }} />
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full" style={{ backgroundColor: style.colors.border }} />
-                <div>
-                  <div className="h-3 rounded w-16 mb-1" style={{ backgroundColor: style.colors.border }} />
-                  <div className="h-2 rounded w-12" style={{ backgroundColor: `${style.colors.border}60` }} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-
-    case "cta":
-      return (
-        <div className="text-center py-8">
-          <div className="h-6 rounded w-1/2 mx-auto mb-3" style={{ backgroundColor: style.colors.border }} />
-          <div className="h-4 rounded w-1/3 mx-auto mb-6" style={{ backgroundColor: `${style.colors.border}60` }} />
-          <div className="h-12 w-36 rounded-lg mx-auto" style={{ backgroundColor: style.colors.primary }} />
-        </div>
-      );
-
-    case "pricing":
-      return (
-        <div className={cn("grid gap-4", isMobile ? "grid-cols-1" : "grid-cols-3")}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={cn("p-4 rounded-lg border-2", i === 2 && "border-primary")} style={{ backgroundColor: style.colors.background, borderColor: i === 2 ? style.colors.primary : style.colors.border }}>
-              <div className="h-4 rounded w-1/2 mb-2" style={{ backgroundColor: style.colors.border }} />
-              <div className="h-8 rounded w-2/3 mb-4" style={{ backgroundColor: style.colors.border }} />
-              <div className="space-y-2 mb-4">
-                {[1, 2, 3].map((j) => (
-                  <div key={j} className="h-3 rounded w-full" style={{ backgroundColor: `${style.colors.border}60` }} />
-                ))}
-              </div>
-              <div className="h-10 rounded-lg" style={{ backgroundColor: i === 2 ? style.colors.primary : style.colors.border }} />
-            </div>
-          ))}
-        </div>
-      );
-
-    default:
-      return (
-        <div className="space-y-3 py-4">
-          <div className="h-5 rounded w-1/2 mx-auto" style={{ backgroundColor: style.colors.border }} />
-          <div className="h-4 rounded w-2/3 mx-auto" style={{ backgroundColor: `${style.colors.border}60` }} />
-          <div className="h-4 rounded w-1/2 mx-auto" style={{ backgroundColor: `${style.colors.border}60` }} />
-        </div>
-      );
-  }
 }
 
 // Helper component for navbar logo in preview

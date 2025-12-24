@@ -66,7 +66,7 @@ export function WireframePreview({
       <div
         className={cn(
           "rounded-lg bg-neutral-100 flex flex-col justify-center",
-          compact ? "p-3" : "p-8 py-10",
+          compact ? "p-3" : "p-10 py-14",
           className
         )}
       >
@@ -212,17 +212,17 @@ function ThreeColumnGrid({ elements, compact }: { elements: WireframeElement[]; 
   return (
     <div className={cn(compact ? "space-y-3" : "space-y-8")}>
       {/* Header */}
-      <div className={cn("text-center", compact ? "space-y-1" : "space-y-3")}>
+      <div className={cn("text-center", compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.length > 0 ? (
           headerElements.map((el, i) => (
             <WireframeElementRenderer key={i} element={el} compact={compact} />
           ))
         ) : (
           <>
-            <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-xs" : "text-2xl")}>
-              {compact ? "Section heading" : "Features section heading"}
+            <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-[10px]" : "text-xl")}>
+              {compact ? "Features" : "Features section heading"}
             </p>
-            <p className={cn("text-neutral-500 max-w-2xl mx-auto", compact ? "text-[9px]" : "text-sm")}>
+            <p className={cn("text-neutral-500 max-w-2xl mx-auto", compact ? "text-[8px]" : "text-sm")}>
               Lorem ipsum dolor sit amet
             </p>
           </>
@@ -232,15 +232,15 @@ function ThreeColumnGrid({ elements, compact }: { elements: WireframeElement[]; 
       {/* Cards */}
       <div className={cn("grid grid-cols-3", compact ? "gap-2" : "gap-6")}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className={cn("text-center", compact ? "space-y-1" : "space-y-4")}>
-            <div className={cn("bg-neutral-300 rounded-md mx-auto flex items-center justify-center", compact ? "w-6 h-6" : "w-12 h-12")}>
-              <div className={cn("bg-neutral-400 rounded", compact ? "w-2.5 h-2.5" : "w-5 h-5")} />
+          <div key={i} className={cn("text-center", compact ? "space-y-1" : "space-y-3")}>
+            <div className={cn("bg-neutral-200 rounded-md mx-auto flex items-center justify-center", compact ? "w-5 h-5" : "w-12 h-12")}>
+              <div className={cn("bg-neutral-400 rounded", compact ? "w-2 h-2" : "w-5 h-5")} />
             </div>
-            <p className={cn("font-semibold text-neutral-800", compact ? "text-[9px]" : "text-base")}>
-              {compact ? "Title" : "Feature title"}
+            <p className={cn("font-semibold text-neutral-800", compact ? "text-[8px]" : "text-base")}>
+              {compact ? "Feature" : "Feature title"}
             </p>
             {!compact && (
-              <p className="text-neutral-500 text-sm">
+              <p className="text-neutral-500 text-sm leading-relaxed">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               </p>
             )}
@@ -257,17 +257,17 @@ function TwoColumnGrid({ elements, compact }: { elements: WireframeElement[]; co
   return (
     <div className={cn(compact ? "space-y-3" : "space-y-8")}>
       {/* Header */}
-      <div className={cn("text-center", compact ? "space-y-1" : "space-y-3")}>
+      <div className={cn("text-center", compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.length > 0 ? (
           headerElements.map((el, i) => (
             <WireframeElementRenderer key={i} element={el} compact={compact} />
           ))
         ) : (
           <>
-            <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-xs" : "text-2xl")}>
-              {compact ? "Section heading" : "Features section heading"}
+            <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-[10px]" : "text-xl")}>
+              {compact ? "Features" : "Features section heading"}
             </p>
-            <p className={cn("text-neutral-500 max-w-2xl mx-auto", compact ? "text-[9px]" : "text-sm")}>
+            <p className={cn("text-neutral-500 max-w-2xl mx-auto", compact ? "text-[8px]" : "text-sm")}>
               Lorem ipsum dolor sit amet
             </p>
           </>
@@ -275,18 +275,18 @@ function TwoColumnGrid({ elements, compact }: { elements: WireframeElement[]; co
       </div>
 
       {/* Cards */}
-      <div className={cn("grid grid-cols-2", compact ? "gap-2" : "gap-8")}>
+      <div className={cn("grid grid-cols-2", compact ? "gap-2" : "gap-6")}>
         {[1, 2].map((i) => (
-          <div key={i} className={cn("bg-white rounded-lg border border-neutral-200", compact ? "p-2" : "p-6")}>
-            <div className={cn("bg-neutral-300 rounded-md flex items-center justify-center", compact ? "w-5 h-5 mb-1.5" : "w-12 h-12 mb-4")}>
-              <div className={cn("bg-neutral-400 rounded", compact ? "w-2 h-2" : "w-5 h-5")} />
+          <div key={i} className={cn("bg-white rounded-lg border border-neutral-200", compact ? "p-2" : "p-5")}>
+            <div className={cn("bg-neutral-200 rounded-md flex items-center justify-center", compact ? "w-5 h-5 mb-1" : "w-10 h-10 mb-3")}>
+              <div className={cn("bg-neutral-400 rounded", compact ? "w-2 h-2" : "w-4 h-4")} />
             </div>
-            <p className={cn("font-semibold text-neutral-800", compact ? "text-[9px] mb-0.5" : "text-base mb-2")}>
-              {compact ? "Title" : "Feature title"}
+            <p className={cn("font-semibold text-neutral-800", compact ? "text-[8px] mb-0.5" : "text-base mb-2")}>
+              {compact ? "Feature" : "Feature title"}
             </p>
             {!compact && (
               <p className="text-neutral-500 text-sm">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               </p>
             )}
           </div>
@@ -301,33 +301,33 @@ function VerticalList({ elements, compact }: { elements: WireframeElement[]; com
   const listElements = elements.filter(e => e.type === 'list');
 
   return (
-    <div className={cn("space-y-6", compact && "space-y-3")}>
+    <div className={cn(compact ? "space-y-3" : "space-y-6")}>
       {/* Header */}
-      <div className="space-y-2">
+      <div className={cn(compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.map((el, i) => (
           <WireframeElementRenderer key={i} element={el} compact={compact} />
         ))}
       </div>
 
       {/* List items */}
-      <div className={cn("space-y-4", compact && "space-y-2")}>
+      <div className={cn(compact ? "space-y-1.5" : "space-y-4")}>
         {listElements.map((list, i) => {
           const repeatCount = list.repeat || 1;
           return Array.from({ length: compact ? Math.min(repeatCount, 3) : repeatCount }).map((_, j) => (
-            <div key={`${i}-${j}`} className="flex items-start gap-3">
+            <div key={`${i}-${j}`} className={cn("flex items-start", compact ? "gap-2" : "gap-3")}>
               <div className={cn(
-                "rounded bg-primary/30 flex-shrink-0",
+                "rounded bg-neutral-200 flex-shrink-0",
                 compact ? "w-4 h-4" : "w-6 h-6"
               )} />
-              <div className="flex-1 space-y-1">
-                <div className={cn(
-                  "bg-muted-foreground/40 rounded",
-                  compact ? "h-2 w-2/3" : "h-3 w-3/4"
-                )} />
-                <div className={cn(
-                  "bg-muted-foreground/20 rounded",
-                  compact ? "h-1.5 w-full" : "h-2 w-full"
-                )} />
+              <div className={cn("flex-1", compact ? "space-y-0" : "space-y-1")}>
+                <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>
+                  Feature {j + 1}
+                </p>
+                {!compact && (
+                  <p className="text-neutral-500 text-xs">
+                    Lorem ipsum dolor sit amet consectetur
+                  </p>
+                )}
               </div>
             </div>
           ));
@@ -342,16 +342,16 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
   const cardElements = elements.filter(e => e.type === 'card');
 
   return (
-    <div className={cn("space-y-6", compact && "space-y-3")}>
+    <div className={cn(compact ? "space-y-3" : "space-y-6")}>
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className={cn("text-center", compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.map((el, i) => (
           <WireframeElementRenderer key={i} element={el} compact={compact} />
         ))}
       </div>
 
       {/* Alternating rows */}
-      <div className={cn("space-y-5", compact && "space-y-2")}>
+      <div className={cn(compact ? "space-y-2" : "space-y-5")}>
         {cardElements.map((card, i) => {
           const repeatCount = card.repeat || 1;
           return Array.from({ length: compact ? Math.min(repeatCount, 2) : repeatCount }).map((_, j) => {
@@ -364,30 +364,27 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
             } : null;
 
             return (
-              <div key={`${i}-${j}`} className={cn("flex gap-4 items-center", !isEven && "flex-row-reverse")}>
+              <div key={`${i}-${j}`} className={cn("flex items-center", compact ? "gap-2" : "gap-4", !isEven && "flex-row-reverse")}>
                 {indexedImageElement ? (
-                  <div className={cn(compact ? "w-14 h-10" : "w-24 h-16")}>
+                  <div className={cn(compact ? "w-12 h-8 flex-shrink-0" : "w-20 h-14 flex-shrink-0")}>
                     <WireframeElementRenderer element={indexedImageElement} compact={compact} />
                   </div>
                 ) : (
                   <div className={cn(
-                    "bg-neutral-300 rounded-lg flex items-center justify-center",
-                    compact ? "w-14 h-10" : "w-24 h-16"
+                    "bg-neutral-200 rounded flex items-center justify-center flex-shrink-0",
+                    compact ? "w-12 h-8" : "w-20 h-14"
                   )}>
-                    <ImageIcon className="w-4 h-4 text-neutral-400" />
+                    <ImageIcon className={cn("text-neutral-400", compact ? "w-3 h-3" : "w-4 h-4")} />
                   </div>
                 )}
-                <div className="flex-1 space-y-2">
-                  <div className={cn(
-                    "bg-muted-foreground/40 rounded",
-                    compact ? "h-2 w-3/4" : "h-3 w-3/4"
-                  )} />
-                  <div className={cn(
-                    "bg-muted-foreground/20 rounded",
-                    compact ? "h-1.5 w-full" : "h-2 w-full"
-                  )} />
+                <div className={cn("flex-1", compact ? "space-y-0" : "space-y-1")}>
+                  <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>
+                    Feature {j + 1}
+                  </p>
                   {!compact && (
-                    <div className="h-3 w-16 bg-muted-foreground/30 rounded mt-2" />
+                    <p className="text-neutral-500 text-xs">
+                      Lorem ipsum dolor sit amet consectetur
+                    </p>
                   )}
                 </div>
               </div>
@@ -403,9 +400,9 @@ function BentoGrid({ elements, compact }: { elements: WireframeElement[]; compac
   const headerElements = elements.filter(e => e.type === 'heading' || e.type === 'subheading');
 
   return (
-    <div className={cn("space-y-6", compact && "space-y-3")}>
+    <div className={cn(compact ? "space-y-3" : "space-y-6")}>
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className={cn("text-center", compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.map((el, i) => (
           <WireframeElementRenderer key={i} element={el} compact={compact} />
         ))}
@@ -413,42 +410,50 @@ function BentoGrid({ elements, compact }: { elements: WireframeElement[]; compac
 
       {/* Bento layout */}
       <div className={cn(
-        "grid grid-cols-3 grid-rows-2 gap-3",
-        compact && "gap-1.5"
+        "grid grid-cols-3 grid-rows-2",
+        compact ? "gap-1.5" : "gap-3"
       )}>
         {/* Large card spanning 2 cols */}
         <div className={cn(
-          "col-span-2 row-span-1 bg-background rounded border p-3 space-y-2",
-          compact && "p-1.5 space-y-1"
+          "col-span-2 row-span-1 bg-white rounded border border-neutral-200",
+          compact ? "p-1.5 space-y-0.5" : "p-3 space-y-2"
         )}>
-          <div className={cn("w-5 h-5 bg-primary/30 rounded", compact && "w-3 h-3")} />
-          <div className={cn("h-2.5 bg-muted-foreground/40 rounded w-1/2", compact && "h-1.5")} />
-          <div className={cn("h-2 bg-muted-foreground/20 rounded w-3/4", compact && "h-1")} />
+          <div className={cn("bg-neutral-200 rounded", compact ? "w-3 h-3" : "w-5 h-5")} />
+          <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>
+            Feature 1
+          </p>
+          {!compact && (
+            <p className="text-neutral-500 text-xs">
+              Lorem ipsum dolor sit amet
+            </p>
+          )}
         </div>
 
         {/* Tall card spanning 2 rows */}
         <div className={cn(
-          "row-span-2 bg-background rounded border p-3 flex flex-col justify-center space-y-2",
-          compact && "p-1.5 space-y-1"
+          "row-span-2 bg-white rounded border border-neutral-200 flex flex-col justify-center text-center",
+          compact ? "p-1.5 space-y-0.5" : "p-3 space-y-2"
         )}>
-          <div className={cn("w-6 h-6 bg-primary/30 rounded mx-auto", compact && "w-3 h-3")} />
-          <div className={cn("h-2.5 bg-muted-foreground/40 rounded w-2/3 mx-auto", compact && "h-1.5")} />
+          <div className={cn("bg-neutral-200 rounded mx-auto", compact ? "w-3 h-3" : "w-6 h-6")} />
+          <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>
+            Feature 2
+          </p>
         </div>
 
         {/* Two small cards */}
         <div className={cn(
-          "bg-background rounded border p-2 flex items-center gap-2",
-          compact && "p-1 gap-1"
+          "bg-white rounded border border-neutral-200 flex items-center",
+          compact ? "p-1 gap-1" : "p-2 gap-2"
         )}>
-          <div className={cn("w-4 h-4 bg-primary/30 rounded", compact && "w-2 h-2")} />
-          <div className={cn("h-2 bg-muted-foreground/40 rounded flex-1", compact && "h-1")} />
+          <div className={cn("bg-neutral-200 rounded flex-shrink-0", compact ? "w-2.5 h-2.5" : "w-4 h-4")} />
+          <p className={cn("text-neutral-800", compact ? "text-[7px]" : "text-xs")}>Feature 3</p>
         </div>
         <div className={cn(
-          "bg-background rounded border p-2 flex items-center gap-2",
-          compact && "p-1 gap-1"
+          "bg-white rounded border border-neutral-200 flex items-center",
+          compact ? "p-1 gap-1" : "p-2 gap-2"
         )}>
-          <div className={cn("w-4 h-4 bg-primary/30 rounded", compact && "w-2 h-2")} />
-          <div className={cn("h-2 bg-muted-foreground/40 rounded flex-1", compact && "h-1")} />
+          <div className={cn("bg-neutral-200 rounded flex-shrink-0", compact ? "w-2.5 h-2.5" : "w-4 h-4")} />
+          <p className={cn("text-neutral-800", compact ? "text-[7px]" : "text-xs")}>Feature 4</p>
         </div>
       </div>
     </div>
@@ -476,16 +481,16 @@ function CenteredStack({ elements, compact }: { elements: WireframeElement[]; co
   );
 
   return (
-    <div className={cn("flex flex-col items-center text-center", compact ? "space-y-2" : "space-y-6")}>
+    <div className={cn("flex flex-col items-center text-center", compact ? "space-y-2" : "space-y-8")}>
       {textElements.map((el, i) => (
         <WireframeElementRenderer key={i} element={el} compact={compact} />
       ))}
       {hasButtons && (
-        <div className={cn("flex justify-center gap-2", compact ? "pt-1" : "pt-2")}>
-          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-5 py-2.5 text-sm")}>
+        <div className={cn("flex justify-center gap-3", compact ? "pt-1" : "pt-4")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
             Button
           </button>
-          <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-5 py-2.5 text-sm")}>
+          <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
             Button
           </button>
         </div>
@@ -503,16 +508,16 @@ function SplitHalf({ elements, compact }: { elements: WireframeElement[]; compac
   const imageElement = elements.find(e => e.type === 'image' || e.type === 'video');
 
   return (
-    <div className={cn("flex items-center", compact ? "gap-4" : "gap-10")}>
-      <div className={cn("flex-1", compact ? "space-y-2" : "space-y-4")}>
+    <div className={cn("flex items-center", compact ? "gap-4" : "gap-12")}>
+      <div className={cn("flex-1", compact ? "space-y-2" : "space-y-5")}>
         {textElements.map((el, i) => (
           <WireframeElementRenderer key={i} element={el} compact={compact} />
         ))}
-        <div className={cn("flex gap-2", compact ? "pt-1" : "pt-2")}>
-          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-5 py-2.5 text-sm")}>
+        <div className={cn("flex gap-3", compact ? "pt-1" : "pt-4")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
             Button
           </button>
-          <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-5 py-2.5 text-sm")}>
+          <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
             Button
           </button>
         </div>
@@ -521,7 +526,7 @@ function SplitHalf({ elements, compact }: { elements: WireframeElement[]; compac
         {imageElement ? (
           <WireframeElementRenderer element={imageElement} compact={compact} />
         ) : (
-          <div className={cn("bg-neutral-300 rounded-lg flex items-center justify-center w-full", compact ? "h-20" : "min-h-[240px]")}>
+          <div className={cn("bg-neutral-300 rounded-lg flex items-center justify-center w-full", compact ? "h-20" : "min-h-[320px]")}>
             <ImageIcon className={cn("text-neutral-400", compact ? "w-6 h-6" : "w-12 h-12")} />
           </div>
         )}
@@ -1640,16 +1645,16 @@ function ContactForm({ elements, compact }: { elements: WireframeElement[]; comp
 
 function ContactSplit({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
   const contactMethods = [
-    { icon: "📧", label: "hello@company.com" },
-    { icon: "📞", label: "+1 (555) 123-4567" },
-    { icon: "📍", label: "123 Main Street" }
+    { label: "hello@company.com" },
+    { label: "+1 (555) 123-4567" },
+    { label: "123 Main Street" }
   ];
 
   return (
     <div className={cn("flex", compact ? "gap-3" : "gap-8")}>
       <div className={cn("flex-1", compact ? "space-y-2" : "space-y-4")}>
         <p className={cn("font-bold text-neutral-800", compact ? "text-xs" : "text-xl")}>
-          {compact ? "Get in touch" : "Get in touch"}
+          Get in touch
         </p>
         <p className={cn("text-neutral-500", compact ? "text-[8px]" : "text-sm")}>
           {compact ? "We'd love to hear from you" : "We'd love to hear from you. Send us a message."}
@@ -1657,7 +1662,7 @@ function ContactSplit({ compact }: { elements: WireframeElement[]; compact?: boo
         <div className={compact ? "space-y-1" : "space-y-2"}>
           {contactMethods.map((method, i) => (
             <div key={i} className="flex items-center gap-1.5">
-              <span className={compact ? "text-[10px]" : "text-sm"}>{method.icon}</span>
+              <div className={cn("bg-neutral-300 rounded", compact ? "w-3 h-3" : "w-5 h-5")} />
               <span className={cn("text-neutral-600", compact ? "text-[8px]" : "text-sm")}>
                 {compact ? `Contact ${i + 1}` : method.label}
               </span>
@@ -1711,9 +1716,9 @@ function ContactMap({ elements, compact }: { elements: WireframeElement[]; compa
 function ContactCards({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
   const headerElements = elements.filter(e => e.type === 'heading' || e.type === 'subheading');
   const cards = [
-    { icon: "📧", title: "Email", desc: "hello@company.com", cta: "Send email" },
-    { icon: "💬", title: "Chat", desc: "Start a live chat", cta: "Start chat" },
-    { icon: "📞", title: "Phone", desc: "+1 (555) 123-4567", cta: "Call us" }
+    { title: "Email", desc: "hello@company.com", cta: "Send email" },
+    { title: "Chat", desc: "Start a live chat", cta: "Start chat" },
+    { title: "Phone", desc: "+1 (555) 123-4567", cta: "Call us" }
   ];
 
   return (
@@ -1737,9 +1742,7 @@ function ContactCards({ elements, compact }: { elements: WireframeElement[]; com
       <div className={cn("grid grid-cols-3", compact ? "gap-2" : "gap-4")}>
         {cards.map((card, i) => (
           <div key={i} className={cn("bg-white rounded-lg border border-neutral-200 text-center", compact ? "p-2" : "p-4")}>
-            <div className={cn("bg-neutral-100 rounded-lg mx-auto flex items-center justify-center", compact ? "w-6 h-6 mb-1" : "w-10 h-10 mb-2")}>
-              <span className={compact ? "text-xs" : "text-lg"}>{card.icon}</span>
-            </div>
+            <div className={cn("bg-neutral-300 rounded-lg mx-auto", compact ? "w-6 h-6 mb-1" : "w-10 h-10 mb-2")} />
             <p className={cn("font-semibold text-neutral-800", compact ? "text-[9px] mb-0.5" : "text-sm mb-1")}>
               {compact ? `Method ${i + 1}` : card.title}
             </p>
@@ -1869,27 +1872,6 @@ function ContentList({ elements, compact }: { elements: WireframeElement[]; comp
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-// Card renderer
-function WireframeCard({ element, compact, size = "small" }: { element: WireframeElement; compact?: boolean; size?: "small" | "medium" | "large" }) {
-  const sizeClasses = {
-    small: compact ? "p-2" : "p-3",
-    medium: compact ? "p-2.5" : "p-4",
-    large: compact ? "p-3" : "p-5",
-  };
-
-  return (
-    <div className={cn(
-      "bg-background rounded border",
-      compact ? "space-y-1.5" : "space-y-2",
-      sizeClasses[size]
-    )}>
-      {element.children?.map((child, i) => (
-        <WireframeElementRenderer key={i} element={child} compact={compact} />
-      ))}
     </div>
   );
 }

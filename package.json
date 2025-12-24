@@ -37,6 +37,7 @@
     "fs-extra": "^11.3.2",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",
+    "pointa-server-logger": "^0.2.3",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "tailwind-merge": "^3.4.0"

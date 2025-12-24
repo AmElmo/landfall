@@ -407,65 +407,72 @@ export default function NavigationStep() {
           <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Navigation Links</Label>
             <p className="text-sm text-muted-foreground">
-              Link to pages or sections on the home page
+              Link to pages or sections on the home page. Label auto-syncs with page name.
             </p>
             <div className="space-y-2">
-              {navigation.navbar.links.map((link, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                  <Input
-                    value={link.label}
-                    onChange={(e) => updateNavLink(index, { label: e.target.value })}
-                    placeholder="Label"
-                    className="flex-1"
-                  />
-                  <Select
-                    value={link.target}
-                    onValueChange={(value) => {
-                      const isAnchor = value.startsWith("#");
-                      updateNavLink(index, {
-                        target: value,
-                        type: isAnchor ? "anchor" : "internal"
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select target" />
-                    </SelectTrigger>
-                    <SelectContent position="popper" className="max-h-[300px]">
-                      {/* Pages */}
-                      <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
-                        Pages
-                      </div>
-                      {sitemap.pages.map((page) => (
-                        <SelectItem key={page.id} value={page.slug}>
-                          {page.name || page.slug}
-                        </SelectItem>
-                      ))}
-                      {/* Home Page Sections */}
-                      {homeSections.length > 0 && (
-                        <>
-                          <div className="px-2 py-1 text-xs font-medium text-muted-foreground mt-2">
-                            Sections (Home)
-                          </div>
-                          {homeSections.map((section) => (
-                            <SelectItem key={section.id} value={`#${section.id}`}>
-                              #{section.type}
-                            </SelectItem>
-                          ))}
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeNavLink(index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+              {navigation.navbar.links.map((link, index) => {
+                // Find the matching page name for the current target
+                const matchingPage = sitemap.pages.find(p => p.slug === link.target);
+                const displayLabel = matchingPage?.name || link.label;
+
+                return (
+                  <div key={index} className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                    <div className="flex-1 px-3 py-2 text-sm bg-muted/50 rounded-md border">
+                      {displayLabel}
+                    </div>
+                    <Select
+                      value={link.target}
+                      onValueChange={(value) => {
+                        const isAnchor = value.startsWith("#");
+                        // Auto-sync label with page name
+                        const selectedPage = sitemap.pages.find(p => p.slug === value);
+                        const newLabel = selectedPage?.name || link.label;
+                        updateNavLink(index, {
+                          target: value,
+                          type: isAnchor ? "anchor" : "internal",
+                          label: newLabel
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select target" />
+                      </SelectTrigger>
+                      <SelectContent position="popper" className="max-h-[300px]">
+                        {/* Pages */}
+                        <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                          Pages
+                        </div>
+                        {sitemap.pages.map((page) => (
+                          <SelectItem key={page.id} value={page.slug}>
+                            {page.name || page.slug}
+                          </SelectItem>
+                        ))}
+                        {/* Home Page Sections */}
+                        {homeSections.length > 0 && (
+                          <>
+                            <div className="px-2 py-1 text-xs font-medium text-muted-foreground mt-2">
+                              Sections (Home)
+                            </div>
+                            {homeSections.map((section) => (
+                              <SelectItem key={section.id} value={`#${section.id}`}>
+                                #{section.type}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeNavLink(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                );
+              })}
               <Button variant="outline" onClick={addNavLink} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Link

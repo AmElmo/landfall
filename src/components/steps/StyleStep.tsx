@@ -14,7 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Paintbrush, Type, Square, Sun, Plus, Rocket } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Paintbrush, Type, Square, Sun, Plus, Rocket, Palette, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 import { preloadGoogleFonts, useGoogleFont } from "@/hooks/useGoogleFonts";
@@ -58,68 +66,55 @@ const COLOR_FIELDS = [
   { key: "textMuted", label: "Muted Text", description: "Secondary text" },
 ] as const;
 
-// Predefined color palettes
+// Predefined color palettes - 42 popular landing page color schemes
 const COLOR_PALETTES = [
-  {
-    id: "midnight",
-    name: "Midnight",
-    colors: { primary: "#6366f1", background: "#0f172a", text: "#f8fafc", textMuted: "#94a3b8" },
-  },
-  {
-    id: "ocean",
-    name: "Ocean",
-    colors: { primary: "#0ea5e9", background: "#ffffff", text: "#0f172a", textMuted: "#64748b" },
-  },
-  {
-    id: "forest",
-    name: "Forest",
-    colors: { primary: "#22c55e", background: "#fafaf9", text: "#1c1917", textMuted: "#78716c" },
-  },
-  {
-    id: "sunset",
-    name: "Sunset",
-    colors: { primary: "#f97316", background: "#fffbeb", text: "#292524", textMuted: "#78716c" },
-  },
-  {
-    id: "berry",
-    name: "Berry",
-    colors: { primary: "#ec4899", background: "#fdf2f8", text: "#1f2937", textMuted: "#6b7280" },
-  },
-  {
-    id: "slate",
-    name: "Slate",
-    colors: { primary: "#475569", background: "#f8fafc", text: "#0f172a", textMuted: "#64748b" },
-  },
-  {
-    id: "lavender",
-    name: "Lavender",
-    colors: { primary: "#8b5cf6", background: "#faf5ff", text: "#1e1b4b", textMuted: "#6b7280" },
-  },
-  {
-    id: "coral",
-    name: "Coral",
-    colors: { primary: "#f43f5e", background: "#ffffff", text: "#18181b", textMuted: "#71717a" },
-  },
-  {
-    id: "teal",
-    name: "Teal",
-    colors: { primary: "#14b8a6", background: "#f0fdfa", text: "#134e4a", textMuted: "#5eead4" },
-  },
-  {
-    id: "amber",
-    name: "Amber",
-    colors: { primary: "#f59e0b", background: "#1c1917", text: "#fef3c7", textMuted: "#a8a29e" },
-  },
-  {
-    id: "rose",
-    name: "Rose",
-    colors: { primary: "#e11d48", background: "#0c0a09", text: "#fafaf9", textMuted: "#a8a29e" },
-  },
-  {
-    id: "emerald",
-    name: "Emerald",
-    colors: { primary: "#10b981", background: "#18181b", text: "#f4f4f5", textMuted: "#a1a1aa" },
-  },
+  // Light themes - Clean & Modern
+  { id: "ocean", name: "Ocean", category: "Light", colors: { primary: "#0ea5e9", background: "#ffffff", text: "#0f172a", textMuted: "#64748b" } },
+  { id: "forest", name: "Forest", category: "Light", colors: { primary: "#22c55e", background: "#fafaf9", text: "#1c1917", textMuted: "#78716c" } },
+  { id: "sunset", name: "Sunset", category: "Light", colors: { primary: "#f97316", background: "#fffbeb", text: "#292524", textMuted: "#78716c" } },
+  { id: "berry", name: "Berry", category: "Light", colors: { primary: "#ec4899", background: "#fdf2f8", text: "#1f2937", textMuted: "#6b7280" } },
+  { id: "slate", name: "Slate", category: "Light", colors: { primary: "#475569", background: "#f8fafc", text: "#0f172a", textMuted: "#64748b" } },
+  { id: "lavender", name: "Lavender", category: "Light", colors: { primary: "#8b5cf6", background: "#faf5ff", text: "#1e1b4b", textMuted: "#6b7280" } },
+  { id: "coral", name: "Coral", category: "Light", colors: { primary: "#f43f5e", background: "#ffffff", text: "#18181b", textMuted: "#71717a" } },
+  { id: "mint", name: "Mint", category: "Light", colors: { primary: "#14b8a6", background: "#f0fdfa", text: "#134e4a", textMuted: "#5eead4" } },
+  { id: "azure", name: "Azure", category: "Light", colors: { primary: "#3b82f6", background: "#f8fafc", text: "#1e293b", textMuted: "#64748b" } },
+  { id: "lime", name: "Lime", category: "Light", colors: { primary: "#84cc16", background: "#fefce8", text: "#1a2e05", textMuted: "#65a30d" } },
+  { id: "sky", name: "Sky", category: "Light", colors: { primary: "#06b6d4", background: "#ecfeff", text: "#164e63", textMuted: "#0891b2" } },
+  { id: "peach", name: "Peach", category: "Light", colors: { primary: "#fb923c", background: "#fff7ed", text: "#431407", textMuted: "#ea580c" } },
+  { id: "blush", name: "Blush", category: "Light", colors: { primary: "#f472b6", background: "#fdf2f8", text: "#500724", textMuted: "#db2777" } },
+  { id: "sage", name: "Sage", category: "Light", colors: { primary: "#4ade80", background: "#f0fdf4", text: "#14532d", textMuted: "#16a34a" } },
+  // Light themes - Corporate & Professional
+  { id: "corporate", name: "Corporate", category: "Light", colors: { primary: "#2563eb", background: "#ffffff", text: "#1e293b", textMuted: "#475569" } },
+  { id: "finance", name: "Finance", category: "Light", colors: { primary: "#0d9488", background: "#f8fafc", text: "#0f172a", textMuted: "#64748b" } },
+  { id: "health", name: "Health", category: "Light", colors: { primary: "#06b6d4", background: "#ffffff", text: "#0f172a", textMuted: "#64748b" } },
+  { id: "legal", name: "Legal", category: "Light", colors: { primary: "#1e40af", background: "#f8fafc", text: "#111827", textMuted: "#6b7280" } },
+  { id: "consulting", name: "Consulting", category: "Light", colors: { primary: "#7c3aed", background: "#ffffff", text: "#18181b", textMuted: "#71717a" } },
+  { id: "saas", name: "SaaS", category: "Light", colors: { primary: "#6366f1", background: "#fafafa", text: "#171717", textMuted: "#737373" } },
+  { id: "startup", name: "Startup", category: "Light", colors: { primary: "#f59e0b", background: "#ffffff", text: "#1f2937", textMuted: "#6b7280" } },
+  // Dark themes - Bold & Modern
+  { id: "midnight", name: "Midnight", category: "Dark", colors: { primary: "#6366f1", background: "#0f172a", text: "#f8fafc", textMuted: "#94a3b8" } },
+  { id: "amber-dark", name: "Amber Dark", category: "Dark", colors: { primary: "#f59e0b", background: "#1c1917", text: "#fef3c7", textMuted: "#a8a29e" } },
+  { id: "rose-dark", name: "Rose Dark", category: "Dark", colors: { primary: "#e11d48", background: "#0c0a09", text: "#fafaf9", textMuted: "#a8a29e" } },
+  { id: "emerald-dark", name: "Emerald Dark", category: "Dark", colors: { primary: "#10b981", background: "#18181b", text: "#f4f4f5", textMuted: "#a1a1aa" } },
+  { id: "cyber", name: "Cyber", category: "Dark", colors: { primary: "#22d3ee", background: "#0a0a0a", text: "#fafafa", textMuted: "#a3a3a3" } },
+  { id: "neon", name: "Neon", category: "Dark", colors: { primary: "#a855f7", background: "#09090b", text: "#fafafa", textMuted: "#71717a" } },
+  { id: "matrix", name: "Matrix", category: "Dark", colors: { primary: "#22c55e", background: "#030712", text: "#f9fafb", textMuted: "#9ca3af" } },
+  { id: "aurora", name: "Aurora", category: "Dark", colors: { primary: "#818cf8", background: "#1e1b4b", text: "#e0e7ff", textMuted: "#a5b4fc" } },
+  { id: "obsidian", name: "Obsidian", category: "Dark", colors: { primary: "#f97316", background: "#171717", text: "#fafafa", textMuted: "#a3a3a3" } },
+  { id: "carbon", name: "Carbon", category: "Dark", colors: { primary: "#38bdf8", background: "#0c0a09", text: "#fafaf9", textMuted: "#a8a29e" } },
+  { id: "cosmos", name: "Cosmos", category: "Dark", colors: { primary: "#c084fc", background: "#0f0f23", text: "#f5f5f5", textMuted: "#8b8b8b" } },
+  { id: "void", name: "Void", category: "Dark", colors: { primary: "#f472b6", background: "#0a0a0a", text: "#ffffff", textMuted: "#737373" } },
+  // Warm & Vibrant
+  { id: "sunshine", name: "Sunshine", category: "Warm", colors: { primary: "#eab308", background: "#fffbeb", text: "#422006", textMuted: "#854d0e" } },
+  { id: "tangerine", name: "Tangerine", category: "Warm", colors: { primary: "#ea580c", background: "#fff7ed", text: "#431407", textMuted: "#9a3412" } },
+  { id: "cherry", name: "Cherry", category: "Warm", colors: { primary: "#dc2626", background: "#fef2f2", text: "#450a0a", textMuted: "#b91c1c" } },
+  { id: "flamingo", name: "Flamingo", category: "Warm", colors: { primary: "#db2777", background: "#fdf2f8", text: "#500724", textMuted: "#be185d" } },
+  // Cool & Calm
+  { id: "glacier", name: "Glacier", category: "Cool", colors: { primary: "#0284c7", background: "#f0f9ff", text: "#0c4a6e", textMuted: "#0369a1" } },
+  { id: "arctic", name: "Arctic", category: "Cool", colors: { primary: "#0891b2", background: "#ecfeff", text: "#164e63", textMuted: "#0e7490" } },
+  { id: "violet", name: "Violet", category: "Cool", colors: { primary: "#7c3aed", background: "#f5f3ff", text: "#2e1065", textMuted: "#6d28d9" } },
+  { id: "indigo", name: "Indigo", category: "Cool", colors: { primary: "#4f46e5", background: "#eef2ff", text: "#1e1b4b", textMuted: "#4338ca" } },
+  { id: "pacific", name: "Pacific", category: "Cool", colors: { primary: "#0d9488", background: "#f0fdfa", text: "#134e4a", textMuted: "#0f766e" } },
 ] as const;
 
 // Popular fonts for landing pages
@@ -246,7 +241,7 @@ export default function StyleStep() {
       description="Set the visual identity for your landing page. Choose colors, typography, and overall aesthetic."
       preview={<StylePreview style={style} />}
     >
-      {/* Color Palette - Simplified */}
+      {/* Color Palette - With Modal */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Paintbrush className="h-4 w-4 text-muted-foreground" />
@@ -256,40 +251,81 @@ export default function StyleStep() {
           Pick a preset palette or customize individual colors below
         </p>
 
-        {/* Preset Palettes */}
-        <div className="grid grid-cols-4 gap-2">
-          {COLOR_PALETTES.map((palette) => (
-            <button
-              key={palette.id}
-              onClick={() => handlePaletteSelect(palette.id)}
-              className={cn(
-                "p-2 rounded-lg border-2 transition-all hover:scale-105",
-                "flex flex-col items-center gap-1.5"
-              )}
-              title={palette.name}
-            >
-              <div className="flex gap-0.5 w-full">
-                <div
-                  className="h-6 flex-1 rounded-l-sm"
-                  style={{ backgroundColor: palette.colors.background }}
-                />
-                <div
-                  className="h-6 flex-1"
-                  style={{ backgroundColor: palette.colors.primary }}
-                />
-                <div
-                  className="h-6 flex-1"
-                  style={{ backgroundColor: palette.colors.text }}
-                />
-                <div
-                  className="h-6 flex-1 rounded-r-sm"
-                  style={{ backgroundColor: palette.colors.textMuted }}
-                />
+        {/* Pick a Preset Button - Opens Modal */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full h-12 justify-start gap-3">
+              <Palette className="h-5 w-5 text-muted-foreground" />
+              <span>Pick a preset palette</span>
+              <div className="ml-auto flex gap-1">
+                <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: style.colors.primary }} />
+                <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: style.colors.background }} />
+                <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: style.colors.text }} />
               </div>
-              <span className="text-xs text-muted-foreground">{palette.name}</span>
-            </button>
-          ))}
-        </div>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-3xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Choose a Color Palette</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh] pr-4">
+              {/* Group palettes by category */}
+              {["Light", "Dark", "Warm", "Cool"].map((category) => {
+                const categoryPalettes = COLOR_PALETTES.filter(p => p.category === category);
+                if (categoryPalettes.length === 0) return null;
+                return (
+                  <div key={category} className="mb-6">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">{category} Themes</h3>
+                    <div className="grid grid-cols-4 gap-3">
+                      {categoryPalettes.map((palette) => {
+                        const isSelected =
+                          style.colors.primary === palette.colors.primary &&
+                          style.colors.background === palette.colors.background;
+                        return (
+                          <button
+                            key={palette.id}
+                            onClick={() => handlePaletteSelect(palette.id)}
+                            className={cn(
+                              "p-3 rounded-lg border-2 transition-all hover:scale-105 hover:shadow-md",
+                              "flex flex-col items-center gap-2",
+                              isSelected ? "border-primary ring-2 ring-primary/20" : "border-border"
+                            )}
+                            title={palette.name}
+                          >
+                            <div className="flex gap-0.5 w-full">
+                              <div
+                                className="h-8 flex-1 rounded-l-sm"
+                                style={{ backgroundColor: palette.colors.background }}
+                              />
+                              <div
+                                className="h-8 flex-1"
+                                style={{ backgroundColor: palette.colors.primary }}
+                              />
+                              <div
+                                className="h-8 flex-1"
+                                style={{ backgroundColor: palette.colors.text }}
+                              />
+                              <div
+                                className="h-8 flex-1 rounded-r-sm"
+                                style={{ backgroundColor: palette.colors.textMuted }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {isSelected && <Check className="h-3 w-3 text-primary" />}
+                              <span className={cn("text-xs", isSelected ? "text-primary font-medium" : "text-muted-foreground")}>
+                                {palette.name}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
 
         {/* Individual Color Fields */}
         <div className="grid grid-cols-2 gap-4 pt-2">

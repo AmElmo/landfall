@@ -214,8 +214,8 @@ export function OnboardingShell({
           "hidden lg:block bg-muted/30 border-l",
           widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
         )}>
-          <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-auto p-6 flex flex-col">
-            <div className="flex-1 flex items-start justify-center pt-4">
+          <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-auto p-4 flex flex-col">
+            <div className="flex-1 flex items-start justify-center">
               {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
             </div>
           </div>

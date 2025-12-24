@@ -1,11 +1,11 @@
 {
   "colors": {
-    "primary": "#475569",
+    "primary": "#0ea5e9",
     "primaryLight": "#7186a8",
     "primaryDark": "#8293bf",
     "secondary": "#7c3aed",
     "accent": "#d6a44c",
-    "background": "#f8fafc",
+    "background": "#ffffff",
     "backgroundAlt": "#f8fafc",
     "text": "#0f172a",
     "textMuted": "#64748b",
