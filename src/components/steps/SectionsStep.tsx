@@ -38,7 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Section, SECTION_TYPES, SectionType, SectionInspiration, StyleColors, STEPS, ImageInspiration } from "@/lib/types";
 import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
-import { WireframePreview, templateHasInteractiveVisuals } from "@/components/wireframe/WireframePreview";
+import { WireframePreview } from "@/components/wireframe/WireframePreview";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 import { ImageInspirationEditor } from "@/components/shared/ImageInspirationEditor";
 
@@ -142,6 +142,10 @@ export default function SectionsStep() {
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [insertAtIndex, setInsertAtIndex] = useState<number | null>(null);
+  const [editingImageInspiration, setEditingImageInspiration] = useState<{
+    sectionId: string;
+    elementRole: string;
+  } | null>(null);
 
   const stepIndex = 4;
   const totalSteps = STEPS.length;
@@ -241,6 +245,58 @@ export default function SectionsStep() {
         setEditingSection(null);
       }
     }
+  };
+
+  // Image inspiration handlers
+  const handleImageClick = (sectionId: string, elementRole: string) => {
+    setEditingImageInspiration({ sectionId, elementRole });
+  };
+
+  const getEditingSection = () => {
+    if (!editingImageInspiration) return null;
+    return sections.find(s => s.id === editingImageInspiration.sectionId);
+  };
+
+  const getEditingInspiration = () => {
+    const section = getEditingSection();
+    if (!section || !editingImageInspiration) return undefined;
+    return section.imageInspirations?.find(
+      i => i.elementRole === editingImageInspiration.elementRole
+    );
+  };
+
+  const handleSaveImageInspiration = (inspiration: ImageInspiration) => {
+    if (!editingImageInspiration) return;
+    const section = getEditingSection();
+    if (!section) return;
+
+    const existingInspirations = section.imageInspirations || [];
+    const existingIndex = existingInspirations.findIndex(
+      i => i.elementRole === inspiration.elementRole
+    );
+
+    let newInspirations: ImageInspiration[];
+    if (existingIndex >= 0) {
+      newInspirations = [...existingInspirations];
+      newInspirations[existingIndex] = inspiration;
+    } else {
+      newInspirations = [...existingInspirations, inspiration];
+    }
+
+    updateSection(editingImageInspiration.sectionId, { imageInspirations: newInspirations });
+    setEditingImageInspiration(null);
+  };
+
+  const handleDeleteImageInspiration = () => {
+    if (!editingImageInspiration) return;
+    const section = getEditingSection();
+    if (!section) return;
+
+    const newInspirations = (section.imageInspirations || []).filter(
+      i => i.elementRole !== editingImageInspiration.elementRole
+    );
+    updateSection(editingImageInspiration.sectionId, { imageInspirations: newInspirations });
+    setEditingImageInspiration(null);
   };
 
   // Zoom handlers
@@ -468,6 +524,7 @@ export default function SectionsStep() {
               }
               activeSectionId={editingSection?.id || null}
               onSectionClick={(section) => setEditingSection(section)}
+              onImageClick={handleImageClick}
               styleColors={style?.colors}
               draggedIndex={draggedIndex}
               onDragStart={handleDragStart}
@@ -551,6 +608,16 @@ export default function SectionsStep() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Image Inspiration Editor Dialog */}
+      <ImageInspirationEditor
+        open={editingImageInspiration !== null}
+        onOpenChange={(open) => !open && setEditingImageInspiration(null)}
+        elementRole={editingImageInspiration?.elementRole || ""}
+        inspiration={getEditingInspiration()}
+        onSave={handleSaveImageInspiration}
+        onDelete={getEditingInspiration() ? handleDeleteImageInspiration : undefined}
+      />
     </div>
   );
 }
@@ -567,8 +634,6 @@ function FloatingSectionEditor({
   onClose: () => void;
   onDelete: () => void;
 }) {
-  const [editingImageRole, setEditingImageRole] = useState<string | null>(null);
-
   const isCustomSection = section.type === 'custom';
   const sectionType = !isCustomSection ? SECTION_TYPES[section.type as keyof typeof SECTION_TYPES] : null;
   const { templates, isLoading: templatesLoading } = useWireframeTemplates(isCustomSection ? null : section.type as SectionType);
@@ -576,38 +641,6 @@ function FloatingSectionEditor({
   const currentTemplate = templates.find(t => t.id === section.layoutTemplateId);
   const displayName = currentTemplate?.name || section.layoutVariant;
   const hasWireframeTemplates = templates.length > 0;
-
-  // Get the inspiration being edited
-  const editingInspiration = editingImageRole
-    ? section.imageInspirations?.find(i => i.elementRole === editingImageRole)
-    : undefined;
-
-  // Handle saving an image inspiration
-  const handleSaveImageInspiration = (inspiration: ImageInspiration) => {
-    const existingInspirations = section.imageInspirations || [];
-    const existingIndex = existingInspirations.findIndex(i => i.elementRole === inspiration.elementRole);
-
-    let newInspirations: ImageInspiration[];
-    if (existingIndex >= 0) {
-      // Update existing
-      newInspirations = [...existingInspirations];
-      newInspirations[existingIndex] = inspiration;
-    } else {
-      // Add new
-      newInspirations = [...existingInspirations, inspiration];
-    }
-
-    onUpdate({ imageInspirations: newInspirations });
-  };
-
-  // Handle deleting an image inspiration
-  const handleDeleteImageInspiration = () => {
-    if (!editingImageRole) return;
-    const newInspirations = (section.imageInspirations || []).filter(
-      i => i.elementRole !== editingImageRole
-    );
-    onUpdate({ imageInspirations: newInspirations });
-  };
 
   return (
     <div className="fixed right-6 top-[140px] bottom-6 w-[400px] bg-background border rounded-xl shadow-2xl flex flex-col z-50">
@@ -692,26 +725,6 @@ function FloatingSectionEditor({
             </div>
           )}
 
-          {/* Visual Instructions - interactive wireframe with clickable visuals */}
-          {currentTemplate && templateHasInteractiveVisuals(currentTemplate) && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                <Label className="text-sm font-medium">Visual Instructions</Label>
-              </div>
-              <p className="text-xs text-muted-foreground -mt-1">
-                Click on any visual element below to add inspiration
-              </p>
-              <WireframePreview
-                template={currentTemplate}
-                compact
-                interactive
-                imageInspirations={section.imageInspirations}
-                onVisualClick={(role) => setEditingImageRole(role)}
-              />
-            </div>
-          )}
-
           {/* Section Inspirations */}
           <InspirationUploader
             inspirations={section.inspirations as Inspiration[]}
@@ -736,16 +749,6 @@ function FloatingSectionEditor({
           </div>
         </div>
       </div>
-
-      {/* Image Inspiration Editor Dialog */}
-      <ImageInspirationEditor
-        open={editingImageRole !== null}
-        onOpenChange={(open) => !open && setEditingImageRole(null)}
-        elementRole={editingImageRole || ""}
-        inspiration={editingInspiration}
-        onSave={handleSaveImageInspiration}
-        onDelete={editingInspiration ? handleDeleteImageInspiration : undefined}
-      />
     </div>
   );
 }
@@ -823,6 +826,7 @@ function CanvasPreview({
   pageName,
   activeSectionId,
   onSectionClick,
+  onImageClick,
   styleColors,
   draggedIndex,
   onDragStart,
@@ -834,6 +838,7 @@ function CanvasPreview({
   pageName: string;
   activeSectionId: string | null;
   onSectionClick?: (section: Section) => void;
+  onImageClick?: (sectionId: string, elementRole: string) => void;
   styleColors?: StyleColors;
   draggedIndex: number | null;
   onDragStart: (index: number) => void;
@@ -921,6 +926,7 @@ function CanvasPreview({
                   isActive={section.id === activeSectionId}
                   isDragging={draggedIndex === index}
                   onClick={onSectionClick ? () => onSectionClick(section) : undefined}
+                  onImageClick={onImageClick ? (role) => onImageClick(section.id, role) : undefined}
                   styleColors={styleColors}
                 />
               </div>
@@ -988,12 +994,14 @@ function CanvasSectionCard({
   isActive = false,
   isDragging = false,
   onClick,
+  onImageClick,
 }: {
   section: Section;
   index: number;
   isActive?: boolean;
   isDragging?: boolean;
   onClick?: () => void;
+  onImageClick?: (elementRole: string) => void;
   styleColors?: StyleColors;
 }) {
   const { templates } = useWireframeTemplates(section.type as SectionType);
@@ -1024,6 +1032,9 @@ function CanvasSectionCard({
             template={selectedTemplate}
             compact={false}
             className="min-h-[420px]"
+            interactive={true}
+            imageInspirations={section.imageInspirations}
+            onVisualClick={(role) => onImageClick?.(role)}
           />
         ) : (
           <div className="min-h-[420px] flex items-center justify-center p-8 bg-neutral-100">

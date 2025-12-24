@@ -109,6 +109,26 @@
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": []
+    },
+    {
+      "id": "section_1766565068157",
+      "type": "features",
+      "layoutVariant": "features-bento",
+      "layoutTemplateId": "features-bento",
+      "order": 11,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    },
+    {
+      "id": "section_1766565085481",
+      "type": "cta",
+      "layoutVariant": "cta-split-image",
+      "layoutTemplateId": "cta-split-image",
+      "order": 12,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
     }
   ]
 }
