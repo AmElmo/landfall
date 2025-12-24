@@ -648,14 +648,25 @@ function FloatingSectionEditor({
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   {templates.map((template) => (
-                    <button
+                    <div
                       key={template.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => onUpdate({
                         layoutTemplateId: template.id,
                         layoutVariant: template.id
                       })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onUpdate({
+                            layoutTemplateId: template.id,
+                            layoutVariant: template.id
+                          });
+                        }
+                      }}
                       className={cn(
-                        "p-2 border-2 rounded-lg text-left transition-all",
+                        "p-2 border-2 rounded-lg text-left transition-all cursor-pointer",
                         section.layoutTemplateId === template.id
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-border hover:border-primary/50 hover:bg-muted/30"
@@ -674,7 +685,7 @@ function FloatingSectionEditor({
                           <div className="font-medium text-xs">{template.name}</div>
                         </div>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -765,10 +776,18 @@ function LayoutTemplatePicker({
         <ScrollArea className="h-[55vh]">
           <div className="grid grid-cols-3 gap-4 pr-4">
             {templates.map((template) => (
-              <button
+              <div
                 key={template.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelect(template.id, template.id)}
-                className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelect(template.id, template.id);
+                  }
+                }}
+                className="p-3 border-2 rounded-lg hover:border-primary hover:bg-primary/5 text-left transition-all group cursor-pointer"
               >
                 {/* Wireframe Preview - scaled down */}
                 <div className="mb-3 h-24 overflow-hidden rounded bg-neutral-100">
@@ -780,7 +799,7 @@ function LayoutTemplatePicker({
                 <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
                   {template.description}
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </ScrollArea>

@@ -1,4 +1,15 @@
 {
   "pageId": "page_1766119251122",
-  "sections": []
+  "sections": [
+    {
+      "id": "section_1766559044427",
+      "type": "testimonials",
+      "layoutVariant": "testimonials-three-cards",
+      "layoutTemplateId": "testimonials-three-cards",
+      "order": 1,
+      "copyInstructions": "",
+      "visualInstructions": "",
+      "inspirations": []
+    }
+  ]
 }
