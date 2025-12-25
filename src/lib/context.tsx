@@ -119,14 +119,18 @@ export function LandfallProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Persist step changes to config
+  // Persist step changes to config - use a ref to avoid dependency on config
+  const configRef = React.useRef(config);
+  configRef.current = config;
+
   useEffect(() => {
-    if (config && config.currentStep !== currentStep) {
-      const updatedConfig = { ...config, currentStep, updatedAt: new Date().toISOString() };
+    const currentConfig = configRef.current;
+    if (currentConfig && currentConfig.currentStep !== currentStep) {
+      const updatedConfig = { ...currentConfig, currentStep, updatedAt: new Date().toISOString() };
       setConfig(updatedConfig);
       updateData("config", updatedConfig);
     }
-  }, [currentStep, config]);
+  }, [currentStep]);
 
   const updateConfig = async (data: Partial<Config>) => {
     if (config) {

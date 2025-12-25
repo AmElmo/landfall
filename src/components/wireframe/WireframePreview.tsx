@@ -108,6 +108,24 @@ function WireframeLayout({ structure, elements, compact }: WireframeLayoutProps)
     case "fullwidth-bg":
     case "video-bg":
       return <FullwidthBackground elements={elements} compact={compact} isVideo={structure === "video-bg"} />;
+    case "hero-integrations":
+      return <HeroIntegrations elements={elements} compact={compact} />;
+    case "hero-centered-image-below":
+      return <HeroCenteredImageBelow elements={elements} compact={compact} />;
+    case "hero-product-mockup":
+      return <HeroProductMockup elements={elements} compact={compact} />;
+    case "hero-pricing-teaser":
+      return <HeroPricingTeaser elements={elements} compact={compact} />;
+    case "hero-floating-elements":
+      return <HeroFloatingElements elements={elements} compact={compact} />;
+    case "hero-gradient-blob":
+      return <HeroGradientBlob elements={elements} compact={compact} />;
+    case "hero-features-below":
+      return <HeroFeaturesBelow elements={elements} compact={compact} />;
+    case "hero-split-reverse":
+      return <HeroSplitReverse elements={elements} compact={compact} />;
+    case "hero-app-screenshot":
+      return <HeroAppScreenshot elements={elements} compact={compact} />;
 
     // Logo layouts
     case "logo-row":
@@ -605,6 +623,320 @@ function FullwidthBackground({ compact, isVideo }: { elements: WireframeElement[
       )}>
         Button
       </button>
+    </div>
+  );
+}
+
+function HeroIntegrations({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  const gridCount = compact ? 4 : 6;
+  return (
+    <div className={cn("flex items-center", compact ? "gap-4" : "gap-10")}>
+      <div className={cn("flex-1", compact ? "space-y-1.5" : "space-y-4")}>
+        <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+          Integrations
+        </p>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-2xl")}>
+          {compact ? "Connect apps" : "Connect your favorite apps"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed", compact ? "text-[10px] line-clamp-2" : "text-sm")}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+        <div className={cn("flex gap-2", compact ? "pt-0.5" : "pt-2")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-2 py-1 text-[9px]" : "px-5 py-2.5 text-sm")}>
+            View All
+          </button>
+        </div>
+      </div>
+      <div className={cn("flex-1 grid", compact ? "grid-cols-2 gap-2" : "grid-cols-3 gap-3")}>
+        {Array.from({ length: gridCount }).map((_, i) => (
+          <div key={i} className={cn("bg-white border border-neutral-200 rounded-lg flex flex-col items-center justify-center", compact ? "p-2" : "p-4")}>
+            <div className={cn("bg-neutral-200 rounded-md flex items-center justify-center mb-1", compact ? "w-5 h-5" : "w-10 h-10")}>
+              <span className={cn("text-neutral-400", compact ? "text-[6px]" : "text-xs")}>App</span>
+            </div>
+            <span className={cn("text-neutral-500", compact ? "text-[7px]" : "text-xs")}>Integration {i + 1}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroCenteredImageBelow({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  const imageElement = elements.find(e => e.type === 'image');
+  return (
+    <div className={cn("flex flex-col items-center text-center", compact ? "space-y-3" : "space-y-8")}>
+      <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+        New Release
+      </p>
+      <p className={cn("font-bold text-neutral-800 leading-tight max-w-2xl", compact ? "text-sm" : "text-3xl")}>
+        {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+      </p>
+      <p className={cn("text-neutral-500 leading-relaxed max-w-xl", compact ? "text-[10px]" : "text-sm")}>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      </p>
+      <div className={cn("flex justify-center gap-3", compact ? "pt-1" : "pt-2")}>
+        <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Primary
+        </button>
+        <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Secondary
+        </button>
+      </div>
+      <div className={cn("w-full bg-neutral-300 rounded-lg flex items-center justify-center", compact ? "h-20 mt-2" : "min-h-[200px] mt-4")}>
+        {imageElement ? (
+          <WireframeElementRenderer element={imageElement} compact={compact} />
+        ) : (
+          <ImageIcon className={cn("text-neutral-400", compact ? "w-8 h-8" : "w-16 h-16")} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HeroProductMockup({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  const imageElement = elements.find(e => e.type === 'image');
+  return (
+    <div className={cn("flex items-center", compact ? "gap-4" : "gap-10")}>
+      <div className={cn("flex-1", compact ? "space-y-1.5" : "space-y-4")}>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-2xl")}>
+          {compact ? "Blocks built with Shadcn" : "Blocks built with Shadcn & Tailwind"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed", compact ? "text-[10px] line-clamp-2" : "text-sm")}>
+          Finely crafted components built with React, Tailwind and Shadcn UI.
+        </p>
+        <div className={cn("flex items-center", compact ? "gap-1 pt-1" : "gap-2 pt-2")}>
+          {Array.from({ length: compact ? 3 : 5 }).map((_, i) => (
+            <div key={i} className={cn("rounded-full bg-neutral-300 border-2 border-white", compact ? "w-4 h-4 -ml-1" : "w-8 h-8 -ml-2")} style={{ marginLeft: i === 0 ? 0 : undefined }} />
+          ))}
+          <div className={cn("flex items-center", compact ? "ml-1" : "ml-2")}>
+            <span className={cn("text-yellow-500", compact ? "text-[8px]" : "text-sm")}>★★★★★</span>
+            <span className={cn("text-neutral-500 ml-1", compact ? "text-[8px]" : "text-sm")}>5.0</span>
+          </div>
+        </div>
+        <div className={cn("flex gap-2", compact ? "pt-1" : "pt-3")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-2 py-1 text-[9px]" : "px-5 py-2.5 text-sm")}>
+            Sign Up
+          </button>
+          <button className={cn("text-neutral-900 font-medium flex items-center gap-0.5", compact ? "text-[9px]" : "text-sm")}>
+            Get Started <span>→</span>
+          </button>
+        </div>
+      </div>
+      <div className="flex-1">
+        {imageElement ? (
+          <WireframeElementRenderer element={imageElement} compact={compact} />
+        ) : (
+          <div className={cn("bg-neutral-200 rounded-lg flex items-center justify-center", compact ? "h-24" : "min-h-[240px]")}>
+            <div className={cn("bg-neutral-800 rounded-lg flex items-center justify-center", compact ? "w-16 h-16" : "w-32 h-32")}>
+              <div className={cn("text-white font-bold", compact ? "text-lg" : "text-4xl")}>⬡</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HeroPricingTeaser({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  return (
+    <div className={cn("flex items-center", compact ? "gap-4" : "gap-10")}>
+      <div className={cn("flex-1", compact ? "space-y-1.5" : "space-y-4")}>
+        <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+          New Release
+        </p>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-2xl")}>
+          {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed", compact ? "text-[10px] line-clamp-2" : "text-sm")}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+        <div className={cn("flex gap-2", compact ? "pt-0.5" : "pt-2")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-2 py-1 text-[9px]" : "px-5 py-2.5 text-sm")}>
+            Primary
+          </button>
+          <button className={cn("text-neutral-900 font-medium flex items-center gap-0.5", compact ? "text-[9px]" : "text-sm")}>
+            Secondary <span>→</span>
+          </button>
+        </div>
+      </div>
+      <div className={cn("flex-1 bg-white border border-neutral-200 rounded-lg", compact ? "p-3" : "p-6")}>
+        <p className={cn("text-neutral-500", compact ? "text-[8px]" : "text-sm")}>Now starting at</p>
+        <p className={cn("font-bold text-neutral-900", compact ? "text-lg mt-0.5" : "text-4xl mt-2")}>
+          $99<span className={cn("text-neutral-500 font-normal", compact ? "text-[8px]" : "text-sm")}>/user</span>
+        </p>
+        <p className={cn("text-neutral-500", compact ? "text-[8px] mt-1" : "text-sm mt-3")}>
+          Lorem ipsum dolor sit amet
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HeroFloatingElements({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  return (
+    <div className="relative">
+      {/* Floating icons */}
+      <div className={cn("absolute text-neutral-300", compact ? "top-0 left-4 text-sm" : "top-2 left-8 text-2xl")}>◇</div>
+      <div className={cn("absolute text-neutral-300", compact ? "top-2 right-6 text-xs" : "top-4 right-12 text-xl")}>◈</div>
+      <div className={cn("absolute text-neutral-300", compact ? "bottom-0 left-8 text-xs" : "bottom-2 left-16 text-xl")}>⬡</div>
+      <div className={cn("absolute text-neutral-300", compact ? "bottom-2 right-4 text-sm" : "bottom-4 right-8 text-2xl")}>◆</div>
+
+      <div className={cn("flex flex-col items-center text-center", compact ? "py-4 space-y-2" : "py-8 space-y-6")}>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-3xl")}>
+          {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed max-w-md", compact ? "text-[10px]" : "text-sm")}>
+          Elig doloremque mollitia fugiat omnis! Porro facilis quo animi consequatur.
+        </p>
+        <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Primary
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function HeroGradientBlob({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  return (
+    <div className="relative">
+      {/* Gradient blob background */}
+      <div className={cn(
+        "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-neutral-200 via-neutral-100 to-neutral-200 blur-2xl opacity-60",
+        compact ? "w-32 h-24" : "w-80 h-60"
+      )} />
+
+      <div className={cn("relative flex flex-col items-center text-center", compact ? "py-4 space-y-2" : "py-8 space-y-6")}>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-3xl")}>
+          {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed max-w-md", compact ? "text-[10px]" : "text-sm")}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+        <div className={cn("flex justify-center gap-3", compact ? "pt-1" : "pt-2")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+            Primary
+          </button>
+          <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+            Secondary
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroFeaturesBelow({ compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  return (
+    <div className={cn("flex flex-col items-center text-center", compact ? "space-y-3" : "space-y-8")}>
+      <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+        New Release
+      </p>
+      <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-2xl")}>
+        {compact ? "Global expansion" : "Our blocks help global companies expand into new markets"}
+      </p>
+      <p className={cn("text-neutral-500 leading-relaxed max-w-lg", compact ? "text-[10px]" : "text-sm")}>
+        Discover how our powerful building blocks can transform your business and drive growth.
+      </p>
+      <div className={cn("flex justify-center gap-3", compact ? "pt-1" : "pt-2")}>
+        <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Primary
+        </button>
+        <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Secondary
+        </button>
+      </div>
+      <div className={cn("grid grid-cols-3 w-full", compact ? "gap-2 pt-2" : "gap-6 pt-6")}>
+        {["Product Design", "Development", "Marketing"].map((title, i) => (
+          <div key={i} className={cn("bg-white border border-neutral-200 rounded-lg text-center", compact ? "p-2" : "p-6")}>
+            <div className={cn("bg-neutral-100 rounded-md flex items-center justify-center mx-auto", compact ? "w-5 h-5 mb-1" : "w-12 h-12 mb-4")}>
+              <span className={cn("text-neutral-400", compact ? "text-[8px]" : "text-lg")}>{["◇", "⬡", "◆"][i]}</span>
+            </div>
+            <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>{title}</p>
+            <p className={cn("text-neutral-500", compact ? "text-[7px] mt-0.5 line-clamp-2" : "text-xs mt-2")}>
+              Lorem ipsum dolor sit amet consectetur.
+            </p>
+            <button className={cn("text-neutral-900 font-medium flex items-center gap-0.5 mx-auto", compact ? "text-[7px] mt-1" : "text-sm mt-3")}>
+              See more <span>→</span>
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeroSplitReverse({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  const imageElement = elements.find(e => e.type === 'image');
+  return (
+    <div className={cn("flex items-center", compact ? "gap-4" : "gap-10")}>
+      <div className="flex-1">
+        {imageElement ? (
+          <WireframeElementRenderer element={imageElement} compact={compact} />
+        ) : (
+          <div className={cn("bg-neutral-300 rounded-lg flex items-center justify-center", compact ? "h-24" : "min-h-[240px]")}>
+            <ImageIcon className={cn("text-neutral-400", compact ? "w-8 h-8" : "w-16 h-16")} />
+          </div>
+        )}
+      </div>
+      <div className={cn("flex-1", compact ? "space-y-1.5" : "space-y-4")}>
+        <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+          New Release
+        </p>
+        <p className={cn("font-bold text-neutral-800 leading-tight", compact ? "text-sm" : "text-2xl")}>
+          {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+        </p>
+        <p className={cn("text-neutral-500 leading-relaxed", compact ? "text-[10px] line-clamp-2" : "text-sm")}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </p>
+        <div className={cn("flex gap-2", compact ? "pt-0.5" : "pt-2")}>
+          <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-2 py-1 text-[9px]" : "px-5 py-2.5 text-sm")}>
+            Primary
+          </button>
+          <button className={cn("text-neutral-900 font-medium flex items-center gap-0.5", compact ? "text-[9px]" : "text-sm")}>
+            Secondary <span>→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroAppScreenshot({ elements, compact }: { elements: WireframeElement[]; compact?: boolean }) {
+  const imageElement = elements.find(e => e.type === 'image');
+  return (
+    <div className={cn("flex flex-col items-center text-center", compact ? "space-y-3" : "space-y-8")}>
+      <p className={cn("text-neutral-500 font-medium uppercase tracking-wide", compact ? "text-[8px]" : "text-xs")}>
+        New Release
+      </p>
+      <p className={cn("font-bold text-neutral-800 leading-tight max-w-2xl", compact ? "text-sm" : "text-3xl")}>
+        {compact ? "Welcome to Our Website" : "Welcome to Our Website"}
+      </p>
+      <p className={cn("text-neutral-500 leading-relaxed max-w-xl", compact ? "text-[10px]" : "text-sm")}>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+      </p>
+      <div className={cn("flex justify-center gap-3", compact ? "pt-1" : "pt-2")}>
+        <button className={cn("bg-neutral-900 text-white font-medium rounded", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Primary
+        </button>
+        <button className={cn("bg-white text-neutral-900 font-medium rounded border border-neutral-300", compact ? "px-3 py-1.5 text-[10px]" : "px-6 py-3 text-sm")}>
+          Secondary
+        </button>
+      </div>
+      {/* Browser frame */}
+      <div className={cn("w-full bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-lg", compact ? "mt-2" : "mt-6")}>
+        <div className={cn("bg-neutral-100 flex items-center gap-1.5 border-b border-neutral-200", compact ? "px-2 py-1" : "px-4 py-2")}>
+          <div className={cn("rounded-full bg-neutral-300", compact ? "w-1.5 h-1.5" : "w-3 h-3")} />
+          <div className={cn("rounded-full bg-neutral-300", compact ? "w-1.5 h-1.5" : "w-3 h-3")} />
+          <div className={cn("rounded-full bg-neutral-300", compact ? "w-1.5 h-1.5" : "w-3 h-3")} />
+        </div>
+        <div className={cn("bg-neutral-50 flex items-center justify-center", compact ? "h-16" : "min-h-[160px]")}>
+          {imageElement ? (
+            <WireframeElementRenderer element={imageElement} compact={compact} />
+          ) : (
+            <ImageIcon className={cn("text-neutral-300", compact ? "w-6 h-6" : "w-12 h-12")} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

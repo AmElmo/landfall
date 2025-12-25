@@ -216,9 +216,10 @@ export const STEPS = [
   { id: 2, name: 'Tone', slug: 'tone', description: 'Set your voice and messaging' },
   { id: 3, name: 'Sitemap', slug: 'sitemap', description: 'Plan your pages' },
   { id: 4, name: 'Sections', slug: 'sections', description: 'Build your page layouts' },
-  { id: 5, name: 'Navigation', slug: 'navigation', description: 'Configure navbar and footer' },
-  { id: 6, name: 'Preview', slug: 'preview', description: 'Review your wireframes' },
-  { id: 7, name: 'Build', slug: 'build', description: 'Generate your prompts' },
+  { id: 5, name: 'Copy & Visuals', slug: 'copy-visuals', description: 'Add content and visual inspirations' },
+  { id: 6, name: 'Navigation', slug: 'navigation', description: 'Configure navbar and footer' },
+  { id: 7, name: 'Preview', slug: 'preview', description: 'Review your wireframes' },
+  { id: 8, name: 'Build', slug: 'build', description: 'Generate your prompts' },
 ] as const;
 
 export type StepSlug = typeof STEPS[number]['slug'];

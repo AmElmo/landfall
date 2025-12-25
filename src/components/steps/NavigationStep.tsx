@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { OnboardingShell } from "@/components/layout/OnboardingShell";
 import { useLandfall } from "@/lib/context";
 import { Input } from "@/components/ui/input";
@@ -67,6 +67,70 @@ const FOOTER_LAYOUTS: { id: FooterLayout; name: string; description: string }[] 
     description: "All elements stacked vertically, centered",
   },
 ];
+
+// Hook for smooth drag-and-drop reordering
+function useSortable<T>(
+  items: T[],
+  onReorder: (newItems: T[]) => void
+) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [displayItems, setDisplayItems] = useState(items);
+
+  // Sync displayItems with items when not dragging
+  useEffect(() => {
+    if (draggedIndex === null) {
+      setDisplayItems(items);
+    }
+  }, [items, draggedIndex]);
+
+  const handleDragStart = useCallback((index: number) => {
+    setDraggedIndex(index);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    // Only update if the index changed
+    if (overIndex !== index) {
+      setOverIndex(index);
+
+      // Immediately reorder the display items for visual feedback
+      setDisplayItems((prev) => {
+        const newItems = [...prev];
+        const [draggedItem] = newItems.splice(draggedIndex, 1);
+        newItems.splice(index, 0, draggedItem);
+        return newItems;
+      });
+
+      // Update the dragged index to track where the item now is
+      setDraggedIndex(index);
+    }
+  }, [draggedIndex, overIndex]);
+
+  const handleDragEnd = useCallback(() => {
+    if (draggedIndex !== null) {
+      // Commit the reorder
+      onReorder(displayItems);
+    }
+    setDraggedIndex(null);
+    setOverIndex(null);
+  }, [draggedIndex, displayItems, onReorder]);
+
+  return {
+    displayItems,
+    draggedIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  };
+}
+
+// Helper to generate URL slug from label
+function labelToSlug(label: string): string {
+  return "/" + label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 export default function NavigationStep() {
   const { navigation, sitemap, pages, updateNavigation } = useLandfall();
@@ -152,6 +216,24 @@ export default function NavigationStep() {
       },
     });
   };
+
+  const reorderNavLinks = useCallback((newLinks: NavLink[]) => {
+    updateNavigation({
+      navbar: {
+        ...navigation.navbar,
+        links: newLinks,
+      },
+    });
+  }, [navigation.navbar, updateNavigation]);
+
+  // Sortable hook for navigation links
+  const {
+    displayItems: displayLinks,
+    draggedIndex: draggedLinkIndex,
+    handleDragStart: handleLinkDragStart,
+    handleDragOver: handleLinkDragOver,
+    handleDragEnd: handleLinkDragEnd,
+  } = useSortable(navigation.navbar.links, reorderNavLinks);
 
   const addCta = () => {
     // Limit to 2 CTAs max (primary + secondary is standard for landing pages)
@@ -281,7 +363,7 @@ export default function NavigationStep() {
 
   return (
     <OnboardingShell
-      stepIndex={5}
+      stepIndex={6}
       title="Configure navigation"
       description="Set up your navbar and footer. These will appear on every page."
       preview={<NavigationPreview navigation={navigation} />}
@@ -407,17 +489,29 @@ export default function NavigationStep() {
           <div className="space-y-4 pb-6 border-b">
             <Label className="text-base font-medium">Navigation Links</Label>
             <p className="text-sm text-muted-foreground">
-              Link to pages or sections on the home page. Label auto-syncs with page name.
+              Link to pages or sections on the home page. Drag to reorder.
             </p>
             <div className="space-y-2">
-              {navigation.navbar.links.map((link, index) => {
+              {displayLinks.map((link, index) => {
                 // Find the matching page name for the current target
                 const matchingPage = sitemap.pages.find(p => p.slug === link.target);
                 const displayLabel = matchingPage?.name || link.label;
+                // Find the original index for updating
+                const originalIndex = navigation.navbar.links.findIndex(l => l === link);
 
                 return (
-                  <div key={index} className="flex items-center gap-2">
-                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                  <div
+                    key={`${link.target}-${index}`}
+                    draggable
+                    onDragStart={() => handleLinkDragStart(index)}
+                    onDragOver={(e) => handleLinkDragOver(e, index)}
+                    onDragEnd={handleLinkDragEnd}
+                    className={cn(
+                      "flex items-center gap-2 transition-all",
+                      draggedLinkIndex === index && "opacity-50"
+                    )}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
                     <div className="flex-1 px-3 py-2 text-sm bg-muted/50 rounded-md border">
                       {displayLabel}
                     </div>
@@ -428,7 +522,7 @@ export default function NavigationStep() {
                         // Auto-sync label with page name
                         const selectedPage = sitemap.pages.find(p => p.slug === value);
                         const newLabel = selectedPage?.name || link.label;
-                        updateNavLink(index, {
+                        updateNavLink(originalIndex >= 0 ? originalIndex : index, {
                           target: value,
                           type: isAnchor ? "anchor" : "internal",
                           label: newLabel
@@ -466,7 +560,7 @@ export default function NavigationStep() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeNavLink(index)}
+                      onClick={() => removeNavLink(originalIndex >= 0 ? originalIndex : index)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -485,40 +579,46 @@ export default function NavigationStep() {
             <Label className="text-base font-medium">CTA Buttons</Label>
             <div className="space-y-2">
               {navigation.navbar.cta.map((cta, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    value={cta.label}
-                    onChange={(e) => updateCta(index, { label: e.target.value })}
-                    placeholder="Label"
-                    className="flex-1"
-                  />
-                  <Input
-                    value={cta.target}
-                    onChange={(e) => updateCta(index, { target: e.target.value })}
-                    placeholder="Target"
-                    className="flex-1"
-                  />
-                  <Select
-                    value={cta.style}
-                    onValueChange={(value: "primary" | "secondary") =>
-                      updateCta(index, { style: value })
-                    }
-                  >
-                    <SelectTrigger className="w-28">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent position="popper">
-                      <SelectItem value="primary">Primary</SelectItem>
-                      <SelectItem value="secondary">Secondary</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeCta(index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={cta.label}
+                      onChange={(e) => {
+                        const newLabel = e.target.value;
+                        // Auto-generate URL from label
+                        updateCta(index, {
+                          label: newLabel,
+                          target: labelToSlug(newLabel)
+                        });
+                      }}
+                      placeholder="Button label"
+                      className="flex-1"
+                    />
+                    <Select
+                      value={cta.style}
+                      onValueChange={(value: "primary" | "secondary") =>
+                        updateCta(index, { style: value })
+                      }
+                    >
+                      <SelectTrigger className="w-28">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="primary">Primary</SelectItem>
+                        <SelectItem value="secondary">Secondary</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeCta(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground pl-1">
+                    → {cta.target}
+                  </div>
                 </div>
               ))}
               {navigation.navbar.cta.length < 2 && (
@@ -876,19 +976,21 @@ function NavigationPreview({
                       {link.label}
                     </span>
                   ))}
-                  {navigation.navbar.cta.map((cta, i) => (
-                    <button
-                      key={i}
-                      className={cn(
-                        "px-4 py-2 text-sm rounded-lg",
-                        cta.style === "primary"
-                          ? "bg-primary text-primary-foreground"
-                          : "border"
-                      )}
-                    >
-                      {cta.label}
-                    </button>
-                  ))}
+                  <div className="flex items-center gap-2">
+                    {navigation.navbar.cta.map((cta, i) => (
+                      <button
+                        key={i}
+                        className={cn(
+                          "px-4 py-2 text-sm rounded-lg",
+                          cta.style === "primary"
+                            ? "bg-primary text-primary-foreground"
+                            : "border"
+                        )}
+                      >
+                        {cta.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -903,7 +1005,7 @@ function NavigationPreview({
                     </span>
                   ))}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {navigation.navbar.cta.map((cta, i) => (
                     <button
                       key={i}
@@ -1040,9 +1142,9 @@ function NavigationPreview({
               <div className="flex flex-col items-center gap-4">
                 <NavbarLogo navigation={navigation} />
                 <div className="flex flex-wrap justify-center gap-4">
-                  {navigation.footer.columns.flatMap((column) =>
+                  {navigation.footer.columns.flatMap((column, colIndex) =>
                     column.links.map((link, j) => (
-                      <span key={`${column.heading}-${j}`} className="text-sm text-muted-foreground">
+                      <span key={`col-${colIndex}-link-${j}`} className="text-sm text-muted-foreground">
                         {link.label}
                       </span>
                     ))
@@ -1068,9 +1170,9 @@ function NavigationPreview({
               <div className="flex flex-col items-center gap-4">
                 <NavbarLogo navigation={navigation} />
                 <div className="flex flex-col items-center gap-1">
-                  {navigation.footer.columns.flatMap((column) =>
+                  {navigation.footer.columns.flatMap((column, colIndex) =>
                     column.links.map((link, j) => (
-                      <span key={`${column.heading}-${j}`} className="text-sm text-muted-foreground">
+                      <span key={`col-${colIndex}-link-${j}`} className="text-sm text-muted-foreground">
                         {link.label}
                       </span>
                     ))

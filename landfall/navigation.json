@@ -1,6 +1,6 @@
 {
   "navbar": {
-    "layout": "logo-left-links-right",
+    "layout": "minimal",
     "logo": {
       "type": "image",
       "value": "/api/assets/serve/logo/android-chrome-512x512-a5361df3.png",
@@ -37,7 +37,7 @@
     ]
   },
   "footer": {
-    "layout": "columns-with-logo",
+    "layout": "stacked",
     "columns": [
       {
         "heading": "fdsfds",
@@ -59,7 +59,12 @@
       },
       {
         "heading": "Column",
-        "links": []
+        "links": [
+          {
+            "label": "New Link",
+            "target": "/"
+          }
+        ]
       },
       {
         "heading": "Column",
@@ -82,10 +87,10 @@
     ],
     "copyright": "",
     "newsletter": {
-      "enabled": false,
-      "heading": "",
-      "placeholder": "",
-      "buttonText": ""
+      "enabled": true,
+      "heading": "fdfd",
+      "placeholder": "fdfd",
+      "buttonText": "fdfd"
     }
   }
 }

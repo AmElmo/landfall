@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Map,
   Layers,
+  FileText,
   Menu,
   Eye,
   Wand2,
@@ -33,6 +34,7 @@ const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   tone: MessageSquare,
   sitemap: Map,
   sections: Layers,
+  'copy-visuals': FileText,
   navigation: Menu,
   preview: Eye,
   build: Wand2,
@@ -46,7 +48,7 @@ export default function BuildStep() {
   const [expandedPrompt, setExpandedPrompt] = useState<number | null>(null);
   const [copiedPrompt, setCopiedPrompt] = useState<number | null>(null);
 
-  const stepIndex = 7;
+  const stepIndex = 8;
   const totalSteps = STEPS.length;
 
   const navigateToStep = (stepId: number) => {

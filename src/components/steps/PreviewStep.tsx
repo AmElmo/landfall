@@ -276,7 +276,7 @@ export default function PreviewStep() {
 
   return (
     <OnboardingShell
-      stepIndex={6}
+      stepIndex={7}
       title="Preview your wireframes"
       description="Select a page to preview its wireframe structure."
       preview={rightPanel}

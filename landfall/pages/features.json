@@ -4,8 +4,8 @@
     {
       "id": "section_1766127648507",
       "type": "hero",
-      "layoutVariant": "hero-split",
-      "layoutTemplateId": "hero-split",
+      "layoutVariant": "hero-image-right",
+      "layoutTemplateId": "hero-image-right",
       "order": 1,
       "copyInstructions": "",
       "visualInstructions": "",

@@ -150,3 +150,254 @@ Beyond editing, the assistant should proactively help users with visual and crea
 
 ```
 User: "I need an image for the features section"
+Assistant: Your features section highlights 4 key capabilities. Based on your
+"Professional" tone and tech product focus, I suggest:
+
+1. **Abstract icons**: Clean, geometric icons in your navy/gold palette
+   - Midjourney prompt: "Minimal geometric icon, single color, representing [feature],
+     flat design, navy blue on white background"
+
+2. **Isometric illustrations**: 3D-style illustrations showing each feature
+   - Search terms: "isometric technology illustration [feature name]"
+
+3. **Screenshot mockups**: If you have a product, stylized screenshots work well
+
+Want me to generate specific prompts for each of your 4 features?
+
+User: "Yes, generate prompts for all features"
+Assistant: Here are Midjourney prompts for each feature:
+
+**Feature 1 - Analytics Dashboard**
+"Minimal isometric 3D icon of a bar chart with upward trend, navy blue (#1e3a5f)
+and gold (#d4af37) accent, white background, clean corporate style"
+
+**Feature 2 - Team Collaboration**
+"Minimal isometric 3D icon of connected nodes or people silhouettes,
+navy blue primary, gold highlights, white background, professional tech aesthetic"
+
+[...continues for each feature...]
+
+I've saved these to your project. You can copy them directly into Midjourney or DALL-E.
+```
+
+### Implementation Considerations
+
+- **AI Provider**: Could use Claude API (Sonnet for speed, Opus for complex requests)
+- **Function Calling**: Define tools for each type of edit (updateStyle, addSection, updateTone, etc.)
+- **Streaming**: Stream responses for better UX on longer generations
+- **Validation**: AI-generated JSON must be validated before saving
+- **Undo/History**: Track changes so users can say "undo that" or "go back to the previous colors"
+- **Hybrid Mode**: Users can still use manual UI controls; chat is additive, not replacement
+
+### User Experience Goals
+
+1. **Lower barrier to entry**: Users who don't know design terminology can describe what they want
+2. **Faster iteration**: "Make it bluer" is faster than finding the color picker
+3. **Discovery**: Assistant can suggest features users didn't know existed
+4. **Confidence**: Users can ask "does this look professional?" and get feedback
+5. **Creative support**: Visual suggestions remove the "blank canvas" problem
+
+---
+
+## 2. MCP Build Orchestration
+
+### The Vision
+
+Once the landing page is designed, users need to actually build it. Rather than forcing users to copy-paste prompts manually into their AI coding tool, we provide an MCP (Model Context Protocol) server that orchestrates the build process. Users can use any MCP-compatible tool (Claude Code, Cursor, Windsurf, Claude Desktop) to execute the build with full progress tracking.
+
+### Current State
+
+Today, the Build step:
+1. Generates a sequence of prompts (style system → layout → sections)
+2. Displays them in an accordion UI
+3. User must manually copy each prompt into their AI coding tool
+4. No tracking of what's been completed
+5. No connection back to Landfall
+
+This is cumbersome and error-prone.
+
+### Proposed Solution
+
+An MCP server that:
+1. Exposes the generated prompts as tools
+2. Tracks completion status
+3. Reports progress back to the Landfall app
+4. Works with any MCP-compatible AI coding tool
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│   Landfall App (Cloud)                                           │
+│   ┌────────────────────────────────────────────────────────────┐ │
+│   │  Build Progress                                            │ │
+│   │  ════════════════════════════════════════                  │ │
+│   │                                                            │ │
+│   │  ████████████████░░░░░░░░  62%                            │ │
+│   │                                                            │ │
+│   │  ✓ Style system created                                    │ │
+│   │  ✓ Layout & navigation done                                │ │
+│   │  ✓ Hero section complete                                   │ │
+│   │  ◉ Features section (in progress via Claude Code)          │ │
+│   │  ○ Pricing section                                         │ │
+│   │  ○ FAQ section                                             │ │
+│   │                                                            │ │
+│   └────────────────────────────────────────────────────────────┘ │
+│                          ↑                                       │
+│                          │ Progress updates                      │
+│                          │                                       │
+└──────────────────────────│───────────────────────────────────────┘
+                           │
+                           │ API calls
+                           │
+┌──────────────────────────│───────────────────────────────────────┐
+│                          │                                       │
+│   User's Machine         ↓                                       │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  Landfall MCP Server                                    │   │
+│   │  (npm install -g landfall-mcp)                          │   │
+│   │                                                         │   │
+│   │  Tools exposed:                                         │   │
+│   │  - landfall_get_project_info()                          │   │
+│   │  - landfall_get_next_prompt()                           │   │
+│   │  - landfall_mark_complete(step)                         │   │
+│   │  - landfall_get_status()                                │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                          ↑                                       │
+│                          │ MCP Protocol                          │
+│                          ↓                                       │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  Claude Code / Cursor / Windsurf                        │   │
+│   │  (User's AI coding tool of choice)                      │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### MCP Server Tools
+
+```typescript
+// Get project overview
+landfall_get_project_info()
+// Returns: { name, pages, sections, totalSteps, completedSteps }
+
+// Get the next prompt to execute
+landfall_get_next_prompt()
+// Returns: { step, name, description, prompt, isLast }
+
+// Get a specific prompt by step number
+landfall_get_prompt(step: number)
+// Returns: { step, name, description, prompt }
+
+// Mark a step as complete
+landfall_mark_complete(step: number, notes?: string)
+// Returns: { success, nextStep }
+
+// Get overall build status
+landfall_get_status()
+// Returns: { totalSteps, completedSteps, currentStep, percentComplete }
+
+// Report an error or issue
+landfall_report_issue(step: number, error: string)
+// Returns: { logged: true }
+```
+
+### User Flow
+
+1. User completes design in Landfall web app
+2. Clicks "Connect AI Tool" → gets a project token
+3. Configures MCP in their tool of choice:
+   ```json
+   {
+     "mcpServers": {
+       "landfall": {
+         "command": "npx",
+         "args": ["landfall-mcp"],
+         "env": {
+           "LANDFALL_PROJECT_ID": "proj_abc123",
+           "LANDFALL_API_KEY": "sk_..."
+         }
+       }
+     }
+   }
+   ```
+4. In their AI tool, they say: "Build my Landfall project"
+5. AI tool calls `landfall_get_next_prompt()`, executes, calls `landfall_mark_complete()`
+6. Landfall app shows real-time progress
+7. User can watch progress, pause, or intervene if needed
+
+### API Endpoints Required
+
+```
+POST /api/mcp/auth
+  → Validate project token, return project access
+
+GET /api/mcp/project/:id
+  → Return project info and prompt list
+
+GET /api/mcp/project/:id/prompt/:step
+  → Return specific prompt
+
+POST /api/mcp/project/:id/progress
+  → Update step completion status
+
+GET /api/mcp/project/:id/status
+  → Return current build status
+```
+
+### Benefits
+
+1. **Use any AI tool**: Not locked into a specific provider
+2. **Leverage existing subscriptions**: Users use their own Cursor/Claude Code
+3. **Progress visibility**: Watch the build happen in real-time
+4. **Resilience**: Can pause and resume, pick up where left off
+5. **Quality control**: User can review each step before proceeding
+6. **Analytics**: We learn which steps fail, which take longest
+
+### Implementation Phases
+
+**Phase 1: Local MCP (MVP)**
+- MCP server reads from local `landfall/prompts/` folder
+- No cloud connection
+- Simple step tracking in local file
+
+**Phase 2: Connected MCP**
+- Cloud-synced progress
+- Real-time dashboard in web app
+- Project tokens and authentication
+
+**Phase 3: Smart Orchestration**
+- AI decides when to proceed vs ask for review
+- Automatic retry on failures
+- Parallel execution where possible
+
+---
+
+## Summary
+
+| Feature | Purpose | User Benefit |
+|---------|---------|--------------|
+| **Conversational Design** | Natural language design input | Faster, more intuitive design process |
+| **Visual Suggestions** | AI-powered imagery recommendations | Removes creative blocks, ensures consistency |
+| **MCP Orchestration** | Automated build execution | No copy-paste, use preferred AI tool, track progress |
+
+Together, these features complete the vision: **talk your landing page into existence, then watch it get built automatically**.
+
+---
+
+## Open Questions
+
+### Conversational Design
+- Should the chat be always visible or toggleable?
+- How do we handle ambiguous requests? (Ask for clarification vs best guess)
+- Should there be a "design from scratch" mode that's purely conversational?
+- Should visual suggestions be automatic or on-demand?
+
+### MCP Orchestration
+- Should we support fully offline mode (no cloud connection)?
+- How do we handle build failures gracefully?
+- Should users be able to edit prompts before execution?
+- Do we want to support webhooks for CI/CD integration?
+
+---
+
+*Last updated: December 2024*

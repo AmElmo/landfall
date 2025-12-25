@@ -12,6 +12,7 @@ import ToneStep from "@/components/steps/ToneStep";
 import SitemapStep from "@/components/steps/SitemapStep";
 import NavigationStep from "@/components/steps/NavigationStep";
 import SectionsStep from "@/components/steps/SectionsStep";
+import CopyVisualsStep from "@/components/steps/CopyVisualsStep";
 import PreviewStep from "@/components/steps/PreviewStep";
 import BuildStep from "@/components/steps/BuildStep";
 
@@ -19,8 +20,9 @@ const stepComponents: Record<string, React.ComponentType> = {
   style: StyleStep,
   tone: ToneStep,
   sitemap: SitemapStep,
-  navigation: NavigationStep,
   sections: SectionsStep,
+  'copy-visuals': CopyVisualsStep,
+  navigation: NavigationStep,
   preview: PreviewStep,
   build: BuildStep,
 };

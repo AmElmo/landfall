@@ -33,6 +33,7 @@ const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   tone: MessageSquare,
   sitemap: Map,
   sections: Layers,
+  'copy-visuals': FileText,
   navigation: Menu,
   preview: Eye,
   build: Wand2,

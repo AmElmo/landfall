@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useLandfall } from "@/lib/context";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,11 +35,9 @@ import {
   Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Section, SECTION_TYPES, SectionType, SectionInspiration, StyleColors, STEPS, ImageInspiration } from "@/lib/types";
+import { Section, SECTION_TYPES, SectionType, StyleColors, STEPS } from "@/lib/types";
 import { useWireframeTemplates } from "@/hooks/useWireframeTemplates";
 import { WireframePreview } from "@/components/wireframe/WireframePreview";
-import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
-import { ImageInspirationEditor } from "@/components/shared/ImageInspirationEditor";
 
 // Map step slugs to icons
 const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -48,6 +45,7 @@ const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   tone: MessageSquare,
   sitemap: Map,
   sections: Layers,
+  'copy-visuals': FileText,
   navigation: Menu,
   preview: Eye,
   build: Wand2,
@@ -142,10 +140,6 @@ export default function SectionsStep() {
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [insertAtIndex, setInsertAtIndex] = useState<number | null>(null);
-  const [editingImageInspiration, setEditingImageInspiration] = useState<{
-    sectionId: string;
-    elementRole: string;
-  } | null>(null);
 
   const stepIndex = 4;
   const totalSteps = STEPS.length;
@@ -245,58 +239,6 @@ export default function SectionsStep() {
         setEditingSection(null);
       }
     }
-  };
-
-  // Image inspiration handlers
-  const handleImageClick = (sectionId: string, elementRole: string) => {
-    setEditingImageInspiration({ sectionId, elementRole });
-  };
-
-  const getEditingSection = () => {
-    if (!editingImageInspiration) return null;
-    return sections.find(s => s.id === editingImageInspiration.sectionId);
-  };
-
-  const getEditingInspiration = () => {
-    const section = getEditingSection();
-    if (!section || !editingImageInspiration) return undefined;
-    return section.imageInspirations?.find(
-      i => i.elementRole === editingImageInspiration.elementRole
-    );
-  };
-
-  const handleSaveImageInspiration = (inspiration: ImageInspiration) => {
-    if (!editingImageInspiration) return;
-    const section = getEditingSection();
-    if (!section) return;
-
-    const existingInspirations = section.imageInspirations || [];
-    const existingIndex = existingInspirations.findIndex(
-      i => i.elementRole === inspiration.elementRole
-    );
-
-    let newInspirations: ImageInspiration[];
-    if (existingIndex >= 0) {
-      newInspirations = [...existingInspirations];
-      newInspirations[existingIndex] = inspiration;
-    } else {
-      newInspirations = [...existingInspirations, inspiration];
-    }
-
-    updateSection(editingImageInspiration.sectionId, { imageInspirations: newInspirations });
-    setEditingImageInspiration(null);
-  };
-
-  const handleDeleteImageInspiration = () => {
-    if (!editingImageInspiration) return;
-    const section = getEditingSection();
-    if (!section) return;
-
-    const newInspirations = (section.imageInspirations || []).filter(
-      i => i.elementRole !== editingImageInspiration.elementRole
-    );
-    updateSection(editingImageInspiration.sectionId, { imageInspirations: newInspirations });
-    setEditingImageInspiration(null);
   };
 
   // Zoom handlers
@@ -458,56 +400,6 @@ export default function SectionsStep() {
         ref={canvasRef}
         className="flex-1 overflow-auto bg-[radial-gradient(circle_at_1px_1px,_rgb(0_0_0_/_0.05)_1px,_transparent_0)] [background-size:24px_24px] relative"
       >
-        {/* Floating Zoom Controls in Canvas */}
-        <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 bg-background/90 backdrop-blur border rounded-lg p-1 shadow-sm">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={zoomOut}
-                className="p-1.5 rounded hover:bg-muted transition-colors"
-                disabled={zoom <= ZOOM_LEVELS[0]}
-              >
-                <ZoomOut className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Zoom out</TooltipContent>
-          </Tooltip>
-
-          <button
-            onClick={resetZoom}
-            className="px-2 py-1 text-xs font-medium min-w-[50px] hover:bg-muted rounded transition-colors"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={zoomIn}
-                className="p-1.5 rounded hover:bg-muted transition-colors"
-                disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
-              >
-                <ZoomIn className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Zoom in</TooltipContent>
-          </Tooltip>
-
-          <div className="w-px h-4 bg-border mx-1" />
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={resetZoom}
-                className="p-1.5 rounded hover:bg-muted transition-colors"
-              >
-                <Maximize2 className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Reset zoom</TooltipContent>
-          </Tooltip>
-        </div>
-
         <div className="min-h-full p-8 flex justify-center">
           <div
             className="transition-transform duration-200 origin-top"
@@ -524,7 +416,6 @@ export default function SectionsStep() {
               }
               activeSectionId={editingSection?.id || null}
               onSectionClick={(section) => setEditingSection(section)}
-              onImageClick={handleImageClick}
               styleColors={style?.colors}
               draggedIndex={draggedIndex}
               onDragStart={handleDragStart}
@@ -537,6 +428,56 @@ export default function SectionsStep() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Floating Zoom Controls - fixed position */}
+      <div className="fixed bottom-6 left-6 z-40 flex items-center gap-1 bg-background/90 backdrop-blur border rounded-lg p-1 shadow-sm">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={zoomOut}
+              className="p-1.5 rounded hover:bg-muted transition-colors"
+              disabled={zoom <= ZOOM_LEVELS[0]}
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Zoom out</TooltipContent>
+        </Tooltip>
+
+        <button
+          onClick={resetZoom}
+          className="px-2 py-1 text-xs font-medium min-w-[50px] hover:bg-muted rounded transition-colors"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={zoomIn}
+              className="p-1.5 rounded hover:bg-muted transition-colors"
+              disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Zoom in</TooltipContent>
+        </Tooltip>
+
+        <div className="w-px h-4 bg-border mx-1" />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={resetZoom}
+              className="p-1.5 rounded hover:bg-muted transition-colors"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Reset zoom</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Floating Section Editor Panel */}
@@ -608,16 +549,6 @@ export default function SectionsStep() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Image Inspiration Editor Dialog */}
-      <ImageInspirationEditor
-        open={editingImageInspiration !== null}
-        onOpenChange={(open) => !open && setEditingImageInspiration(null)}
-        elementRole={editingImageInspiration?.elementRole || ""}
-        inspiration={getEditingInspiration()}
-        onSave={handleSaveImageInspiration}
-        onDelete={getEditingInspiration() ? handleDeleteImageInspiration : undefined}
-      />
     </div>
   );
 }
@@ -724,29 +655,6 @@ function FloatingSectionEditor({
               )}
             </div>
           )}
-
-          {/* Section Inspirations */}
-          <InspirationUploader
-            inspirations={section.inspirations as Inspiration[]}
-            onUpdate={(inspirations) => onUpdate({ inspirations: inspirations as SectionInspiration[] })}
-            title="Style Inspirations"
-            description="Add screenshots or URLs for overall section style/vibe."
-            uploadCategory="section-inspirations"
-          />
-
-          {/* Copy Instructions */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-medium">Copy Instructions</Label>
-            </div>
-            <Textarea
-              value={section.copyInstructions}
-              onChange={(e) => onUpdate({ copyInstructions: e.target.value })}
-              placeholder="Describe what the text content should communicate..."
-              className="min-h-[100px] text-sm"
-            />
-          </div>
         </div>
       </div>
     </div>
@@ -826,7 +734,6 @@ function CanvasPreview({
   pageName,
   activeSectionId,
   onSectionClick,
-  onImageClick,
   styleColors,
   draggedIndex,
   onDragStart,
@@ -838,7 +745,6 @@ function CanvasPreview({
   pageName: string;
   activeSectionId: string | null;
   onSectionClick?: (section: Section) => void;
-  onImageClick?: (sectionId: string, elementRole: string) => void;
   styleColors?: StyleColors;
   draggedIndex: number | null;
   onDragStart: (index: number) => void;
@@ -926,8 +832,6 @@ function CanvasPreview({
                   isActive={section.id === activeSectionId}
                   isDragging={draggedIndex === index}
                   onClick={onSectionClick ? () => onSectionClick(section) : undefined}
-                  onImageClick={onImageClick ? (role) => onImageClick(section.id, role) : undefined}
-                  styleColors={styleColors}
                 />
               </div>
 
@@ -994,15 +898,12 @@ function CanvasSectionCard({
   isActive = false,
   isDragging = false,
   onClick,
-  onImageClick,
 }: {
   section: Section;
   index: number;
   isActive?: boolean;
   isDragging?: boolean;
   onClick?: () => void;
-  onImageClick?: (elementRole: string) => void;
-  styleColors?: StyleColors;
 }) {
   const { templates } = useWireframeTemplates(section.type as SectionType);
 
@@ -1032,9 +933,6 @@ function CanvasSectionCard({
             template={selectedTemplate}
             compact={false}
             className="min-h-[420px]"
-            interactive={true}
-            imageInspirations={section.imageInspirations}
-            onVisualClick={(role) => onImageClick?.(role)}
           />
         ) : (
           <div className="min-h-[420px] flex items-center justify-center p-8 bg-neutral-100">
