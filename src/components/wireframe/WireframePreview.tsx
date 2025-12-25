@@ -342,7 +342,7 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
   const cardElements = elements.filter(e => e.type === 'card');
 
   return (
-    <div className={cn(compact ? "space-y-3" : "space-y-6")}>
+    <div className={cn(compact ? "space-y-3" : "space-y-8")}>
       {/* Header */}
       <div className={cn("text-center", compact ? "space-y-0.5" : "space-y-2")}>
         {headerElements.map((el, i) => (
@@ -351,7 +351,7 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
       </div>
 
       {/* Alternating rows */}
-      <div className={cn(compact ? "space-y-2" : "space-y-5")}>
+      <div className={cn(compact ? "space-y-3" : "space-y-8")}>
         {cardElements.map((card, i) => {
           const repeatCount = card.repeat || 1;
           return Array.from({ length: compact ? Math.min(repeatCount, 2) : repeatCount }).map((_, j) => {
@@ -364,27 +364,39 @@ function AlternatingRows({ elements, compact }: { elements: WireframeElement[]; 
             } : null;
 
             return (
-              <div key={`${i}-${j}`} className={cn("flex items-center", compact ? "gap-2" : "gap-4", !isEven && "flex-row-reverse")}>
+              <div key={`${i}-${j}`} className={cn(
+                "flex items-center",
+                compact ? "gap-3" : "gap-8",
+                !isEven && "flex-row-reverse"
+              )}>
                 {indexedImageElement ? (
-                  <div className={cn(compact ? "w-12 h-8 flex-shrink-0" : "w-20 h-14 flex-shrink-0")}>
+                  <div className={cn(
+                    "flex-shrink-0 rounded-lg overflow-hidden",
+                    compact ? "w-16 h-12" : "w-2/5 aspect-[4/3]"
+                  )}>
                     <WireframeElementRenderer element={indexedImageElement} compact={compact} />
                   </div>
                 ) : (
                   <div className={cn(
-                    "bg-neutral-200 rounded flex items-center justify-center flex-shrink-0",
-                    compact ? "w-12 h-8" : "w-20 h-14"
+                    "bg-neutral-200 rounded-lg flex items-center justify-center flex-shrink-0",
+                    compact ? "w-16 h-12" : "w-2/5 aspect-[4/3]"
                   )}>
-                    <ImageIcon className={cn("text-neutral-400", compact ? "w-3 h-3" : "w-4 h-4")} />
+                    <ImageIcon className={cn("text-neutral-400", compact ? "w-4 h-4" : "w-8 h-8")} />
                   </div>
                 )}
-                <div className={cn("flex-1", compact ? "space-y-0" : "space-y-1")}>
-                  <p className={cn("font-medium text-neutral-800", compact ? "text-[8px]" : "text-sm")}>
+                <div className={cn("flex-1", compact ? "space-y-0.5" : "space-y-2")}>
+                  <p className={cn("font-semibold text-neutral-800", compact ? "text-[9px]" : "text-base")}>
                     Feature {j + 1}
                   </p>
                   {!compact && (
-                    <p className="text-neutral-500 text-xs">
-                      Lorem ipsum dolor sit amet consectetur
+                    <p className="text-neutral-500 text-sm leading-relaxed">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.
                     </p>
+                  )}
+                  {!compact && (
+                    <button className="text-neutral-900 font-medium text-sm flex items-center gap-1 mt-2">
+                      Learn more <span>→</span>
+                    </button>
                   )}
                 </div>
               </div>

@@ -48,7 +48,7 @@ export default function PreviewStep() {
               key={page.id}
               onClick={() => setSelectedPageSlug(pageSlug)}
               className={cn(
-                "w-full px-4 py-3 rounded-lg text-left font-medium transition-colors",
+                "w-full px-4 py-3 rounded-lg text-left font-medium transition-colors outline-none focus:outline-none",
                 selectedPageSlug === pageSlug
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted hover:bg-muted/80"

@@ -44,6 +44,8 @@ interface OnboardingShellProps {
   onSkip?: () => void;
   /** Use wider preview panel (narrower left panel) */
   widePreview?: boolean;
+  /** Hide the preview panel entirely and use full width for content */
+  noPreview?: boolean;
 }
 
 export function OnboardingShell({
@@ -58,6 +60,7 @@ export function OnboardingShell({
   showSkip = false,
   onSkip,
   widePreview = false,
+  noPreview = false,
 }: OnboardingShellProps) {
   const router = useRouter();
   const { isSaving, setCurrentStep } = useLandfall();
@@ -186,10 +189,10 @@ export function OnboardingShell({
         {/* Left Panel - Form */}
         <div className={cn(
           "w-full flex flex-col",
-          widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]"
+          !noPreview && (widePreview ? "lg:w-[35%] xl:w-[30%]" : "lg:w-1/2 xl:w-[45%]")
         )}>
-          <div className="flex-1 overflow-auto">
-            <div className="max-w-xl mx-auto px-8 py-8">
+          <div className="flex-1 overflow-auto outline-none focus:outline-none" tabIndex={-1}>
+            <div className={cn("mx-auto px-8 py-8", noPreview ? "max-w-3xl" : "max-w-xl")}>
               {/* Title & Description */}
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-2">
@@ -210,16 +213,18 @@ export function OnboardingShell({
         </div>
 
         {/* Right Panel - Preview */}
-        <div className={cn(
-          "hidden lg:block bg-muted/30 border-l",
-          widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
-        )}>
-          <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-auto p-4 flex flex-col">
-            <div className="flex-1 flex items-start justify-center">
-              {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+        {!noPreview && (
+          <div className={cn(
+            "hidden lg:block bg-muted/30 border-l",
+            widePreview ? "lg:w-[65%] xl:w-[70%]" : "lg:w-1/2 xl:w-[55%]"
+          )}>
+            <div className="sticky top-[57px] h-[calc(100vh-57px)] overflow-auto p-4 flex flex-col outline-none focus:outline-none" tabIndex={-1}>
+              <div className="flex-1 flex items-start justify-center">
+                {preview || <PreviewPlaceholder stepIndex={stepIndex} />}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

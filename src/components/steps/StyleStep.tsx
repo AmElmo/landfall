@@ -21,11 +21,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Paintbrush, Type, Square, Sun, Plus, Rocket, Palette, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InspirationUploader, Inspiration } from "@/components/shared/InspirationUploader";
 import { preloadGoogleFonts, useGoogleFont } from "@/hooks/useGoogleFonts";
+import { ColorPicker } from "@/components/ui/color-picker";
 
 const STYLE_KEYWORDS = [
   "Modern",
@@ -329,33 +335,59 @@ export default function StyleStep() {
 
         {/* Individual Color Fields */}
         <div className="grid grid-cols-2 gap-4 pt-2">
-          {COLOR_FIELDS.map(({ key, label, description }) => (
-            <div key={key} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 rounded-lg border-2 cursor-pointer flex-shrink-0 relative overflow-hidden shadow-sm"
-                  style={{ backgroundColor: style.colors[key as keyof typeof style.colors] }}
-                >
-                  <input
-                    type="color"
-                    value={style.colors[key as keyof typeof style.colors]}
-                    onChange={(e) => handleColorChange(key, e.target.value)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                </div>
-                <div className="flex-1">
-                  <Label className="text-sm font-medium">{label}</Label>
-                  <p className="text-xs text-muted-foreground">{description}</p>
-                </div>
-              </div>
-              <Input
-                value={style.colors[key as keyof typeof style.colors]}
-                onChange={(e) => handleColorChange(key, e.target.value)}
-                className="h-9 text-xs font-mono"
-                placeholder="#000000"
-              />
-            </div>
-          ))}
+          {COLOR_FIELDS.map(({ key, label, description }) => {
+            const currentColor = style.colors[key as keyof typeof style.colors];
+            return (
+              <Popover key={key}>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-3 p-3 rounded-xl border-2 border-border hover:border-primary/50 transition-all text-left w-full group">
+                    <div
+                      className="w-10 h-10 rounded-lg shadow-inner flex-shrink-0 ring-1 ring-black/5"
+                      style={{ backgroundColor: currentColor }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">{label}</div>
+                      <div className="text-xs text-muted-foreground truncate">{description}</div>
+                    </div>
+                    <div className="text-xs font-mono text-muted-foreground group-hover:text-foreground transition-colors">
+                      {currentColor}
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3" align="start">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">{label}</Label>
+                      <span className="text-xs font-mono text-muted-foreground">{currentColor}</span>
+                    </div>
+
+                    {/* Color picker with HSL controls */}
+                    <ColorPicker
+                      value={currentColor}
+                      onChange={(color) => handleColorChange(key, color)}
+                      presets={
+                        key === "primary"
+                          ? ["#6366f1", "#0ea5e9", "#22c55e", "#f59e0b", "#ec4899", "#8b5cf6", "#14b8a6", "#f43f5e"]
+                          : key === "background"
+                          ? ["#ffffff", "#fafafa", "#f8fafc", "#f0f9ff", "#fdf2f8", "#0f172a", "#18181b", "#0a0a0a"]
+                          : key === "text"
+                          ? ["#0f172a", "#1e293b", "#18181b", "#171717", "#f8fafc", "#fafafa", "#ffffff", "#e2e8f0"]
+                          : ["#64748b", "#6b7280", "#71717a", "#737373", "#94a3b8", "#9ca3af", "#a1a1aa", "#a3a3a3"]
+                      }
+                    />
+
+                    {/* Hex input */}
+                    <Input
+                      value={currentColor}
+                      onChange={(e) => handleColorChange(key, e.target.value)}
+                      className="h-9 text-sm font-mono"
+                      placeholder="#000000"
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            );
+          })}
         </div>
       </div>
 
@@ -705,29 +737,6 @@ function StylePreview({ style }: { style: NonNullable<ReturnType<typeof useLandf
             ))}
           </div>
 
-          {/* Keywords display */}
-          {style.styleKeywords.length > 0 && (
-            <div className="mt-8 flex flex-wrap gap-2 justify-center">
-              {style.styleKeywords.map((keyword) => (
-                <span
-                  key={keyword}
-                  className={cn(
-                    "px-3 py-1 text-xs font-medium border",
-                    style.borderRadius === "sharp" && "rounded-none",
-                    style.borderRadius === "slightly-rounded" && "rounded-sm",
-                    style.borderRadius === "rounded" && "rounded-md",
-                    style.borderRadius === "pill" && "rounded-full"
-                  )}
-                  style={{
-                    borderColor: style.colors.primary,
-                    color: style.colors.primary,
-                  }}
-                >
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

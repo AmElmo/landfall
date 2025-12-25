@@ -1,14 +1,14 @@
 {
   "colors": {
-    "primary": "#6366f1",
+    "primary": "#14b8a6",
     "primaryLight": "#7186a8",
     "primaryDark": "#8293bf",
     "secondary": "#7c3aed",
     "accent": "#d6a44c",
-    "background": "#fafafa",
+    "background": "#18181b",
     "backgroundAlt": "#f8fafc",
-    "text": "#171717",
-    "textMuted": "#737373",
+    "text": "#ffffff",
+    "textMuted": "#94a3b8",
     "border": "#e2e8f0",
     "success": "#22c55e",
     "error": "#ef4444"
@@ -19,10 +19,10 @@
     "scale": "default"
   },
   "styleKeywords": [
-    "Modern",
-    "Playful"
+    "Playful",
+    "Minimal"
   ],
-  "borderRadius": "slightly-rounded",
+  "borderRadius": "sharp",
   "shadows": "dramatic",
   "inspirations": [
     {

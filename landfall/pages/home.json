@@ -43,22 +43,22 @@
     {
       "id": "section_1766475414734",
       "type": "logos",
-      "layoutVariant": "logos-simple-row",
+      "layoutVariant": "logos-grid",
       "order": 4,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
-      "layoutTemplateId": "logos-simple-row"
+      "layoutTemplateId": "logos-grid"
     },
     {
       "id": "section_1766475419038",
       "type": "testimonials",
-      "layoutVariant": "testimonials-three-cards",
+      "layoutVariant": "testimonials-carousel",
       "order": 5,
       "copyInstructions": "",
       "visualInstructions": "",
       "inspirations": [],
-      "layoutTemplateId": "testimonials-three-cards"
+      "layoutTemplateId": "testimonials-carousel"
     },
     {
       "id": "section_1766477449038",
@@ -83,8 +83,8 @@
     {
       "id": "section_1766478867768",
       "type": "features",
-      "layoutVariant": "features-alternating",
-      "layoutTemplateId": "features-alternating",
+      "layoutVariant": "features-3-col-cards",
+      "layoutTemplateId": "features-3-col-cards",
       "order": 8,
       "copyInstructions": "",
       "visualInstructions": "",

@@ -426,7 +426,7 @@ export default function SectionsStep() {
           {/* Centered Page Tabs */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground mr-2">Pages:</span>
-            <div className="flex gap-1.5 overflow-x-auto">
+            <div className="flex gap-1.5 overflow-x-auto outline-none focus:outline-none" tabIndex={-1}>
               {sitemap.pages.map((page) => {
                 const pageSlug = page.slug === "/" ? "home" : page.slug.replace(/^\//, "");
                 const isSelected = selectedPageSlug === pageSlug;
@@ -438,7 +438,7 @@ export default function SectionsStep() {
                       setEditingSection(null);
                     }}
                     className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all",
+                      "px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus:outline-none",
                       isSelected
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
