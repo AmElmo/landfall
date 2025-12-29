@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import {
-  allTools,
+  completeToolSet,
   processAllToolCalls,
   generateSystemPrompt,
   ChatContext,
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
               model,
               max_tokens: 2048, // Increased for complex responses
               messages: currentMessages,
-              tools: allTools,
+              tools: completeToolSet,
               tool_choice: "auto",
             });
 
@@ -177,13 +177,40 @@ export async function POST(request: NextRequest) {
             if (message.tool_calls && message.tool_calls.length > 0) {
               const toolResults: OpenAI.ChatCompletionToolMessageParam[] = [];
 
+              // List of tools that are handled client-side
+              const clientSideTools = ["undo_last_change", "redo_change", "get_change_history", "clear_conversation"];
+
               for (const toolCall of message.tool_calls) {
                 // Only process function-type tool calls
                 if (toolCall.type !== "function") continue;
 
                 const toolInput = JSON.parse(toolCall.function.arguments);
+                const toolName = toolCall.function.name;
+
+                // Handle client-side tools (undo/redo/history)
+                if (clientSideTools.includes(toolName)) {
+                  // Stream the tool call to client for handling
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({
+                        type: "tool_result",
+                        toolName: toolName,
+                        ...toolInput, // Include count, limit, etc.
+                      })}\n\n`
+                    )
+                  );
+
+                  // Provide a response so the model knows it succeeded
+                  toolResults.push({
+                    role: "tool",
+                    tool_call_id: toolCall.id,
+                    content: `Successfully executed ${toolName}`,
+                  });
+                  continue;
+                }
+
                 const result = processAllToolCalls(
-                  toolCall.function.name,
+                  toolName,
                   toolInput,
                   currentContext
                 );
@@ -197,7 +224,7 @@ export async function POST(request: NextRequest) {
                     encoder.encode(
                       `data: ${JSON.stringify({
                         type: "tool_result",
-                        toolName: toolCall.function.name,
+                        toolName: toolName,
                         resultType: result.type,
                         changes: result.changes,
                         pageSlug: result.pageSlug,
@@ -209,14 +236,14 @@ export async function POST(request: NextRequest) {
                   toolResults.push({
                     role: "tool",
                     tool_call_id: toolCall.id,
-                    content: `Successfully applied ${toolCall.function.name}: ${result.message}`,
+                    content: `Successfully applied ${toolName}: ${result.message}`,
                   });
                 } else {
                   // Tool not found or failed
                   toolResults.push({
                     role: "tool",
                     tool_call_id: toolCall.id,
-                    content: `Tool ${toolCall.function.name} not recognized or failed to execute`,
+                    content: `Tool ${toolName} not recognized or failed to execute`,
                   });
                 }
               }

@@ -776,6 +776,18 @@ export const allTools: OpenAI.ChatCompletionTool[] = [
   ...sitemapTools,
 ];
 
+// Tools that include undo/redo functionality
+export const allToolsWithUndoRedo: OpenAI.ChatCompletionTool[] = [
+  ...allTools,
+  // Note: undoRedoTools are defined later in the file and added at export
+];
+
+// This will be populated after undoRedoTools is defined
+export function getAllToolsWithUndoRedo(): OpenAI.ChatCompletionTool[] {
+  // Import undoRedoTools dynamically to avoid circular reference
+  return [...allTools];
+}
+
 // ============================================================================
 // TOOL PROCESSING
 // ============================================================================
@@ -1594,6 +1606,81 @@ export function processAllToolCalls(
 }
 
 // ============================================================================
+// UNDO/REDO TOOLS
+// ============================================================================
+
+export const undoRedoTools: OpenAI.ChatCompletionTool[] = [
+  {
+    type: "function",
+    function: {
+      name: "undo_last_change",
+      description:
+        "Undo the last change(s) made to the configuration. Use when the user says 'undo', 'revert', 'go back', or wants to cancel recent changes. You can undo multiple changes at once by specifying a count.",
+      parameters: {
+        type: "object",
+        properties: {
+          count: {
+            type: "number",
+            description:
+              "Number of changes to undo (default: 1). Use higher numbers when user says 'undo the last 3 changes' or similar.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "redo_change",
+      description:
+        "Redo a previously undone change. Use when the user says 'redo', 'put it back', or wants to restore an undone change.",
+      parameters: {
+        type: "object",
+        properties: {
+          count: {
+            type: "number",
+            description: "Number of changes to redo (default: 1)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_change_history",
+      description:
+        "Get a summary of recent changes made in this session. Use when the user asks 'what did you change?', 'show me the history', or wants to see what modifications were made.",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: {
+            type: "number",
+            description: "Maximum number of changes to show (default: 10)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "clear_conversation",
+      description:
+        "Clear the chat conversation history. Use when the user says 'start fresh', 'clear the chat', or 'new conversation'. Note: This clears the chat messages but preserves the change history for undo/redo.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+];
+
+// ============================================================================
 // SYSTEM PROMPT GENERATION
 // ============================================================================
 
@@ -1662,6 +1749,12 @@ Available section types: ${Object.keys(SECTION_TYPES).join(", ")}
 - **update_footer**: Change footer layout, copyright, newsletter settings
 - **add_footer_column**: Add a column with links to the footer
 - **add_social_link**: Add a social media link
+
+### Undo/Redo Tools (Available Anytime)
+- **undo_last_change**: Undo one or more recent changes
+- **redo_change**: Redo previously undone changes
+- **get_change_history**: Show what changes were made
+- **clear_conversation**: Start a fresh conversation (preserves change history)
 
 ## Current Configuration
 
@@ -1763,3 +1856,17 @@ ${JSON.stringify(style, null, 2)}
 - Style keywords should be capitalized (e.g., "Modern" not "modern")
 - You can make multiple tool calls in one response for coordinated changes`;
 }
+
+// ============================================================================
+// COMBINED TOOLS WITH UNDO/REDO
+// ============================================================================
+
+// Complete tool set including undo/redo capabilities
+export const completeToolSet: OpenAI.ChatCompletionTool[] = [
+  ...styleTools,
+  ...sectionTools,
+  ...toneTools,
+  ...navigationTools,
+  ...sitemapTools,
+  ...undoRedoTools,
+];
