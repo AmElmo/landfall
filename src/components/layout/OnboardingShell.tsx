@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { STEPS } from "@/lib/types";
 import { useLandfall } from "@/lib/context";
@@ -16,10 +16,12 @@ import {
   Menu,
   Eye,
   Wand2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { ChatPanel } from "@/components/ChatPanel";
 
 // Map step slugs to icons
 const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -67,6 +69,7 @@ export function OnboardingShell({
   const router = useRouter();
   const { isSaving, setCurrentStep } = useLandfall();
   const totalSteps = STEPS.length;
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const navigateToStep = (stepId: number) => {
     const step = STEPS.find((s) => s.id === stepId);
@@ -172,6 +175,22 @@ export function OnboardingShell({
                 Skip
               </Button>
             )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={isChatOpen ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsChatOpen(!isChatOpen)}
+                  className="gap-2"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden sm:inline">AI Assistant</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Chat with AI to refine your design
+              </TooltipContent>
+            </Tooltip>
             <Button size="sm" onClick={handleNext} disabled={isSaving}>
               {isSaving ? (
                 <>
@@ -228,6 +247,9 @@ export function OnboardingShell({
           </div>
         )}
       </div>
+
+      {/* Chat Panel */}
+      <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </div>
   );
 }
