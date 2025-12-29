@@ -1,11 +1,19 @@
 import OpenAI from "openai";
 import { NextRequest } from "next/server";
 import {
-  styleTools,
-  processToolCall,
+  allTools,
+  processAllToolCalls,
   generateSystemPrompt,
+  ChatContext,
+  ToolResult,
 } from "@/lib/chat-tools";
-import { Style } from "@/lib/types";
+import {
+  Style,
+  Tone,
+  Sitemap,
+  Navigation,
+  PageSections,
+} from "@/lib/types";
 
 // Default model - can be changed to any OpenRouter-supported model
 const DEFAULT_MODEL = "openai/gpt-4o-mini";
@@ -28,16 +36,77 @@ interface ChatMessage {
   content: string;
 }
 
+// Full context request with all configuration
 interface ChatRequest {
   messages: ChatMessage[];
   style: Style;
-  model?: string; // Optional model override
+  tone?: Tone;
+  sitemap?: Sitemap;
+  navigation?: Navigation;
+  pages?: Record<string, PageSections>;
+  currentStep?: number;
+  currentPageSlug?: string;
+  model?: string;
 }
+
+// Default empty values for backwards compatibility
+const defaultTone: Tone = {
+  toneKeywords: [],
+  brandPersonality: [],
+  targetAudience: "",
+  guidelines: { do: [], dont: [] },
+  examplePhrases: [],
+  inspirations: [],
+};
+
+const defaultSitemap: Sitemap = {
+  pages: [
+    {
+      id: "page_home",
+      name: "Home",
+      slug: "/",
+      isHomepage: true,
+      metaTitle: "Home",
+      metaDescription: "",
+    },
+  ],
+};
+
+const defaultNavigation: Navigation = {
+  navbar: {
+    layout: "logo-left-links-right",
+    logo: { type: "text", value: "Logo", imagePath: null },
+    links: [],
+    cta: [],
+  },
+  footer: {
+    layout: "columns-simple",
+    columns: [],
+    social: [],
+    copyright: "",
+    newsletter: {
+      enabled: false,
+      heading: "",
+      placeholder: "",
+      buttonText: "",
+    },
+  },
+};
 
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequest = await request.json();
-    const { messages, style, model = DEFAULT_MODEL } = body;
+    const {
+      messages,
+      style,
+      tone = defaultTone,
+      sitemap = defaultSitemap,
+      navigation = defaultNavigation,
+      pages = {},
+      currentStep = 1,
+      currentPageSlug = "/",
+      model = DEFAULT_MODEL,
+    } = body;
 
     if (!messages || !style) {
       return new Response(
@@ -53,14 +122,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const systemPrompt = generateSystemPrompt(style);
+    // Build the full context
+    const context: ChatContext = {
+      style,
+      tone,
+      sitemap,
+      navigation,
+      pages,
+      currentStep,
+      currentPageSlug,
+    };
+
+    const systemPrompt = generateSystemPrompt(context);
 
     // Create a streaming response
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          let currentStyle = { ...style };
+          // Mutable context for tracking changes during the conversation
+          let currentContext: ChatContext = { ...context };
           let continueLoop = true;
           let currentMessages: OpenAI.ChatCompletionMessageParam[] = [
             { role: "system", content: systemPrompt },
@@ -74,9 +155,9 @@ export async function POST(request: NextRequest) {
             const openai = getOpenAIClient();
             const response = await openai.chat.completions.create({
               model,
-              max_tokens: 1024,
+              max_tokens: 2048, // Increased for complex responses
               messages: currentMessages,
-              tools: styleTools,
+              tools: allTools,
               tool_choice: "auto",
             });
 
@@ -101,31 +182,43 @@ export async function POST(request: NextRequest) {
                 if (toolCall.type !== "function") continue;
 
                 const toolInput = JSON.parse(toolCall.function.arguments);
-                const changes = processToolCall(
+                const result = processAllToolCalls(
                   toolCall.function.name,
                   toolInput,
-                  currentStyle
+                  currentContext
                 );
 
-                // Merge changes into current style for subsequent tool calls
-                currentStyle = { ...currentStyle, ...changes };
+                if (result) {
+                  // Update context based on result type
+                  currentContext = applyToolResult(currentContext, result);
 
-                // Stream tool result to client so they can apply changes
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({
-                      type: "tool_result",
-                      toolName: toolCall.function.name,
-                      changes,
-                    })}\n\n`
-                  )
-                );
+                  // Stream tool result to client so they can apply changes
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({
+                        type: "tool_result",
+                        toolName: toolCall.function.name,
+                        resultType: result.type,
+                        changes: result.changes,
+                        pageSlug: result.pageSlug,
+                        message: result.message,
+                      })}\n\n`
+                    )
+                  );
 
-                toolResults.push({
-                  role: "tool",
-                  tool_call_id: toolCall.id,
-                  content: `Successfully applied ${toolCall.function.name}: ${JSON.stringify(changes)}`,
-                });
+                  toolResults.push({
+                    role: "tool",
+                    tool_call_id: toolCall.id,
+                    content: `Successfully applied ${toolCall.function.name}: ${result.message}`,
+                  });
+                } else {
+                  // Tool not found or failed
+                  toolResults.push({
+                    role: "tool",
+                    tool_call_id: toolCall.id,
+                    content: `Tool ${toolCall.function.name} not recognized or failed to execute`,
+                  });
+                }
               }
 
               // If there were tool calls, continue the conversation
@@ -173,5 +266,47 @@ export async function POST(request: NextRequest) {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
+  }
+}
+
+// Apply tool result to update context
+function applyToolResult(context: ChatContext, result: ToolResult): ChatContext {
+  switch (result.type) {
+    case "style":
+      return {
+        ...context,
+        style: { ...context.style, ...result.changes } as Style,
+      };
+    case "tone":
+      return {
+        ...context,
+        tone: { ...context.tone, ...result.changes } as Tone,
+      };
+    case "sitemap":
+      return {
+        ...context,
+        sitemap: { ...context.sitemap, ...result.changes } as Sitemap,
+      };
+    case "navigation":
+      return {
+        ...context,
+        navigation: { ...context.navigation, ...result.changes } as Navigation,
+      };
+    case "page":
+      if (result.pageSlug) {
+        return {
+          ...context,
+          pages: {
+            ...context.pages,
+            [result.pageSlug]: {
+              ...context.pages[result.pageSlug],
+              ...result.changes,
+            } as PageSections,
+          },
+        };
+      }
+      return context;
+    default:
+      return context;
   }
 }

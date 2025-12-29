@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { Config, Style, Tone, Sitemap, Navigation, PageSections, STEPS } from "./types";
+import { Config, Style, Tone, Sitemap, Navigation, PageSections } from "./types";
 
 interface LandfallContextType {
   // Data

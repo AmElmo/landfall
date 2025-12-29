@@ -249,7 +249,11 @@ export function OnboardingShell({
       </div>
 
       {/* Chat Panel */}
-      <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <ChatPanel
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        currentStep={stepIndex}
+      />
     </div>
   );
 }

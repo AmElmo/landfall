@@ -6,25 +6,58 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useLandfall } from "@/lib/context";
-import { Style } from "@/lib/types";
+import {
+  Style,
+  Tone,
+  Sitemap,
+  Navigation,
+  PageSections,
+} from "@/lib/types";
+
+// Tool result types returned from the API
+type ToolResultType = "style" | "tone" | "sitemap" | "navigation" | "page";
+
+interface ToolResult {
+  toolName: string;
+  resultType: ToolResultType;
+  changes: Partial<Style | Tone | Sitemap | Navigation | PageSections>;
+  pageSlug?: string;
+  message: string;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  toolResults?: {
-    toolName: string;
-    changes: Partial<Style>;
-  }[];
+  toolResults?: ToolResult[];
 }
 
 interface ChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  currentStep?: number;
+  currentPageSlug?: string;
 }
 
-export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
-  const { style, updateStyle } = useLandfall();
+export function ChatPanel({
+  isOpen,
+  onClose,
+  currentStep = 1,
+  currentPageSlug = "/",
+}: ChatPanelProps) {
+  const {
+    style,
+    tone,
+    sitemap,
+    navigation,
+    pages,
+    updateStyle,
+    updateTone,
+    updateSitemap,
+    updateNavigation,
+    updatePage,
+    refreshData,
+  } = useLandfall();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +77,36 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Apply tool result based on its type
+  const applyToolResult = async (result: ToolResult) => {
+    try {
+      switch (result.resultType) {
+        case "style":
+          await updateStyle(result.changes as Partial<Style>);
+          break;
+        case "tone":
+          await updateTone(result.changes as Partial<Tone>);
+          break;
+        case "sitemap":
+          await updateSitemap(result.changes as Partial<Sitemap>);
+          break;
+        case "navigation":
+          await updateNavigation(result.changes as Partial<Navigation>);
+          break;
+        case "page":
+          if (result.pageSlug) {
+            await updatePage(
+              result.pageSlug,
+              result.changes as Partial<PageSections>
+            );
+          }
+          break;
+      }
+    } catch (error) {
+      console.error("Failed to apply tool result:", error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +132,12 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             content: m.content,
           })),
           style,
+          tone,
+          sitemap,
+          navigation,
+          pages,
+          currentStep,
+          currentPageSlug,
         }),
       });
 
@@ -81,7 +150,7 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
 
       const decoder = new TextDecoder();
       let assistantContent = "";
-      const toolResults: Message["toolResults"] = [];
+      const toolResults: ToolResult[] = [];
       const assistantMessageId = (Date.now() + 1).toString();
 
       // Add empty assistant message to start streaming into
@@ -115,13 +184,17 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
                   )
                 );
               } else if (parsed.type === "tool_result") {
-                // Apply style updates
+                // Apply changes based on result type
                 if (parsed.changes && Object.keys(parsed.changes).length > 0) {
-                  await updateStyle(parsed.changes);
-                  toolResults.push({
+                  const toolResult: ToolResult = {
                     toolName: parsed.toolName,
+                    resultType: parsed.resultType,
                     changes: parsed.changes,
-                  });
+                    pageSlug: parsed.pageSlug,
+                    message: parsed.message,
+                  };
+                  await applyToolResult(toolResult);
+                  toolResults.push(toolResult);
                 }
               }
             } catch {
@@ -139,6 +212,9 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             : m
         )
       );
+
+      // Refresh all data to ensure UI is in sync
+      await refreshData();
     } catch (error) {
       console.error("Chat error:", error);
       setMessages((prev) => [
@@ -159,6 +235,91 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  // Get suggestions based on current step
+  const getSuggestions = () => {
+    switch (currentStep) {
+      case 1: // Style
+        return [
+          "Make the primary color navy blue",
+          "I want a warmer color palette",
+          "Use Playfair Display for headings",
+          "Make it more minimal and modern",
+        ];
+      case 2: // Tone
+        return [
+          "We're a B2B SaaS targeting enterprise customers",
+          "The tone should be professional but friendly",
+          "Add some example phrases that fit our brand",
+          "What do's and don'ts should we follow?",
+        ];
+      case 3: // Sitemap
+        return [
+          "Add a pricing page",
+          "I need an about page and a contact page",
+          "What pages do you recommend for a SaaS?",
+          "Remove the blog page",
+        ];
+      case 4: // Sections
+        return [
+          "Add a testimonials section",
+          "I need a hero, features, and pricing section",
+          "Move the CTA section above the FAQ",
+          "Remove the team section",
+        ];
+      case 5: // Copy & Visuals
+        return [
+          "For the hero, emphasize speed and simplicity",
+          "The features section should highlight security",
+          "Add visual instructions for a dark, modern look",
+          "What copy angle would work best for the CTA?",
+        ];
+      case 6: // Navigation
+        return [
+          "Add a link to our documentation",
+          "Add a Resources column to the footer",
+          "Change the CTA button to say 'Start Free Trial'",
+          "Add our Twitter and LinkedIn links",
+        ];
+      default:
+        return [
+          "Help me improve the design",
+          "What would you suggest?",
+          "Make it look more professional",
+          "I want a bold, modern style",
+        ];
+    }
+  };
+
+  // Get step-specific placeholder
+  const getPlaceholder = () => {
+    switch (currentStep) {
+      case 1:
+        return "Describe the style you want...";
+      case 2:
+        return "Tell me about your brand voice...";
+      case 3:
+        return "What pages do you need?";
+      case 4:
+        return "What sections should this page have?";
+      case 5:
+        return "Describe the content and visuals...";
+      case 6:
+        return "How should the navigation look?";
+      default:
+        return "Ask me anything about your landing page...";
+    }
+  };
+
+  // Format tool result for display
+  const formatToolResult = (result: ToolResult) => {
+    const toolName = result.toolName
+      .replace("update_", "")
+      .replace("add_", "added ")
+      .replace("remove_", "removed ")
+      .replace(/_/g, " ");
+    return result.message || `Applied: ${toolName}`;
   };
 
   if (!isOpen) return null;
@@ -183,18 +344,11 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             <div className="text-center text-muted-foreground py-8">
               <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-50" />
               <p className="text-sm">
-                Hi! I can help you refine your landing page style.
+                Hi! I can help you design your landing page.
               </p>
-              <p className="text-sm mt-2">
-                Try saying things like:
-              </p>
+              <p className="text-sm mt-2">Try saying things like:</p>
               <div className="mt-3 space-y-2">
-                {[
-                  "Make the primary color navy blue",
-                  "I want a warmer color palette",
-                  "Use Playfair Display for headings",
-                  "Make it more minimal and modern",
-                ].map((suggestion) => (
+                {getSuggestions().map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => setInput(suggestion)}
@@ -225,10 +379,11 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
               >
                 <p className="whitespace-pre-wrap">{message.content}</p>
                 {message.toolResults && message.toolResults.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-current/10 text-xs opacity-75">
+                  <div className="mt-2 pt-2 border-t border-current/10 text-xs opacity-75 space-y-1">
                     {message.toolResults.map((result, i) => (
-                      <div key={i}>
-                        Applied: {result.toolName.replace("update_", "")}
+                      <div key={i} className="flex items-center gap-1">
+                        <span className="text-green-500">✓</span>
+                        {formatToolResult(result)}
                       </div>
                     ))}
                   </div>
@@ -255,7 +410,7 @@ export function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe the style you want..."
+            placeholder={getPlaceholder()}
             className="flex-1 resize-none rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[44px] max-h-[120px]"
             rows={1}
             disabled={isLoading}
