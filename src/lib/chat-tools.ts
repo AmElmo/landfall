@@ -776,18 +776,6 @@ export const allTools: OpenAI.ChatCompletionTool[] = [
   ...sitemapTools,
 ];
 
-// Tools that include undo/redo functionality
-export const allToolsWithUndoRedo: OpenAI.ChatCompletionTool[] = [
-  ...allTools,
-  // Note: undoRedoTools are defined later in the file and added at export
-];
-
-// This will be populated after undoRedoTools is defined
-export function getAllToolsWithUndoRedo(): OpenAI.ChatCompletionTool[] {
-  // Import undoRedoTools dynamically to avoid circular reference
-  return [...allTools];
-}
-
 // ============================================================================
 // TOOL PROCESSING
 // ============================================================================

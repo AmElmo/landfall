@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Check if we should continue
-            if (choice.finish_reason === "stop" || choice.finish_reason !== "tool_calls") {
+            if (choice.finish_reason !== "tool_calls") {
               continueLoop = false;
             }
           }
