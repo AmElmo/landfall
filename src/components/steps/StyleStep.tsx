@@ -182,13 +182,18 @@ export default function StyleStep() {
 
   const toggleKeyword = (keyword: string) => {
     if (style) {
-      const isSelected = style.styleKeywords.includes(keyword);
+      // Use case-insensitive comparison for robustness
+      const isSelected = style.styleKeywords.some(
+        (k) => k.toLowerCase() === keyword.toLowerCase()
+      );
       if (isSelected) {
-        // Always allow deselecting
-        const keywords = style.styleKeywords.filter((k) => k !== keyword);
+        // Always allow deselecting - filter out case-insensitively
+        const keywords = style.styleKeywords.filter(
+          (k) => k.toLowerCase() !== keyword.toLowerCase()
+        );
         updateStyle({ styleKeywords: keywords });
       } else if (style.styleKeywords.length < MAX_KEYWORDS) {
-        // Only add if under the limit
+        // Only add if under the limit - use the canonical casing from STYLE_KEYWORDS
         const keywords = [...style.styleKeywords, keyword];
         updateStyle({ styleKeywords: keywords });
       }
@@ -407,7 +412,10 @@ export default function StyleStep() {
         </p>
         <div className="flex flex-wrap gap-2">
           {STYLE_KEYWORDS.map((keyword) => {
-            const isSelected = style.styleKeywords.includes(keyword);
+            // Use case-insensitive comparison for robustness
+            const isSelected = style.styleKeywords.some(
+              (k) => k.toLowerCase() === keyword.toLowerCase()
+            );
             const isDisabled = !isSelected && style.styleKeywords.length >= MAX_KEYWORDS;
             return (
               <Badge
