@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "landfall": {
+      "command": "npx",
+      "args": ["landfall-mcp"]
+    }
+  }
+}
