@@ -4,8 +4,20 @@ import {
   loadProgress,
   markStepComplete,
   getCompletedSteps,
+  getFailedSteps,
+  reportStepError,
+  retryStep as retryStepProgress,
+  pauseBuild as pauseBuildProgress,
+  resumeBuild as resumeBuildProgress,
   type BuildProgress,
+  type StepProgress,
 } from "./progress.js";
+import {
+  loadConfig as loadBuildConfig,
+  setMode as setBuildMode,
+  type BuildConfig,
+  type BuildMode,
+} from "./config.js";
 
 export interface Prompt {
   step: number;
@@ -271,14 +283,15 @@ export function markComplete(step: number, notes?: string): MarkCompleteResult {
 
   // Mark as complete
   const progress = markStepComplete(projectPath, step, notes);
-  const completedCount = Object.keys(progress.completedSteps).length;
+  const completedSteps = getCompletedSteps(projectPath);
+  const completedCount = completedSteps.length;
 
   // Get next step
   const nextStep = getNextPrompt();
 
   return {
     step,
-    markedAt: progress.completedSteps[step].completedAt,
+    markedAt: progress.completedSteps[step].completedAt!,
     notes,
     nextStep,
     totalSteps: buildSequence.totalPrompts,
@@ -290,12 +303,17 @@ export function markComplete(step: number, notes?: string): MarkCompleteResult {
 export interface StatusResult {
   totalSteps: number;
   completedSteps: number;
+  failedSteps: number;
   currentStep: number | null;
   percentComplete: number;
   isComplete: boolean;
+  isPaused: boolean;
+  pausedAt: number | null;
   startedAt: string | null;
   lastUpdatedAt: string | null;
   completedStepNumbers: number[];
+  failedStepNumbers: number[];
+  mode: BuildMode;
 }
 
 export function getStatus(): StatusResult {
@@ -308,10 +326,12 @@ export function getStatus(): StatusResult {
   const buildSequence = loadBuildSequence(projectPath);
   const progress = loadProgress(projectPath);
   const completedSteps = getCompletedSteps(projectPath);
+  const failedSteps = getFailedSteps(projectPath);
+  const config = loadBuildConfig(projectPath);
 
-  // Find current (next uncompleted) step
+  // Find current (next uncompleted and not failed) step
   const nextPrompt = buildSequence.prompts.find(
-    (p) => !completedSteps.includes(p.step)
+    (p) => !completedSteps.includes(p.step) && !failedSteps.includes(p.step)
   );
 
   const completedCount = completedSteps.length;
@@ -322,11 +342,211 @@ export function getStatus(): StatusResult {
   return {
     totalSteps: buildSequence.totalPrompts,
     completedSteps: completedCount,
+    failedSteps: failedSteps.length,
     currentStep: nextPrompt?.step || null,
     percentComplete,
     isComplete: completedCount === buildSequence.totalPrompts,
+    isPaused: progress?.isPaused || false,
+    pausedAt: progress?.pausedAt || null,
     startedAt: progress?.startedAt || null,
     lastUpdatedAt: progress?.lastUpdatedAt || null,
     completedStepNumbers: completedSteps,
+    failedStepNumbers: failedSteps,
+    mode: config.mode,
+  };
+}
+
+// New tools for error handling and orchestration
+
+export interface ReportIssueResult {
+  step: number;
+  error: string;
+  reportedAt: string;
+  retryCount: number;
+  maxRetries: number;
+}
+
+export function reportIssue(
+  step: number,
+  error: string,
+  details?: Record<string, unknown>
+): ReportIssueResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  const buildSequence = loadBuildSequence(projectPath);
+  const config = loadBuildConfig(projectPath);
+
+  // Validate step exists
+  const prompt = buildSequence.prompts.find((p) => p.step === step);
+  if (!prompt) {
+    throw new LandfallError(
+      `Step ${step} not found. Valid steps are 1-${buildSequence.totalPrompts}.`
+    );
+  }
+
+  const progress = reportStepError(projectPath, step, error, details);
+  const stepProgress = progress.completedSteps[step];
+
+  return {
+    step,
+    error,
+    reportedAt: stepProgress.errors![stepProgress.errors!.length - 1].timestamp,
+    retryCount: stepProgress.retryCount || 0,
+    maxRetries: config.maxRetries,
+  };
+}
+
+export interface RetryStepResult {
+  step: number;
+  retryCount: number;
+  maxRetries: number;
+  prompt: PromptResult;
+  canRetry: boolean;
+}
+
+export function retryStep(step: number): RetryStepResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  const buildSequence = loadBuildSequence(projectPath);
+  const config = loadBuildConfig(projectPath);
+
+  // Validate step exists
+  const prompt = buildSequence.prompts.find((p) => p.step === step);
+  if (!prompt) {
+    throw new LandfallError(
+      `Step ${step} not found. Valid steps are 1-${buildSequence.totalPrompts}.`
+    );
+  }
+
+  const progress = retryStepProgress(projectPath, step);
+  const stepProgress = progress.completedSteps[step];
+  const retryCount = stepProgress.retryCount || 0;
+
+  return {
+    step,
+    retryCount,
+    maxRetries: config.maxRetries,
+    prompt: getPrompt(step),
+    canRetry: retryCount < config.maxRetries,
+  };
+}
+
+export interface PauseBuildResult {
+  isPaused: boolean;
+  pausedAt: number | null;
+  message: string;
+}
+
+export function pauseBuild(): PauseBuildResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  // Get current step
+  const status = getStatus();
+  pauseBuildProgress(projectPath, status.currentStep || undefined);
+
+  return {
+    isPaused: true,
+    pausedAt: status.currentStep,
+    message: status.currentStep
+      ? `Build paused at step ${status.currentStep}`
+      : "Build paused",
+  };
+}
+
+export interface ResumeBuildResult {
+  isPaused: boolean;
+  currentStep: number | null;
+  nextPrompt: NextPromptResult | null;
+  message: string;
+}
+
+export function resumeBuild(): ResumeBuildResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  resumeBuildProgress(projectPath);
+  const nextPrompt = getNextPrompt();
+
+  return {
+    isPaused: false,
+    currentStep: nextPrompt?.step || null,
+    nextPrompt,
+    message: nextPrompt
+      ? `Build resumed. Continue with step ${nextPrompt.step}: ${nextPrompt.name}`
+      : "Build complete. Nothing to resume.",
+  };
+}
+
+export interface SetModeResult {
+  mode: BuildMode;
+  previousMode: BuildMode;
+  message: string;
+}
+
+export function setMode(mode: BuildMode): SetModeResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  if (mode !== "auto" && mode !== "review") {
+    throw new LandfallError(
+      `Invalid mode "${mode}". Valid modes are "auto" or "review".`
+    );
+  }
+
+  const previousConfig = loadBuildConfig(projectPath);
+  setBuildMode(projectPath, mode);
+
+  return {
+    mode,
+    previousMode: previousConfig.mode,
+    message:
+      mode === "auto"
+        ? "Switched to auto mode. Build will proceed automatically on step completion."
+        : "Switched to review mode. Build will pause after each step for confirmation.",
+  };
+}
+
+export interface GetConfigResult {
+  mode: BuildMode;
+  validationEnabled: boolean;
+  maxRetries: number;
+  isPaused: boolean;
+  pausedAt: number | null;
+}
+
+export function getConfig(): GetConfigResult {
+  const projectPath = findProjectRoot();
+
+  if (!projectPath) {
+    throw new NotInProjectError();
+  }
+
+  const config = loadBuildConfig(projectPath);
+  const progress = loadProgress(projectPath);
+
+  return {
+    mode: config.mode,
+    validationEnabled: config.validationEnabled,
+    maxRetries: config.maxRetries,
+    isPaused: progress?.isPaused || false,
+    pausedAt: progress?.pausedAt || null,
   };
 }

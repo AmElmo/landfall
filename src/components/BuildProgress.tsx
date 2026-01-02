@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   Check,
   Circle,
@@ -12,6 +12,11 @@ import {
   ChevronRight,
   Terminal,
   MessageSquare,
+  X,
+  Pause,
+  Play,
+  RotateCcw,
+  Settings2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,12 +65,22 @@ function formatDuration(startedAt: string, endedAt?: string): string {
   }
 }
 
-function StepIcon({ status }: { status: "pending" | "current" | "complete" }) {
+function StepIcon({
+  status,
+}: {
+  status: "pending" | "current" | "complete" | "failed";
+}) {
   switch (status) {
     case "complete":
       return (
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white">
           <Check className="h-3.5 w-3.5" />
+        </div>
+      );
+    case "failed":
+      return (
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white">
+          <X className="h-3.5 w-3.5" />
         </div>
       );
     case "current":
@@ -139,6 +154,57 @@ function MCPSetupInstructions({ onCopy }: { onCopy: () => void }) {
   );
 }
 
+async function updateBuildConfig(updates: {
+  mode?: "auto" | "review";
+}): Promise<void> {
+  const response = await fetch("/api/build-config", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to update build config");
+  }
+}
+
+function ModeToggle({
+  mode,
+  onModeChange,
+}: {
+  mode: "auto" | "review";
+  onModeChange: (mode: "auto" | "review") => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Settings2 className="h-4 w-4 text-muted-foreground" />
+      <div className="flex rounded-md bg-muted p-0.5">
+        <button
+          onClick={() => onModeChange("auto")}
+          className={cn(
+            "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+            mode === "auto"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Auto
+        </button>
+        <button
+          onClick={() => onModeChange("review")}
+          className={cn(
+            "px-2.5 py-1 text-xs font-medium rounded transition-colors",
+            mode === "review"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Review
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ProgressBar({
   percent,
   isComplete,
@@ -169,7 +235,25 @@ function ProgressBar({
 export function BuildProgress() {
   const { progress, isLoading, error, refetch } = useBuildProgress();
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
+  const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set());
   const [showAllSteps, setShowAllSteps] = useState(false);
+  const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+
+  const handleModeChange = useCallback(
+    async (newMode: "auto" | "review") => {
+      if (isUpdatingMode) return;
+      setIsUpdatingMode(true);
+      try {
+        await updateBuildConfig({ mode: newMode });
+        await refetch();
+      } catch (err) {
+        console.error("Failed to update mode:", err);
+      } finally {
+        setIsUpdatingMode(false);
+      }
+    },
+    [isUpdatingMode, refetch]
+  );
 
   const toggleStep = (step: number) => {
     const newExpanded = new Set(expandedSteps);
@@ -179,6 +263,16 @@ export function BuildProgress() {
       newExpanded.add(step);
     }
     setExpandedSteps(newExpanded);
+  };
+
+  const toggleError = (step: number) => {
+    const newExpanded = new Set(expandedErrors);
+    if (newExpanded.has(step)) {
+      newExpanded.delete(step);
+    } else {
+      newExpanded.add(step);
+    }
+    setExpandedErrors(newExpanded);
   };
 
   if (isLoading) {
@@ -351,34 +445,51 @@ export function BuildProgress() {
     <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
-          <span>Build Progress</span>
-          {progress.isStale && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 text-amber-500 text-sm font-normal">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>Stalled</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>No updates in 5+ minutes. Check your AI tool.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <div className="flex items-center gap-2">
+            <span>Build Progress</span>
+            {progress.isPaused && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
+                <Pause className="h-3 w-3" />
+                Paused
+              </span>
+            )}
+            {progress.isStale && !progress.isPaused && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1.5 text-amber-500 text-sm font-normal">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>Stalled</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>No updates in 5+ minutes. Check your AI tool.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
+          <ModeToggle mode={progress.mode} onModeChange={handleModeChange} />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <ProgressBar percent={progress.percentComplete} isComplete={false} />
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
           <div className="flex items-center gap-1.5">
             <Check className="h-4 w-4 text-green-500" />
             <span>
               {progress.completedSteps} of {progress.totalSteps} steps
             </span>
           </div>
+          {progress.failedSteps > 0 && (
+            <div className="flex items-center gap-1.5 text-red-500">
+              <X className="h-4 w-4" />
+              <span>
+                {progress.failedSteps} failed
+              </span>
+            </div>
+          )}
           {progress.startedAt && (
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
@@ -394,7 +505,8 @@ export function BuildProgress() {
               key={step.step}
               className={cn(
                 "flex items-start gap-3 py-2 px-2 rounded-lg transition-colors",
-                step.status === "current" && "bg-primary/5"
+                step.status === "current" && "bg-primary/5",
+                step.status === "failed" && "bg-red-500/5"
               )}
             >
               <StepIcon status={step.status} />
@@ -404,7 +516,8 @@ export function BuildProgress() {
                     className={cn(
                       "text-sm truncate",
                       step.status === "complete" && "text-muted-foreground",
-                      step.status === "current" && "font-medium"
+                      step.status === "current" && "font-medium",
+                      step.status === "failed" && "text-red-600 font-medium"
                     )}
                   >
                     {step.name}
@@ -412,6 +525,11 @@ export function BuildProgress() {
                   {step.completedAt && (
                     <span className="text-xs text-muted-foreground shrink-0">
                       {formatTimestamp(step.completedAt)}
+                    </span>
+                  )}
+                  {step.retryCount > 0 && (
+                    <span className="text-xs text-amber-600 shrink-0">
+                      (retried {step.retryCount}x)
                     </span>
                   )}
                   {step.notes && (
@@ -431,6 +549,20 @@ export function BuildProgress() {
                       </Tooltip>
                     </TooltipProvider>
                   )}
+                  {step.errors && step.errors.length > 0 && (
+                    <button
+                      onClick={() => toggleError(step.step)}
+                      className="shrink-0 flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      <span>{step.errors.length} error{step.errors.length > 1 ? "s" : ""}</span>
+                      {expandedErrors.has(step.step) ? (
+                        <ChevronDown className="h-3 w-3" />
+                      ) : (
+                        <ChevronRight className="h-3 w-3" />
+                      )}
+                    </button>
+                  )}
                 </div>
                 {step.status === "current" && (
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -441,6 +573,32 @@ export function BuildProgress() {
                   <p className="text-xs text-muted-foreground mt-1 bg-muted p-2 rounded">
                     {step.notes}
                   </p>
+                )}
+                {/* Error details */}
+                {expandedErrors.has(step.step) && step.errors && (
+                  <div className="mt-2 space-y-2">
+                    {step.errors.map((err, idx) => (
+                      <div
+                        key={idx}
+                        className="text-xs bg-red-500/10 border border-red-500/20 rounded p-2"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-red-600 font-medium">
+                            Error {idx + 1}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {formatTimestamp(err.timestamp)}
+                          </span>
+                        </div>
+                        <p className="text-red-700">{err.message}</p>
+                        {err.details && (
+                          <pre className="mt-1 text-[10px] text-muted-foreground overflow-x-auto">
+                            {JSON.stringify(err.details, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>

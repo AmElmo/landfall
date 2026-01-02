@@ -14,6 +14,12 @@ import {
   getPrompt,
   markComplete,
   getStatus,
+  reportIssue,
+  retryStep,
+  pauseBuild,
+  resumeBuild,
+  setMode,
+  getConfig,
   LandfallError,
 } from "./tools.js";
 
@@ -77,7 +83,92 @@ const TOOLS: Tool[] = [
   {
     name: "landfall_get_status",
     description:
-      "Get the current build status including total steps, completed steps, current step, and percent complete. Use this to check progress.",
+      "Get the current build status including total steps, completed steps, failed steps, current step, percent complete, pause state, and build mode. Use this to check progress.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "landfall_report_issue",
+    description:
+      "Report an error or issue that occurred during a build step. Records the error with timestamp and details for debugging. Use this when a step fails to execute properly.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        step: {
+          type: "number",
+          description: "The step number where the error occurred (1-based)",
+        },
+        error: {
+          type: "string",
+          description: "A clear description of what went wrong",
+        },
+        details: {
+          type: "object",
+          description:
+            "Optional additional details (e.g., error stack, file paths, context)",
+        },
+      },
+      required: ["step", "error"],
+    },
+  },
+  {
+    name: "landfall_retry_step",
+    description:
+      "Retry a failed build step. Clears the error state and returns the prompt for re-execution. Tracks retry count.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        step: {
+          type: "number",
+          description: "The step number to retry (1-based)",
+        },
+      },
+      required: ["step"],
+    },
+  },
+  {
+    name: "landfall_pause_build",
+    description:
+      "Pause the build at the current step. Use this when you need to stop and wait for user input or review.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "landfall_resume_build",
+    description:
+      "Resume a paused build. Returns the next prompt to continue from where it was paused.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "landfall_set_mode",
+    description:
+      "Set the build orchestration mode. 'auto' mode proceeds automatically after each step. 'review' mode pauses after each step for user confirmation.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        mode: {
+          type: "string",
+          enum: ["auto", "review"],
+          description: "The build mode: 'auto' or 'review'",
+        },
+      },
+      required: ["mode"],
+    },
+  },
+  {
+    name: "landfall_get_config",
+    description:
+      "Get the current build configuration including mode, validation settings, max retries, and pause state.",
     inputSchema: {
       type: "object" as const,
       properties: {},
@@ -197,6 +288,131 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "landfall_get_status": {
         const result = getStatus();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_report_issue": {
+        const { step, error, details } = args as {
+          step: number;
+          error: string;
+          details?: Record<string, unknown>;
+        };
+        if (typeof step !== "number") {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "step must be a number" }),
+              },
+            ],
+            isError: true,
+          };
+        }
+        if (typeof error !== "string") {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "error must be a string" }),
+              },
+            ],
+            isError: true,
+          };
+        }
+        const result = reportIssue(step, error, details);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_retry_step": {
+        const step = (args as { step: number }).step;
+        if (typeof step !== "number") {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({ error: "step must be a number" }),
+              },
+            ],
+            isError: true,
+          };
+        }
+        const result = retryStep(step);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_pause_build": {
+        const result = pauseBuild();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_resume_build": {
+        const result = resumeBuild();
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_set_mode": {
+        const mode = (args as { mode: string }).mode;
+        if (mode !== "auto" && mode !== "review") {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: "mode must be 'auto' or 'review'",
+                }),
+              },
+            ],
+            isError: true,
+          };
+        }
+        const result = setMode(mode);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "landfall_get_config": {
+        const result = getConfig();
         return {
           content: [
             {

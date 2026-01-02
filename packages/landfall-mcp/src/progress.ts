@@ -1,15 +1,26 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 
+export interface StepError {
+  message: string;
+  details?: Record<string, unknown>;
+  timestamp: string;
+}
+
 export interface StepProgress {
-  completedAt: string;
+  completedAt?: string;
   notes?: string;
+  errors?: StepError[];
+  retryCount?: number;
+  status: "pending" | "in_progress" | "complete" | "failed";
 }
 
 export interface BuildProgress {
   startedAt: string;
   lastUpdatedAt: string;
   completedSteps: Record<number, StepProgress>;
+  isPaused?: boolean;
+  pausedAt?: number | null;
 }
 
 const PROGRESS_FILE = ".progress.json";
@@ -60,10 +71,113 @@ export function markStepComplete(
     progress = initProgress(projectPath);
   }
 
+  const existingStep = progress.completedSteps[step];
   progress.completedSteps[step] = {
+    ...existingStep,
     completedAt: new Date().toISOString(),
     notes,
+    status: "complete",
   };
+
+  saveProgress(projectPath, progress);
+  return progress;
+}
+
+export function markStepInProgress(
+  projectPath: string,
+  step: number
+): BuildProgress {
+  let progress = loadProgress(projectPath);
+
+  if (!progress) {
+    progress = initProgress(projectPath);
+  }
+
+  const existingStep = progress.completedSteps[step];
+  progress.completedSteps[step] = {
+    ...existingStep,
+    status: "in_progress",
+  };
+
+  saveProgress(projectPath, progress);
+  return progress;
+}
+
+export function reportStepError(
+  projectPath: string,
+  step: number,
+  error: string,
+  details?: Record<string, unknown>
+): BuildProgress {
+  let progress = loadProgress(projectPath);
+
+  if (!progress) {
+    progress = initProgress(projectPath);
+  }
+
+  const existingStep = progress.completedSteps[step] || { status: "pending" };
+  const newError: StepError = {
+    message: error,
+    details,
+    timestamp: new Date().toISOString(),
+  };
+
+  progress.completedSteps[step] = {
+    ...existingStep,
+    status: "failed",
+    errors: [...(existingStep.errors || []), newError],
+  };
+
+  saveProgress(projectPath, progress);
+  return progress;
+}
+
+export function retryStep(
+  projectPath: string,
+  step: number
+): BuildProgress {
+  let progress = loadProgress(projectPath);
+
+  if (!progress) {
+    progress = initProgress(projectPath);
+  }
+
+  const existingStep = progress.completedSteps[step] || { status: "pending" };
+
+  progress.completedSteps[step] = {
+    ...existingStep,
+    status: "pending",
+    retryCount: (existingStep.retryCount || 0) + 1,
+    // Keep error history for debugging
+  };
+
+  saveProgress(projectPath, progress);
+  return progress;
+}
+
+export function pauseBuild(projectPath: string, step?: number): BuildProgress {
+  let progress = loadProgress(projectPath);
+
+  if (!progress) {
+    progress = initProgress(projectPath);
+  }
+
+  progress.isPaused = true;
+  progress.pausedAt = step || null;
+
+  saveProgress(projectPath, progress);
+  return progress;
+}
+
+export function resumeBuild(projectPath: string): BuildProgress {
+  let progress = loadProgress(projectPath);
+
+  if (!progress) {
+    progress = initProgress(projectPath);
+  }
+
+  progress.isPaused = false;
+  progress.pausedAt = null;
 
   saveProgress(projectPath, progress);
   return progress;
@@ -76,12 +190,31 @@ export function getCompletedSteps(projectPath: string): number[] {
     return [];
   }
 
-  return Object.keys(progress.completedSteps)
-    .map(Number)
+  return Object.entries(progress.completedSteps)
+    .filter(([, step]) => step.status === "complete")
+    .map(([key]) => Number(key))
+    .sort((a, b) => a - b);
+}
+
+export function getFailedSteps(projectPath: string): number[] {
+  const progress = loadProgress(projectPath);
+
+  if (!progress) {
+    return [];
+  }
+
+  return Object.entries(progress.completedSteps)
+    .filter(([, step]) => step.status === "failed")
+    .map(([key]) => Number(key))
     .sort((a, b) => a - b);
 }
 
 export function isStepComplete(projectPath: string, step: number): boolean {
   const progress = loadProgress(projectPath);
-  return progress?.completedSteps[step] !== undefined;
+  return progress?.completedSteps[step]?.status === "complete";
+}
+
+export function getStepStatus(projectPath: string, step: number): StepProgress["status"] {
+  const progress = loadProgress(projectPath);
+  return progress?.completedSteps[step]?.status || "pending";
 }
