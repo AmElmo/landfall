@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { BuildPrompt, STEPS } from "@/lib/types";
+import { BuildProgress } from "@/components/BuildProgress";
 
 // Map step slugs to icons (matching OnboardingShell)
 const STEP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -269,6 +270,9 @@ export default function BuildStep() {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Build Progress Dashboard */}
+              <BuildProgress />
+
               {/* Actions Bar */}
               <div className="flex gap-3 bg-white rounded-xl border shadow-sm p-4">
                 <Button variant="outline" onClick={copyAllPrompts} className="flex-1">
