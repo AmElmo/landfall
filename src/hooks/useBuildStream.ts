@@ -14,7 +14,8 @@ export interface UseBuildStreamReturn {
   isStarting: boolean;
   isStopping: boolean;
   error: string | null;
-  startBuild: () => void;
+  currentStep: number | null;
+  startBuild: (step?: number) => void;
   stopBuild: () => Promise<void>;
   clearOutput: () => void;
 }
@@ -25,6 +26,7 @@ export function useBuildStream(): UseBuildStreamReturn {
   const [isStarting, setIsStarting] = useState(false);
   const [isStopping, setIsStopping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<number | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const cleanup = useCallback(() => {
@@ -39,14 +41,16 @@ export function useBuildStream(): UseBuildStreamReturn {
     return cleanup;
   }, [cleanup]);
 
-  const startBuild = useCallback(() => {
+  const startBuild = useCallback((step?: number) => {
     if (isRunning || isStarting) return;
 
     setIsStarting(true);
     setError(null);
     setOutput([]);
+    setCurrentStep(step ?? null);
 
-    const eventSource = new EventSource("/api/build-stream");
+    const url = step ? `/api/build-stream?step=${step}` : "/api/build-stream";
+    const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
     eventSource.addEventListener("started", (event) => {
@@ -80,6 +84,7 @@ export function useBuildStream(): UseBuildStreamReturn {
     eventSource.addEventListener("complete", (event) => {
       const data = JSON.parse(event.data) as { exitCode: number };
       setIsRunning(false);
+      setCurrentStep(null);
       if (data.exitCode !== 0) {
         setError(`Build process exited with code ${data.exitCode}`);
       }
@@ -89,6 +94,7 @@ export function useBuildStream(): UseBuildStreamReturn {
     eventSource.addEventListener("stopped", () => {
       setIsRunning(false);
       setIsStopping(false);
+      setCurrentStep(null);
       cleanup();
     });
 
@@ -132,6 +138,7 @@ export function useBuildStream(): UseBuildStreamReturn {
     isStarting,
     isStopping,
     error,
+    currentStep,
     startBuild,
     stopBuild,
     clearOutput,

@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+import { NextRequest } from "next/server";
 import { createLock, removeLock, isBuildRunning } from "@/lib/build-lock";
 
 function getProjectPath(): string {
@@ -20,7 +21,7 @@ const MCP_CONFIG = {
   },
 };
 
-const BUILD_PROMPT = `You are building a Landfall project. Your task is to execute all build steps in sequence.
+const BUILD_ALL_PROMPT = `You are building a Landfall project. Your task is to execute all build steps in sequence.
 
 IMPORTANT: Use the Landfall MCP tools to orchestrate the build:
 
@@ -36,8 +37,29 @@ If you encounter an error:
 
 Continue until \`landfall_get_next_prompt\` returns null (all steps complete).`;
 
-export async function GET() {
+function getSingleStepPrompt(stepNumber: number): string {
+  return `You are building a Landfall project. Your task is to execute ONLY step ${stepNumber}.
+
+IMPORTANT: Use the Landfall MCP tools:
+
+1. Call \`landfall_get_prompt\` with step number ${stepNumber} to get the prompt for this specific step
+2. Execute the prompt - it will tell you what files to create/modify
+3. After successfully completing the step, call \`landfall_mark_complete\` with step number ${stepNumber} and any notes
+
+If you encounter an error:
+- Call \`landfall_report_issue\` with step number ${stepNumber} and error details
+- Try to fix the issue and retry
+
+ONLY execute step ${stepNumber}. Do not proceed to other steps.`;
+}
+
+export async function GET(request: NextRequest) {
   const projectPath = getProjectPath();
+
+  // Check for step parameter (for single-step builds)
+  const { searchParams } = new URL(request.url);
+  const stepParam = searchParams.get("step");
+  const singleStep = stepParam ? parseInt(stepParam, 10) : null;
 
   // Check if prompts exist
   const buildSequencePath = getBuildSequencePath(projectPath);
@@ -74,6 +96,11 @@ export async function GET() {
         );
       };
 
+      // Select prompt based on single step or all steps
+      const prompt = singleStep
+        ? getSingleStepPrompt(singleStep)
+        : BUILD_ALL_PROMPT;
+
       // Spawn Claude CLI
       const claudeProcess = spawn(
         "claude",
@@ -81,7 +108,7 @@ export async function GET() {
           "--mcp-config",
           JSON.stringify(MCP_CONFIG),
           "-p",
-          BUILD_PROMPT,
+          prompt,
         ],
         {
           cwd: projectPath,

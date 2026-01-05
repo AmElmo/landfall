@@ -244,6 +244,7 @@ export function BuildProgress() {
     isStarting,
     isStopping,
     error: buildError,
+    currentStep: buildingStep,
     startBuild,
     stopBuild,
     clearOutput,
@@ -466,7 +467,7 @@ export function BuildProgress() {
           {isCliAvailable && (
             <div className="space-y-3">
               <Button
-                onClick={startBuild}
+                onClick={() => startBuild()}
                 disabled={isStarting}
                 className="w-full"
                 size="lg"
@@ -682,6 +683,41 @@ export function BuildProgress() {
                         <ChevronRight className="h-3 w-3" />
                       )}
                     </button>
+                  )}
+                  {/* Build this step button - show for pending/current/failed steps when CLI available */}
+                  {isCliAvailable && step.status !== "complete" && !isBuildRunning && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startBuild(step.step);
+                            }}
+                            disabled={isStarting}
+                          >
+                            {isStarting && buildingStep === step.step ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Play className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Build this step with Claude</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {/* Show which step is being built */}
+                  {isBuildRunning && buildingStep === step.step && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-green-500/10 text-green-600 shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-green-500 animate-pulse" />
+                      Building
+                    </span>
                   )}
                 </div>
                 {step.status === "current" && (
