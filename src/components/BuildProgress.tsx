@@ -507,6 +507,53 @@ export function BuildProgress() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           )}
+
+          {/* Steps list - show all steps with per-step build buttons */}
+          {isCliAvailable && (
+            <div className="space-y-1 border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-muted-foreground">
+                  Or build individual steps:
+                </h4>
+              </div>
+              {progress.steps.map((step) => (
+                <div
+                  key={step.step}
+                  className="flex items-start gap-3 py-2 px-2 rounded-lg transition-colors hover:bg-muted/50"
+                >
+                  <StepIcon status={step.status} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm truncate">{step.name}</span>
+                      {/* Build this step button */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs shrink-0 ml-auto"
+                              onClick={() => startBuild(step.step)}
+                              disabled={isStarting}
+                            >
+                              {isStarting && buildingStep === step.step ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Play className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Build step {step.step} with Claude</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
