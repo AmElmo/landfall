@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Check,
   Circle,
@@ -17,6 +17,8 @@ import {
   Play,
   RotateCcw,
   Settings2,
+  Loader2,
+  Square,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useBuildProgress } from "@/hooks/useBuildProgress";
+import { useBuildStream } from "@/hooks/useBuildStream";
+import { BuildOutput } from "@/components/BuildOutput";
 import { cn } from "@/lib/utils";
 
 const MCP_CONFIG = {
@@ -234,10 +238,29 @@ function ProgressBar({
 
 export function BuildProgress() {
   const { progress, isLoading, error, refetch } = useBuildProgress();
+  const {
+    output,
+    isRunning: isBuildRunning,
+    isStarting,
+    isStopping,
+    error: buildError,
+    startBuild,
+    stopBuild,
+    clearOutput,
+  } = useBuildStream();
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set());
   const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set());
   const [showAllSteps, setShowAllSteps] = useState(false);
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+  const [isCliAvailable, setIsCliAvailable] = useState<boolean | null>(null);
+
+  // Check if Claude CLI is available on mount
+  useEffect(() => {
+    fetch("/api/cli-check")
+      .then((res) => res.json())
+      .then((data) => setIsCliAvailable(data.available))
+      .catch(() => setIsCliAvailable(false));
+  }, []);
 
   const handleModeChange = useCallback(
     async (newMode: "auto" | "review") => {
@@ -414,7 +437,7 @@ export function BuildProgress() {
   }
 
   // Not started state
-  if (!progress.hasProgress) {
+  if (!progress.hasProgress && !isBuildRunning && !isStarting) {
     return (
       <Card>
         <CardHeader>
@@ -427,17 +450,68 @@ export function BuildProgress() {
             </div>
             <h3 className="font-medium mb-1">Ready to Build</h3>
             <p className="text-sm text-muted-foreground">
-              {progress.totalSteps} prompts ready. Connect your AI tool to start.
+              {progress.totalSteps} prompts ready.
             </p>
           </div>
 
-          <MCPSetupInstructions onCopy={refetch} />
+          {/* Build Error Display */}
+          {buildError && (
+            <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span className="text-sm">{buildError}</span>
+            </div>
+          )}
+
+          {/* Build Button - Primary Action when CLI is available */}
+          {isCliAvailable && (
+            <div className="space-y-3">
+              <Button
+                onClick={startBuild}
+                disabled={isStarting}
+                className="w-full"
+                size="lg"
+              >
+                {isStarting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Starting Build...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Build
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Claude CLI will execute the build steps automatically
+              </p>
+            </div>
+          )}
+
+          {/* Fallback: Manual MCP Setup when CLI unavailable */}
+          {isCliAvailable === false && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-700">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span className="text-sm">Claude CLI not found. Use manual setup instead.</span>
+              </div>
+              <MCPSetupInstructions onCopy={refetch} />
+            </div>
+          )}
+
+          {/* Loading state while checking CLI */}
+          {isCliAvailable === null && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          )}
         </CardContent>
       </Card>
     );
   }
 
-  // In progress state
+  // In progress state (or build is running)
   const visibleSteps = showAllSteps ? progress.steps : progress.steps.slice(0, 10);
   const hasMoreSteps = progress.steps.length > 10;
 
@@ -447,13 +521,19 @@ export function BuildProgress() {
         <CardTitle className="text-lg flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span>Build Progress</span>
-            {progress.isPaused && (
+            {isBuildRunning && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/10 text-green-600 text-xs font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                Running
+              </span>
+            )}
+            {progress.isPaused && !isBuildRunning && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-medium">
                 <Pause className="h-3 w-3" />
                 Paused
               </span>
             )}
-            {progress.isStale && !progress.isPaused && (
+            {progress.isStale && !progress.isPaused && !isBuildRunning && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -469,11 +549,51 @@ export function BuildProgress() {
               </TooltipProvider>
             )}
           </div>
-          <ModeToggle mode={progress.mode} onModeChange={handleModeChange} />
+          <div className="flex items-center gap-3">
+            {isBuildRunning && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={stopBuild}
+                disabled={isStopping}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                {isStopping ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    Stopping...
+                  </>
+                ) : (
+                  <>
+                    <Square className="h-3.5 w-3.5 mr-1.5" />
+                    Stop Build
+                  </>
+                )}
+              </Button>
+            )}
+            <ModeToggle mode={progress.mode} onModeChange={handleModeChange} />
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <ProgressBar percent={progress.percentComplete} isComplete={false} />
+
+        {/* Build Error Display */}
+        {buildError && (
+          <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span className="text-sm">{buildError}</span>
+          </div>
+        )}
+
+        {/* Streaming Output */}
+        {(isBuildRunning || output.length > 0) && (
+          <BuildOutput
+            output={output}
+            isRunning={isBuildRunning}
+            onClear={clearOutput}
+          />
+        )}
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
           <div className="flex items-center gap-1.5">
