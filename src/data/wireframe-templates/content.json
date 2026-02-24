@@ -1,0 +1,95 @@
+{
+  "sectionType": "content",
+  "templates": [
+    {
+      "id": "content-three-cards",
+      "name": "Three Cards",
+      "sectionType": "content",
+      "description": "Three blog post or article cards in a row",
+      "structure": "3-column-grid",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        { "type": "subheading", "size": "medium", "align": "center", "role": "section-subtitle" },
+        {
+          "type": "card",
+          "repeat": 3,
+          "children": [
+            { "type": "image", "size": "medium", "role": "post-thumbnail" },
+            { "type": "label", "size": "small", "role": "post-category" },
+            { "type": "heading", "size": "small", "role": "post-title" },
+            { "type": "paragraph", "size": "small", "role": "post-excerpt" },
+            { "type": "label", "size": "small", "role": "post-date" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "content-featured-grid",
+      "name": "Featured + Grid",
+      "sectionType": "content",
+      "description": "One large featured post with smaller posts grid",
+      "structure": "content-featured",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "size": "large",
+          "children": [
+            { "type": "image", "size": "large", "role": "featured-thumbnail" },
+            { "type": "label", "size": "small", "role": "post-category" },
+            { "type": "heading", "size": "medium", "role": "post-title" },
+            { "type": "paragraph", "size": "medium", "role": "post-excerpt" }
+          ]
+        },
+        {
+          "type": "card",
+          "repeat": 2,
+          "children": [
+            { "type": "image", "size": "small", "role": "post-thumbnail" },
+            { "type": "heading", "size": "small", "role": "post-title" },
+            { "type": "label", "size": "small", "role": "post-date" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "content-list",
+      "name": "List",
+      "sectionType": "content",
+      "description": "Vertical list of posts with thumbnails",
+      "structure": "content-list",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "list",
+          "repeat": 4,
+          "children": [
+            { "type": "image", "size": "small", "role": "post-thumbnail" },
+            { "type": "heading", "size": "small", "role": "post-title" },
+            { "type": "paragraph", "size": "small", "role": "post-excerpt" },
+            { "type": "label", "size": "small", "role": "post-date" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "content-carousel",
+      "name": "Carousel",
+      "sectionType": "content",
+      "description": "Sliding carousel of content cards",
+      "structure": "carousel",
+      "elements": [
+        { "type": "heading", "size": "large", "align": "center", "role": "section-title" },
+        {
+          "type": "card",
+          "repeat": 4,
+          "children": [
+            { "type": "image", "size": "medium", "role": "post-thumbnail" },
+            { "type": "heading", "size": "small", "role": "post-title" },
+            { "type": "paragraph", "size": "small", "role": "post-excerpt" }
+          ]
+        }
+      ]
+    }
+  ]
+}

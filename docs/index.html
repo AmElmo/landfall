@@ -5,241 +5,502 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Landfall &mdash; Design your landing page spec, then let AI build it</title>
   <meta name="description" content="A CLI tool that guides you through a structured wizard to spec out a landing page, then generates AI-ready prompts for any coding tool.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
-      --bg:#fafaf9;
-      --fg:#1c1917;
-      --muted:#78716c;
-      --accent:#ea580c;
-      --accent-light:#fed7aa;
-      --surface:#ffffff;
-      --border:#e7e5e4;
-      --radius:10px;
-      --max-w:720px;
+      --bg:#09090b;
+      --bg-subtle:#18181b;
+      --fg:#fafafa;
+      --fg-muted:#a1a1aa;
+      --accent:#f97316;
+      --accent-glow:rgba(249,115,22,0.15);
+      --surface:#1c1c21;
+      --border:#27272a;
+      --border-light:#3f3f46;
+      --radius:12px;
+      --radius-lg:16px;
+      --max-w:1080px;
     }
+    html{scroll-behavior:smooth}
     body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      font-family:'Inter',system-ui,-apple-system,sans-serif;
       background:var(--bg);color:var(--fg);
-      line-height:1.65;
+      line-height:1.6;
       -webkit-font-smoothing:antialiased;
+      overflow-x:hidden;
     }
 
-    /* --- Header --- */
-    header{
-      text-align:center;
-      padding:5rem 1.5rem 3rem;
-    }
-    header h1{
-      font-size:2.8rem;font-weight:700;letter-spacing:-0.03em;
-      margin-bottom:0.5rem;
-    }
-    header h1 span{color:var(--accent)}
-    header p.tagline{
-      font-size:1.2rem;color:var(--muted);max-width:520px;margin:0 auto 2rem;
+    /* --- Glow backgrounds --- */
+    .glow-top{
+      position:absolute;top:-200px;left:50%;transform:translateX(-50%);
+      width:800px;height:500px;
+      background:radial-gradient(ellipse at center,rgba(249,115,22,0.08) 0%,transparent 70%);
+      pointer-events:none;z-index:0;
     }
 
-    /* --- Code block --- */
-    .install-block{
-      background:#1c1917;color:#e7e5e4;
-      font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
-      font-size:0.9rem;
-      padding:1rem 1.5rem;
-      border-radius:var(--radius);
-      display:inline-block;
-      text-align:left;
-      line-height:1.8;
+    /* --- Nav --- */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      backdrop-filter:blur(16px);
+      background:rgba(9,9,11,0.8);
+      border-bottom:1px solid var(--border);
     }
-    .install-block .prompt{color:#78716c}
-    .install-block .cmd{color:#fdba74}
-
-    /* --- Screenshot placeholder --- */
-    .screenshot{
-      max-width:var(--max-w);
-      margin:3rem auto;
-      padding:0 1.5rem;
+    nav .nav-inner{
+      max-width:var(--max-w);margin:0 auto;
+      padding:0.75rem 1.5rem;
+      display:flex;align-items:center;justify-content:space-between;
     }
-    .screenshot-placeholder{
-      background:var(--surface);
-      border:2px dashed var(--border);
-      border-radius:var(--radius);
-      aspect-ratio:16/9;
-      display:flex;align-items:center;justify-content:center;
-      color:var(--muted);font-size:0.95rem;
+    nav .logo{
+      font-size:1.1rem;font-weight:700;color:var(--fg);text-decoration:none;
+      letter-spacing:-0.02em;
     }
-
-    /* --- Sections --- */
-    section{
-      max-width:var(--max-w);
-      margin:0 auto;
-      padding:3rem 1.5rem;
+    nav .logo span{color:var(--accent)}
+    nav .nav-links{display:flex;gap:1.5rem;align-items:center}
+    nav .nav-links a{
+      color:var(--fg-muted);text-decoration:none;font-size:0.875rem;font-weight:500;
+      transition:color 0.15s;
     }
-    section h2{
-      font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;
-      margin-bottom:1.5rem;
-    }
-
-    /* --- How it works --- */
-    .steps{
-      display:grid;gap:1.25rem;
-    }
-    .step{
-      display:grid;
-      grid-template-columns:2.5rem 1fr;
-      gap:0 1rem;
-      align-items:start;
-    }
-    .step-number{
-      width:2.5rem;height:2.5rem;
-      background:var(--accent);color:#fff;
-      border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;font-size:0.9rem;
-      flex-shrink:0;
-    }
-    .step-content h3{font-size:1rem;font-weight:600;margin-bottom:0.15rem}
-    .step-content p{color:var(--muted);font-size:0.92rem}
-
-    /* --- Feature grid --- */
-    .features{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:1.25rem;
-    }
-    .feature-card{
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:1.5rem;
-    }
-    .feature-card h3{font-size:1rem;font-weight:600;margin-bottom:0.4rem}
-    .feature-card p{color:var(--muted);font-size:0.9rem}
-
-    /* --- CTA --- */
-    .cta-section{
-      text-align:center;
-      padding:4rem 1.5rem;
-    }
-    .cta-section p{color:var(--muted);margin-bottom:1.5rem;font-size:1.05rem}
-    .btn{
-      display:inline-block;
-      background:var(--fg);color:#fff;
-      padding:0.75rem 2rem;
-      border-radius:var(--radius);
-      text-decoration:none;
-      font-weight:600;font-size:0.95rem;
+    nav .nav-links a:hover{color:var(--fg)}
+    nav .nav-cta{
+      background:var(--fg);color:var(--bg);
+      padding:0.45rem 1rem;border-radius:8px;
+      font-size:0.8rem;font-weight:600;text-decoration:none;
       transition:opacity 0.15s;
     }
-    .btn:hover{opacity:0.85}
-    .btn-secondary{
-      background:transparent;color:var(--fg);
-      border:1px solid var(--border);
-      margin-left:0.75rem;
+    nav .nav-cta:hover{opacity:0.9}
+
+    /* --- Hero --- */
+    .hero{
+      position:relative;
+      text-align:center;
+      padding:8rem 1.5rem 4rem;
+      max-width:var(--max-w);margin:0 auto;
     }
-    .btn-secondary:hover{background:var(--surface)}
+    .badge{
+      display:inline-flex;align-items:center;gap:0.5rem;
+      background:var(--accent-glow);
+      border:1px solid rgba(249,115,22,0.25);
+      color:var(--accent);
+      padding:0.35rem 0.9rem;border-radius:100px;
+      font-size:0.8rem;font-weight:600;
+      margin-bottom:1.5rem;
+    }
+    .badge::before{
+      content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;
+    }
+    .hero h1{
+      font-size:clamp(2.5rem,5.5vw,4rem);
+      font-weight:800;letter-spacing:-0.04em;
+      line-height:1.1;
+      margin-bottom:1.25rem;
+    }
+    .hero h1 .gradient{
+      background:linear-gradient(135deg,var(--accent),#fb923c,#fbbf24);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .hero .subtitle{
+      font-size:1.15rem;color:var(--fg-muted);
+      max-width:560px;margin:0 auto 2.5rem;
+      line-height:1.7;
+    }
+    .hero-actions{
+      display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;
+      margin-bottom:1.5rem;
+    }
+    .hero-actions .btn-primary{
+      background:var(--accent);color:#fff;
+      padding:0.7rem 1.75rem;border-radius:10px;
+      font-weight:600;font-size:0.95rem;text-decoration:none;
+      transition:all 0.15s;
+      box-shadow:0 0 20px rgba(249,115,22,0.25);
+    }
+    .hero-actions .btn-primary:hover{
+      box-shadow:0 0 30px rgba(249,115,22,0.4);
+      transform:translateY(-1px);
+    }
+    .hero-actions .btn-ghost{
+      background:transparent;color:var(--fg);
+      border:1px solid var(--border-light);
+      padding:0.7rem 1.75rem;border-radius:10px;
+      font-weight:600;font-size:0.95rem;text-decoration:none;
+      transition:all 0.15s;
+    }
+    .hero-actions .btn-ghost:hover{
+      background:var(--surface);border-color:var(--fg-muted);
+    }
+
+    /* --- Install command --- */
+    .install-cmd{
+      display:inline-flex;align-items:center;gap:0.75rem;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:0.6rem 1.25rem;
+      font-family:'SF Mono',SFMono-Regular,ui-monospace,Menlo,monospace;
+      font-size:0.85rem;
+      color:var(--fg-muted);
+      margin-bottom:3rem;
+    }
+    .install-cmd code{color:#fb923c}
+    .install-cmd .sep{color:var(--border-light);margin:0 0.25rem}
+
+    /* --- Screenshot showcase --- */
+    .showcase{
+      max-width:var(--max-w);margin:0 auto;
+      padding:0 1.5rem;
+    }
+    .showcase-card{
+      position:relative;
+      background:linear-gradient(145deg,var(--surface),var(--bg-subtle));
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+      padding:2px;
+    }
+    .showcase-card img,
+    .showcase-card video{
+      width:100%;display:block;
+      border-radius:calc(var(--radius-lg) - 2px);
+    }
+    .showcase-card video{margin-top:0}
+
+    /* --- Screenshot gallery --- */
+    .gallery{
+      max-width:var(--max-w);margin:0 auto;
+      padding:3rem 1.5rem 0;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:1.25rem;
+    }
+    .gallery-item{
+      position:relative;
+      background:linear-gradient(145deg,var(--surface),var(--bg-subtle));
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+      padding:2px;
+    }
+    .gallery-item img{
+      width:100%;display:block;
+      border-radius:calc(var(--radius-lg) - 2px);
+    }
+    .gallery-label{
+      position:absolute;bottom:0;left:0;right:0;
+      padding:1.25rem 1.5rem 1rem;
+      background:linear-gradient(transparent,rgba(9,9,11,0.85));
+      border-radius:0 0 calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px);
+    }
+    .gallery-label h3{font-size:0.9rem;font-weight:600;margin-bottom:0.15rem}
+    .gallery-label p{font-size:0.8rem;color:var(--fg-muted)}
+
+    /* --- Section layout --- */
+    section{
+      max-width:var(--max-w);margin:0 auto;
+      padding:5rem 1.5rem;
+    }
+    .section-header{
+      text-align:center;
+      margin-bottom:3rem;
+    }
+    .section-header .label{
+      font-size:0.8rem;font-weight:600;
+      color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;
+      margin-bottom:0.75rem;
+    }
+    .section-header h2{
+      font-size:clamp(1.75rem,3vw,2.25rem);
+      font-weight:700;letter-spacing:-0.03em;
+      margin-bottom:0.75rem;
+    }
+    .section-header p{
+      color:var(--fg-muted);max-width:520px;margin:0 auto;font-size:0.95rem;
+    }
+
+    /* --- How it works (timeline) --- */
+    .timeline{
+      display:grid;gap:0;
+      position:relative;
+      max-width:560px;margin:0 auto;
+    }
+    .timeline::before{
+      content:'';position:absolute;
+      left:19px;top:28px;bottom:28px;
+      width:2px;background:var(--border);
+    }
+    .timeline-step{
+      display:grid;
+      grid-template-columns:40px 1fr;
+      gap:0 1.25rem;
+      align-items:start;
+      padding:1rem 0;
+    }
+    .timeline-dot{
+      width:40px;height:40px;
+      background:var(--surface);
+      border:2px solid var(--border);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:0.8rem;
+      color:var(--accent);
+      position:relative;z-index:1;
+    }
+    .timeline-step:first-child .timeline-dot{
+      background:var(--accent);color:#fff;border-color:var(--accent);
+    }
+    .timeline-body h3{
+      font-size:1rem;font-weight:600;margin-bottom:0.25rem;
+    }
+    .timeline-body p{
+      color:var(--fg-muted);font-size:0.9rem;line-height:1.6;
+    }
+    .timeline-body code{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:5px;padding:0.1em 0.4em;
+      font-size:0.82rem;font-family:'SF Mono',SFMono-Regular,ui-monospace,monospace;
+      color:#fb923c;
+    }
+
+    /* --- Feature grid --- */
+    .features-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:1px;
+      background:var(--border);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+    }
+    .feature{
+      background:var(--bg);
+      padding:1.75rem;
+    }
+    .feature-icon{
+      width:36px;height:36px;
+      background:var(--accent-glow);
+      border:1px solid rgba(249,115,22,0.2);
+      border-radius:9px;
+      display:flex;align-items:center;justify-content:center;
+      margin-bottom:1rem;
+      font-size:1rem;
+    }
+    .feature h3{
+      font-size:0.95rem;font-weight:600;margin-bottom:0.35rem;
+    }
+    .feature p{
+      color:var(--fg-muted);font-size:0.85rem;line-height:1.6;
+    }
+
+    /* --- CTA --- */
+    .cta{
+      text-align:center;
+      padding:5rem 1.5rem;
+      position:relative;
+    }
+    .cta .glow-bottom{
+      position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);
+      width:600px;height:400px;
+      background:radial-gradient(ellipse at center,rgba(249,115,22,0.06) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .cta h2{
+      font-size:clamp(1.75rem,3vw,2.25rem);
+      font-weight:700;letter-spacing:-0.03em;
+      margin-bottom:0.75rem;
+    }
+    .cta p{
+      color:var(--fg-muted);margin-bottom:2rem;font-size:1rem;
+    }
+    .cta .cta-actions{
+      display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;
+    }
 
     /* --- Footer --- */
     footer{
+      border-top:1px solid var(--border);
       text-align:center;
       padding:2rem 1.5rem;
-      color:var(--muted);
-      font-size:0.85rem;
-      border-top:1px solid var(--border);
+      color:var(--fg-muted);
+      font-size:0.8rem;
     }
-    footer a{color:var(--muted);text-decoration:underline}
+    footer a{color:var(--fg-muted);text-decoration:none;transition:color 0.15s}
+    footer a:hover{color:var(--fg)}
 
     /* --- Mobile --- */
-    @media(max-width:600px){
-      header h1{font-size:2rem}
-      header p.tagline{font-size:1.05rem}
-      .features{grid-template-columns:1fr}
+    @media(max-width:640px){
+      .hero{padding-top:6rem}
+      .gallery{grid-template-columns:1fr}
+      nav .nav-links a:not(.nav-cta){display:none}
+      .features-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <!-- TODO: Replace with actual logo -->
-    <h1><span>Landfall</span></h1>
-    <p class="tagline">
-      A CLI wizard that turns your landing page vision into structured, AI-ready prompts. Design the spec, then let your AI coding tool build it.
-    </p>
-    <div class="install-block">
-      <span class="prompt">$</span> <span class="cmd">npx landfall init</span><br>
-      <span class="prompt">$</span> <span class="cmd">npx landfall dev</span>
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo"><span>Landfall</span></a>
+      <div class="nav-links">
+        <a href="#how-it-works">How it works</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/AmElmo/landfall" class="nav-cta">GitHub</a>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <!-- Demo -->
-  <div class="screenshot">
-    <img src="../.github/assets/demo.gif" alt="Landfall wizard demo" style="width:100%;border-radius:var(--radius);border:1px solid var(--border)">
-    <video src="../.github/assets/demo.mp4" controls style="width:100%;border-radius:var(--radius);border:1px solid var(--border);margin-top:1rem"></video>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="glow-top"></div>
+    <div class="badge">Open Source</div>
+    <h1>Design your landing page.<br><span class="gradient">Let AI build it.</span></h1>
+    <p class="subtitle">
+      A CLI wizard that turns your landing page vision into structured, AI-ready prompts. Walk through 8 guided steps, then feed the output to any AI coding tool.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/AmElmo/landfall" class="btn-primary">Get Started</a>
+      <a href="#how-it-works" class="btn-ghost">See how it works</a>
+    </div>
+    <div class="install-cmd">
+      <code>npx landfall init</code>
+      <span class="sep">&amp;&amp;</span>
+      <code>npx landfall dev</code>
+    </div>
   </div>
 
-  <section>
-    <h2>How it works</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-number">1</div>
-        <div class="step-content">
+  <!-- Demo -->
+  <div class="showcase">
+    <div class="showcase-card">
+      <video src="assets/demo.mp4" autoplay muted loop playsinline></video>
+    </div>
+  </div>
+
+  <!-- Screenshots -->
+  <div class="gallery">
+    <div class="gallery-item">
+      <img src="assets/screenshot-style.png" alt="Style step - Choose color palettes, fonts, and visual keywords" loading="lazy">
+      <div class="gallery-label">
+        <h3>Style System</h3>
+        <p>42 palettes, Google Fonts, visual keywords</p>
+      </div>
+    </div>
+    <div class="gallery-item">
+      <img src="assets/screenshot-sections.png" alt="Sections step - Pick from 60 layout templates" loading="lazy">
+      <div class="gallery-label">
+        <h3>Section Layouts</h3>
+        <p>12 types with 5 variants each</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <section id="how-it-works">
+    <div class="section-header">
+      <div class="label">How it works</div>
+      <h2>From vision to code in four steps</h2>
+      <p>No vague prompts. No generic results. Just a structured spec that AI tools can actually follow.</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-step">
+        <div class="timeline-dot">1</div>
+        <div class="timeline-body">
           <h3>Initialize</h3>
-          <p>Run <code>npx landfall init</code> in your project. Creates a <code>landfall/</code> directory with template config files.</p>
+          <p>Run <code>npx landfall init</code> to scaffold a <code>landfall/</code> directory with template config files.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <div class="step-content">
+      <div class="timeline-step">
+        <div class="timeline-dot">2</div>
+        <div class="timeline-body">
           <h3>Design your spec</h3>
           <p>Walk through 8 guided steps: style, tone, sitemap, sections, copy, navigation, preview, and build. Every change saves to JSON in real time.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <div class="step-content">
+      <div class="timeline-step">
+        <div class="timeline-dot">3</div>
+        <div class="timeline-body">
           <h3>Generate prompts</h3>
-          <p>Click Build. Landfall produces a sequence of focused prompts &mdash; style system, layout, then each section individually.</p>
+          <p>Click Build. Landfall produces a sequence of focused, self-contained prompts &mdash; style system, layout, then each section individually.</p>
         </div>
       </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <div class="step-content">
+      <div class="timeline-step">
+        <div class="timeline-dot">4</div>
+        <div class="timeline-body">
           <h3>Feed to your AI tool</h3>
-          <p>Copy the prompts into Claude Code, Cursor, Windsurf, or any AI coding tool. One at a time, in order. Watch your landing page come to life.</p>
+          <p>Copy the prompts into Claude Code, Cursor, Windsurf, or any AI coding tool. One at a time, in order.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
-    <h2>What you get</h2>
-    <div class="features">
-      <div class="feature-card">
-        <h3>8-step wizard</h3>
-        <p>Guided flow covering colors, fonts, tone, page structure, sections, navigation, wireframe preview, and prompt generation.</p>
+  <!-- Features -->
+  <section id="features">
+    <div class="section-header">
+      <div class="label">Features</div>
+      <h2>Everything you need to spec a landing page</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="16" height="16" rx="3"/><path d="M1 6h16"/></svg>
+        </div>
+        <h3>8-Step Wizard</h3>
+        <p>Guided flow covering colors, fonts, tone, structure, sections, nav, preview, and build.</p>
       </div>
-      <div class="feature-card">
-        <h3>60 layout options</h3>
-        <p>12 section types (hero, features, pricing, FAQ, testimonials...) with 5 layout variants each. Pick the right structure visually.</p>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="7" height="7" rx="1"/><rect x="10" y="1" width="7" height="7" rx="1"/><rect x="1" y="10" width="7" height="7" rx="1"/><rect x="10" y="10" width="7" height="7" rx="1"/></svg>
+        </div>
+        <h3>60 Layout Options</h3>
+        <p>12 section types &mdash; hero, features, pricing, FAQ, testimonials &mdash; with 5 layout variants each.</p>
       </div>
-      <div class="feature-card">
-        <h3>MCP integration</h3>
-        <p>Optional Model Context Protocol server lets AI tools pull prompts and report progress automatically. No more copy-paste.</p>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1v16M1 9h16"/></svg>
+        </div>
+        <h3>MCP Integration</h3>
+        <p>Optional Model Context Protocol server lets AI tools pull prompts and report progress automatically.</p>
       </div>
-      <div class="feature-card">
-        <h3>Fully local</h3>
-        <p>No accounts, no cloud, no telemetry. Everything lives as JSON files in your project directory. Works offline.</p>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17a8 8 0 100-16 8 8 0 000 16z"/><path d="M5 9l3 3 5-5"/></svg>
+        </div>
+        <h3>Fully Local</h3>
+        <p>No accounts, no cloud, no telemetry. Everything lives as JSON files in your project. Works offline.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h14M2 9h14M2 15h10"/></svg>
+        </div>
+        <h3>Real-Time Preview</h3>
+        <p>See wireframe previews across desktop, tablet, and mobile before generating any prompts.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <svg width="18" height="18" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 1v16l6-4 6 4V1z"/></svg>
+        </div>
+        <h3>JSON Config</h3>
+        <p>Edit via UI or files directly &mdash; changes sync both ways. Full version control on your spec.</p>
       </div>
     </div>
   </section>
 
-  <div class="cta-section">
-    <p>Open source. MIT licensed. Ready to use.</p>
-    <a href="https://github.com/AmElmo/landfall" class="btn">View on GitHub</a>
-    <a href="https://github.com/AmElmo/landfall#quick-start" class="btn btn-secondary">Quick Start</a>
+  <!-- CTA -->
+  <div class="cta">
+    <div class="glow-bottom"></div>
+    <h2>Ready to build?</h2>
+    <p>Open source. MIT licensed. No sign-up required.</p>
+    <div class="cta-actions">
+      <a href="https://github.com/AmElmo/landfall" class="btn-primary" style="text-decoration:none">View on GitHub</a>
+      <a href="https://github.com/AmElmo/landfall#quick-start" class="btn-ghost" style="text-decoration:none">Quick Start Guide</a>
+    </div>
   </div>
 
+  <!-- Footer -->
   <footer>
-    <p>Built by <a href="https://github.com/AmElmo">Your Name</a> &middot; <a href="https://github.com/AmElmo/landfall">GitHub</a></p>
+    <p>Built by <a href="https://github.com/AmElmo">AmElmo</a> &middot; <a href="https://github.com/AmElmo/landfall">GitHub</a> &middot; MIT License</p>
   </footer>
 
 </body>

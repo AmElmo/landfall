@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       if (templateCache[cacheKey]) return templateCache[cacheKey];
 
       try {
-        const templatePath = path.join(landfallDir, "wireframe-templates", `${sectionType}.json`);
+        const templatePath = path.join(process.cwd(), "src", "data", "wireframe-templates", `${sectionType}.json`);
         const templateData = await fs.readFile(templatePath, "utf-8").then(JSON.parse);
         const template = templateData.templates?.find((t: any) => t.id === templateId);
         if (template) {
