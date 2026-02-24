@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
-function getLandfallDir(): string {
-  const projectPath = process.env.LANDFALL_PROJECT_PATH || process.cwd();
-  return path.join(projectPath, "landfall");
+function getWireframeTemplatesDir(): string {
+  return path.join(process.cwd(), "src", "data", "wireframe-templates");
 }
 
 export async function GET(
@@ -13,8 +12,8 @@ export async function GET(
 ) {
   try {
     const { sectionType } = await params;
-    const landfallDir = getLandfallDir();
-    const filePath = path.join(landfallDir, "wireframe-templates", `${sectionType}.json`);
+    const templatesDir = getWireframeTemplatesDir();
+    const filePath = path.join(templatesDir, `${sectionType}.json`);
 
     const content = await fs.readFile(filePath, "utf-8");
     return NextResponse.json(JSON.parse(content));

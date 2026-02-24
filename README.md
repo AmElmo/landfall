@@ -28,6 +28,18 @@ Landfall is a CLI tool that guides you through a structured wizard to fully spec
   <em>Full demo (45s)</em>
 </p>
 
+<p align="center">
+  <img src=".github/assets/screenshot-style.png" width="700" alt="Style step - Choose color palettes, fonts, and visual keywords">
+  <br>
+  <em>Step 1: Define your style &mdash; 42 color palettes, Google Fonts, visual keywords</em>
+</p>
+
+<p align="center">
+  <img src=".github/assets/screenshot-sections.png" width="700" alt="Sections step - Pick from 60 layout templates">
+  <br>
+  <em>Step 4: Choose sections &mdash; 12 types with 5 layout variants each</em>
+</p>
+
 ## Quick Start
 
 ```sh

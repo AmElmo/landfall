@@ -129,6 +129,7 @@ const SECTION_TYPES_WITH_TEMPLATES: SectionType[] = [
 // Zoom levels for canvas
 const ZOOM_LEVELS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 const DEFAULT_ZOOM = 0.75;
+const EMPTY_SECTIONS: Section[] = [];
 
 export default function SectionsStep() {
   const router = useRouter();
@@ -145,7 +146,7 @@ export default function SectionsStep() {
   const totalSteps = STEPS.length;
 
   const currentPage = pages[selectedPageSlug];
-  const sections = currentPage?.sections || [];
+  const sections = currentPage?.sections || EMPTY_SECTIONS;
 
   // Use the sortable hook for smooth drag-and-drop
   const handleReorderSections = useCallback((newSections: Section[]) => {
