@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landfall &mdash; Design your landing page spec, then let AI build it</title>
+  <meta name="description" content="A CLI tool that guides you through a structured wizard to spec out a landing page, then generates AI-ready prompts for any coding tool.">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#fafaf9;
+      --fg:#1c1917;
+      --muted:#78716c;
+      --accent:#ea580c;
+      --accent-light:#fed7aa;
+      --surface:#ffffff;
+      --border:#e7e5e4;
+      --radius:10px;
+      --max-w:720px;
+    }
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+      background:var(--bg);color:var(--fg);
+      line-height:1.65;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* --- Header --- */
+    header{
+      text-align:center;
+      padding:5rem 1.5rem 3rem;
+    }
+    header h1{
+      font-size:2.8rem;font-weight:700;letter-spacing:-0.03em;
+      margin-bottom:0.5rem;
+    }
+    header h1 span{color:var(--accent)}
+    header p.tagline{
+      font-size:1.2rem;color:var(--muted);max-width:520px;margin:0 auto 2rem;
+    }
+
+    /* --- Code block --- */
+    .install-block{
+      background:#1c1917;color:#e7e5e4;
+      font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+      font-size:0.9rem;
+      padding:1rem 1.5rem;
+      border-radius:var(--radius);
+      display:inline-block;
+      text-align:left;
+      line-height:1.8;
+    }
+    .install-block .prompt{color:#78716c}
+    .install-block .cmd{color:#fdba74}
+
+    /* --- Screenshot placeholder --- */
+    .screenshot{
+      max-width:var(--max-w);
+      margin:3rem auto;
+      padding:0 1.5rem;
+    }
+    .screenshot-placeholder{
+      background:var(--surface);
+      border:2px dashed var(--border);
+      border-radius:var(--radius);
+      aspect-ratio:16/9;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--muted);font-size:0.95rem;
+    }
+
+    /* --- Sections --- */
+    section{
+      max-width:var(--max-w);
+      margin:0 auto;
+      padding:3rem 1.5rem;
+    }
+    section h2{
+      font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;
+      margin-bottom:1.5rem;
+    }
+
+    /* --- How it works --- */
+    .steps{
+      display:grid;gap:1.25rem;
+    }
+    .step{
+      display:grid;
+      grid-template-columns:2.5rem 1fr;
+      gap:0 1rem;
+      align-items:start;
+    }
+    .step-number{
+      width:2.5rem;height:2.5rem;
+      background:var(--accent);color:#fff;
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:0.9rem;
+      flex-shrink:0;
+    }
+    .step-content h3{font-size:1rem;font-weight:600;margin-bottom:0.15rem}
+    .step-content p{color:var(--muted);font-size:0.92rem}
+
+    /* --- Feature grid --- */
+    .features{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:1.25rem;
+    }
+    .feature-card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.5rem;
+    }
+    .feature-card h3{font-size:1rem;font-weight:600;margin-bottom:0.4rem}
+    .feature-card p{color:var(--muted);font-size:0.9rem}
+
+    /* --- CTA --- */
+    .cta-section{
+      text-align:center;
+      padding:4rem 1.5rem;
+    }
+    .cta-section p{color:var(--muted);margin-bottom:1.5rem;font-size:1.05rem}
+    .btn{
+      display:inline-block;
+      background:var(--fg);color:#fff;
+      padding:0.75rem 2rem;
+      border-radius:var(--radius);
+      text-decoration:none;
+      font-weight:600;font-size:0.95rem;
+      transition:opacity 0.15s;
+    }
+    .btn:hover{opacity:0.85}
+    .btn-secondary{
+      background:transparent;color:var(--fg);
+      border:1px solid var(--border);
+      margin-left:0.75rem;
+    }
+    .btn-secondary:hover{background:var(--surface)}
+
+    /* --- Footer --- */
+    footer{
+      text-align:center;
+      padding:2rem 1.5rem;
+      color:var(--muted);
+      font-size:0.85rem;
+      border-top:1px solid var(--border);
+    }
+    footer a{color:var(--muted);text-decoration:underline}
+
+    /* --- Mobile --- */
+    @media(max-width:600px){
+      header h1{font-size:2rem}
+      header p.tagline{font-size:1.05rem}
+      .features{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <!-- TODO: Replace with actual logo -->
+    <h1><span>Landfall</span></h1>
+    <p class="tagline">
+      A CLI wizard that turns your landing page vision into structured, AI-ready prompts. Design the spec, then let your AI coding tool build it.
+    </p>
+    <div class="install-block">
+      <span class="prompt">$</span> <span class="cmd">npx landfall init</span><br>
+      <span class="prompt">$</span> <span class="cmd">npx landfall dev</span>
+    </div>
+  </header>
+
+  <!-- Demo -->
+  <div class="screenshot">
+    <img src="../.github/assets/demo.gif" alt="Landfall wizard demo" style="width:100%;border-radius:var(--radius);border:1px solid var(--border)">
+    <video src="../.github/assets/demo.mp4" controls style="width:100%;border-radius:var(--radius);border:1px solid var(--border);margin-top:1rem"></video>
+  </div>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Initialize</h3>
+          <p>Run <code>npx landfall init</code> in your project. Creates a <code>landfall/</code> directory with template config files.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Design your spec</h3>
+          <p>Walk through 8 guided steps: style, tone, sitemap, sections, copy, navigation, preview, and build. Every change saves to JSON in real time.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Generate prompts</h3>
+          <p>Click Build. Landfall produces a sequence of focused prompts &mdash; style system, layout, then each section individually.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Feed to your AI tool</h3>
+          <p>Copy the prompts into Claude Code, Cursor, Windsurf, or any AI coding tool. One at a time, in order. Watch your landing page come to life.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What you get</h2>
+    <div class="features">
+      <div class="feature-card">
+        <h3>8-step wizard</h3>
+        <p>Guided flow covering colors, fonts, tone, page structure, sections, navigation, wireframe preview, and prompt generation.</p>
+      </div>
+      <div class="feature-card">
+        <h3>60 layout options</h3>
+        <p>12 section types (hero, features, pricing, FAQ, testimonials...) with 5 layout variants each. Pick the right structure visually.</p>
+      </div>
+      <div class="feature-card">
+        <h3>MCP integration</h3>
+        <p>Optional Model Context Protocol server lets AI tools pull prompts and report progress automatically. No more copy-paste.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Fully local</h3>
+        <p>No accounts, no cloud, no telemetry. Everything lives as JSON files in your project directory. Works offline.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-section">
+    <p>Open source. MIT licensed. Ready to use.</p>
+    <a href="https://github.com/AmElmo/landfall" class="btn">View on GitHub</a>
+    <a href="https://github.com/AmElmo/landfall#quick-start" class="btn btn-secondary">Quick Start</a>
+  </div>
+
+  <footer>
+    <p>Built by <a href="https://github.com/AmElmo">Your Name</a> &middot; <a href="https://github.com/AmElmo/landfall">GitHub</a></p>
+  </footer>
+
+</body>
+</html>
