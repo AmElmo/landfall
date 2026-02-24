@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/assets/logo.svg" width="64" height="64" alt="Landfall logo">
+</p>
+
 <h1 align="center">Landfall</h1>
 
 <p align="center">
