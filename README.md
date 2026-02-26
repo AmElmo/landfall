@@ -18,30 +18,18 @@
 
 ---
 
-Landfall is a CLI tool that guides you through a structured wizard to fully spec out a landing page &mdash; style, tone, layout, sections, copy &mdash; then generates a sequence of focused prompts you feed to any AI coding tool. Instead of vague one-shot prompts that produce generic results, you get step-by-step instructions that reference a complete specification.
-
 <p align="center">
   <img src=".github/assets/demo.gif" width="700" alt="Landfall wizard demo">
   <br>
   <em>8-step wizard &rarr; structured spec &rarr; AI-ready prompts</em>
 </p>
 
+Landfall is a CLI tool that guides you through a structured wizard to fully spec out a landing page &mdash; style, tone, layout, sections, copy &mdash; then generates a sequence of focused prompts you feed to any AI coding tool. Instead of vague one-shot prompts that produce generic results, you get step-by-step instructions that reference a complete specification.
+
 
 https://github.com/user-attachments/assets/aa97324d-e79e-4a5f-9e1b-939d1e9af618
 
   <em>Full demo (45s)</em>
-</p>
-
-<p align="center">
-  <img src=".github/assets/screenshot-style.png" width="700" alt="Style step - Choose color palettes, fonts, and visual keywords">
-  <br>
-  <em>Step 1: Define your style &mdash; 42 color palettes, Google Fonts, visual keywords</em>
-</p>
-
-<p align="center">
-  <img src=".github/assets/screenshot-sections.png" width="700" alt="Sections step - Pick from 60 layout templates">
-  <br>
-  <em>Step 4: Choose sections &mdash; 12 types with 5 layout variants each</em>
 </p>
 
 ## Quick Start
@@ -84,6 +72,18 @@ When you're done designing, click **Build** on the final step. Copy the generate
 - All config stored as JSON files in a `landfall/` directory
 - No accounts, no cloud, no telemetry
 - Works offline after install
+
+<p align="center">
+  <img src=".github/assets/screenshot-style.png" width="700" alt="Style step - Choose color palettes, fonts, and visual keywords">
+  <br>
+  <em>Step 1: Define your style &mdash; 42 color palettes, Google Fonts, visual keywords</em>
+</p>
+
+<p align="center">
+  <img src=".github/assets/screenshot-sections.png" width="700" alt="Sections step - Pick from 60 layout templates">
+  <br>
+  <em>Step 4: Choose sections &mdash; 12 types with 5 layout variants each</em>
+</p>
 
 ## How It Works
 
