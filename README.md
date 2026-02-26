@@ -26,9 +26,9 @@ Landfall is a CLI tool that guides you through a structured wizard to fully spec
   <em>8-step wizard &rarr; structured spec &rarr; AI-ready prompts</em>
 </p>
 
-<p align="center">
-  <video src=".github/assets/demo.mp4" width="700" controls></video>
-  <br>
+
+https://github.com/user-attachments/assets/aa97324d-e79e-4a5f-9e1b-939d1e9af618
+
   <em>Full demo (45s)</em>
 </p>
 
